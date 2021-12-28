@@ -5,43 +5,38 @@
 #include <optional>
 #include <vulkan/vulkan.hpp>
 
+#include "Renderer.hpp"
 #include "Window.hpp"
-
-struct QueueFamilyIndices {
-  std::optional<uint32_t> graphicsFamily;
-  std::optional<uint32_t> presentFamily;
-
-  bool IsComplete() { return graphicsFamily.has_value() && presentFamily.has_value(); }
-};
-
-const std::vector<const char*> REQUIRED_DEVICE_EXTENSIONS = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
 class Application {
  public:
+  static Application* appInstance;
+  static Application* Get() { return appInstance; }
+
   Application();
+  ~Application() = default;
+  Application(const Application&) = delete;
+  Application& operator=(const Application&) = delete;
 
   void Run();
+
+  const vk::SurfaceKHR& GetSurface() { return surface; }
 
  private:
   void createInstance();
   void createSurface();
   void pickPhysicalDevice();
-  void createLogicalDevice();
-
-  QueueFamilyIndices FindQueueFamilies(vk::PhysicalDevice device);
 
   bool UsableDevice(vk::PhysicalDevice device);
+
+  bool running = true;
 
   vk::Instance instance;
   vk::SurfaceKHR surface;
   vk::PhysicalDevice physicalDevice;
 
-  // TODO Move to renderer
-  vk::Device device;
-  vk::Queue graphicsQueue;
-  vk::Queue presentQueue;
-
   std::shared_ptr<Window> window;
+  std::shared_ptr<Renderer> renderer;
 };
 
 #endif  // APPLICATION_HPP_

@@ -7,15 +7,26 @@
 #include <set>
 #include <stdexcept>
 
+Application *Application::appInstance = nullptr;
+
 Application::Application() {
+  if (appInstance == nullptr) appInstance = this;
+
   window = std::make_shared<Window>();
+  window->SetEventCallback([this](bool quit) { running = !quit; });
 
   createInstance();
   pickPhysicalDevice();
-  createLogicalDevice();
+  createSurface();
+
+  renderer = std::make_shared<Renderer>(physicalDevice);
 }
 
-void Application::Run() {}
+void Application::Run() {
+  while (running) {
+    window->Update();
+  }
+}
 
 void Application::createInstance() {
   uint32_t extensionCount = 0;
@@ -52,45 +63,6 @@ void Application::pickPhysicalDevice() {
 
   // TODO verify we found a device
   if (!physicalDevice) throw std::runtime_error("Failed to find suitable GPU");
-}
-
-void Application::createLogicalDevice() {
-  // Device Queues
-  auto indices = FindQueueFamilies(physicalDevice);
-
-  std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos;
-  std::set<uint32_t> uniqueQueueFamilies = {indices.graphicsFamily.value()};
-
-  float queuePrio = 1.0f;
-  for (uint32_t queueFamily : uniqueQueueFamilies) {
-    vk::DeviceQueueCreateInfo queueInfo(vk::DeviceQueueCreateFlags(), queueFamily, 1, &queuePrio);
-    queueCreateInfos.push_back(queueInfo);
-  }
-
-  vk::DeviceCreateInfo deviceInfo(vk::DeviceCreateFlags(), queueCreateInfos, {},
-                                  REQUIRED_DEVICE_EXTENSIONS, {});
-  device = physicalDevice.createDevice(deviceInfo);
-
-  graphicsQueue = device.getQueue(indices.graphicsFamily.value(), 0);
-}
-
-QueueFamilyIndices Application::FindQueueFamilies(vk::PhysicalDevice device) {
-  QueueFamilyIndices indices;
-
-  auto queueFamilies = device.getQueueFamilyProperties();
-  int i = 0;
-  for (auto q : queueFamilies) {
-    if (q.queueFlags & vk::QueueFlagBits::eGraphics) indices.graphicsFamily = i;
-
-    auto presentSupport = device.getSurfaceSupportKHR(i, surface);
-    if (presentSupport) indices.presentFamily = i;
-
-    if (indices.IsComplete()) break;
-
-    i++;
-  }
-
-  return indices;
 }
 
 bool Application::UsableDevice(vk::PhysicalDevice) {
