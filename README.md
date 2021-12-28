@@ -1,3 +1,3 @@
-# dvulkan
+# rvulkan
 
-Reference Vulkan implementation
+Simple Vulkan Renderer
