@@ -20,8 +20,6 @@ class Application {
 
   void Run();
 
-  const vk::SurfaceKHR& GetSurface() { return surface; }
-
  private:
   void createInstance();
   void createSurface();
@@ -32,7 +30,6 @@ class Application {
   bool running = true;
 
   vk::Instance instance;
-  vk::SurfaceKHR surface;
   vk::PhysicalDevice physicalDevice;
 
   std::shared_ptr<Window> window;

@@ -17,14 +17,21 @@ Application::Application() {
 
   createInstance();
   pickPhysicalDevice();
-  createSurface();
 
-  renderer = std::make_shared<Renderer>(physicalDevice);
+  window->Init(instance, physicalDevice);
+
+  renderer = std::make_shared<Renderer>();
 }
 
 void Application::Run() {
   while (running) {
     window->Update();
+
+    auto image = window->BeginFrame();
+
+    // Draw things here
+
+    window->EndFrame(image);
   }
 }
 
@@ -41,14 +48,6 @@ void Application::createInstance() {
 
   vk::InstanceCreateInfo instanceInfo(vk::InstanceCreateFlags(), &appInfo, layers, extensions);
   instance = vk::createInstance(instanceInfo);
-}
-
-void Application::createSurface() {
-  VkSurfaceKHR surface = VK_NULL_HANDLE;
-  if (!SDL_Vulkan_CreateSurface(window->GetWindowHandle(), instance, &surface))
-    throw std::runtime_error("Failed to create surface");
-
-  this->surface = surface;
 }
 
 void Application::pickPhysicalDevice() {
