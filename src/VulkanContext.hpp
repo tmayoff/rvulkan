@@ -5,6 +5,9 @@
 #include <optional>
 #include <vulkan/vulkan.hpp>
 
+struct VmaAllocator_T;
+using VmaAllocator = VmaAllocator_T*;
+
 struct VulkanContextCreateOptions {
   std::vector<const char*> Extensions;
   std::vector<const char*> Layers;
@@ -23,9 +26,18 @@ class VulkanContext {
 
   void Init(vk::SurfaceKHR surface);
 
-  const vk::Instance& GetInstance() { return instance; }
-  const vk::SurfaceKHR& GetSurface() { return surface; }
-  const vk::PhysicalDevice& GetPhysicalDevice() { return physicalDevice; }
+  const vk::Instance& GetInstance() const { return instance; }
+  const vk::SurfaceKHR& GetSurface() const { return surface; }
+  const vk::PhysicalDevice& GetPhysicalDevice() const { return physicalDevice; }
+  const vk::Device& GetDevice() const { return device; }
+  const vk::SwapchainKHR& GetSwapchain() const { return swapchain; }
+  const vk::Queue& GetGraphicsQueue() const { return graphicsQueue; }
+  const vk::Queue& GetPresentQueue() const { return presentQueue; }
+  const vk::Semaphore& GetImageAvailableSemaphore() const { return imageAvailableSemaphore; }
+  const vk::Semaphore& GetRenderingFinishedSemaphore() const { return renderingFinishedSemaphore; }
+
+  const VmaAllocator& GetAllocator() const { return allocator; }
+  const vk::CommandPool& GetCommandPool() const { return commandPool; }
 
  private:
   void pickPhysicalDevice(std::vector<vk::PhysicalDevice> devices);
@@ -46,11 +58,19 @@ class VulkanContext {
   vk::Queue graphicsQueue;
   vk::Queue presentQueue;
 
+  VmaAllocator allocator = {};
+
   vk::SwapchainKHR swapchain;
   std::vector<vk::Image> swapchainImages;
   std::vector<vk::ImageView> swapchainImageViews;
 
+  vk::Semaphore imageAvailableSemaphore;
+  vk::Semaphore renderingFinishedSemaphore;
+
   vk::CommandPool commandPool;
 };
+
+VulkanContext& GetCurrentVulkanContext();
+void SetCurrentVulkanContext(VulkanContext&);
 
 #endif  // VULKANCONTEXT_HPP_

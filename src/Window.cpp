@@ -37,3 +37,9 @@ std::vector<const char*> Window::GetRequiredExtension() {
 
   return extensions;
 }
+
+vk::SurfaceKHR Window::GetSurface(const vk::Instance& instance) {
+  VkSurfaceKHR surface = VK_NULL_HANDLE;
+  SDL_Vulkan_CreateSurface(window, instance, &surface);
+  return surface;
+}

@@ -1,12 +1,64 @@
 #include "Renderer.hpp"
 
-#include "Application.hpp"
+#include "VulkanContext.hpp"
 
-Renderer::Renderer(const vk::Device &device) : device(device) {
-  createRenderPass();
-  createGraphicsPipeline();
+const uint32_t FRAME_COUNT = 3;
+
+Renderer::Renderer() {
+  auto& vulkanContext = GetCurrentVulkanContext();
+  vk::CommandBufferAllocateInfo allocInfo;
+  allocInfo.setCommandPool(vulkanContext.GetCommandPool())
+      .setCommandBufferCount(FRAME_COUNT)
+      .setLevel(vk::CommandBufferLevel::ePrimary);
+
+  auto commandBuffers = vulkanContext.GetDevice().allocateCommandBuffers(allocInfo);
+
+  for (uint32_t i = 0; i < FRAME_COUNT; i++) {
+    auto fence = vulkanContext.GetDevice().createFence(
+        vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
+    virtualFrames.push_back(VirtualFrame{commandBuffers[i], fence});
+  }
 }
 
-void Renderer::createGraphicsPipeline() {}
+void Renderer::StartFrame() {
+  auto& vulkanContext = GetCurrentVulkanContext();
 
-void Renderer::createRenderPass() {}
+  auto acquiredImage = vulkanContext.GetDevice().acquireNextImageKHR(
+      vulkanContext.GetSwapchain(), UINT64_MAX, vulkanContext.GetImageAvailableSemaphore());
+
+  auto frame = GetCurrentFrame();
+
+  vk::Result waitForFence =
+      vulkanContext.GetDevice().waitForFences(frame.CommandQueueFence, false, UINT64_MAX);
+  vulkanContext.GetDevice().resetFences(frame.CommandQueueFence);
+
+  vk::CommandBufferBeginInfo beginInfo(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
+  frame.Commands.begin(beginInfo);
+}
+
+void Renderer::EndFrame() {
+  auto& vulkanContext = GetCurrentVulkanContext();
+  auto frame = GetCurrentFrame();
+
+  frame.Commands.end();
+
+  std::array waitStages = {(vk::PipelineStageFlags)vk::PipelineStageFlagBits::eTransfer};
+
+  vk::SubmitInfo submitInfo;
+  submitInfo.setWaitSemaphores(vulkanContext.GetImageAvailableSemaphore())
+      .setWaitDstStageMask(waitStages)
+      .setSignalSemaphores(vulkanContext.GetRenderingFinishedSemaphore())
+      .setCommandBuffers(frame.Commands);
+
+  vulkanContext.GetGraphicsQueue().submit(submitInfo, frame.CommandQueueFence);
+
+  vk::PresentInfoKHR presentInfo;
+  presentInfo.setWaitSemaphores(vulkanContext.GetRenderingFinishedSemaphore())
+      .setSwapchains(vulkanContext.GetSwapchain())
+      .setImageIndices(currentFrameIndex);
+
+  auto presentSucceeed = vulkanContext.GetPresentQueue().presentKHR(presentInfo);
+  assert(presentSucceeed == vk::Result::eSuccess);
+
+  currentFrameIndex = (currentFrameIndex + 1) % virtualFrames.size();
+}

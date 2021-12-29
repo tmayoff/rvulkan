@@ -1,5 +1,8 @@
 #include "VulkanContext.hpp"
 
+#define VMA_IMPLEMENTATION
+#include <vk_mem_alloc.h>
+
 #include <set>
 
 VulkanContext::VulkanContext(const VulkanContextCreateOptions& options) {
@@ -61,11 +64,20 @@ void VulkanContext::Init(vk::SurfaceKHR surface) {
 
   // TODO Debug setup
 
-  // TODO Vulkan Memory allocator
+  // vmaAllocator
+  VmaAllocatorCreateInfo allocatorInfo{};
+  allocatorInfo.vulkanApiVersion = VK_API_VERSION_1_2;
+  allocatorInfo.instance = instance;
+  allocatorInfo.physicalDevice = physicalDevice;
+  allocatorInfo.device = device;
+  vmaCreateAllocator(&allocatorInfo, &allocator);
 
+  // Swapchain
   recreateSwapchain(surfaceExtent.width, surfaceExtent.width);
 
   // TODO Create Sync
+  imageAvailableSemaphore = device.createSemaphore(vk::SemaphoreCreateInfo());
+  renderingFinishedSemaphore = device.createSemaphore(vk::SemaphoreCreateInfo());
 
   vk::CommandPoolCreateInfo commandPoolInfo;
   commandPoolInfo.setQueueFamilyIndex(indices.graphicsFamily.value())
@@ -133,6 +145,7 @@ void VulkanContext::recreateSwapchain(uint32_t surfaceWidth, uint32_t surfaceHei
 
   swapchainImages = device.getSwapchainImagesKHR(swapchain);
   swapchainImageViews.clear();
+  swapchainImageViews.reserve(swapchainImages.size());
 
   for (size_t i = 0; i < swapchainImages.size(); i++) {
     vk::ImageViewCreateInfo imageViewInfo;
@@ -141,6 +154,17 @@ void VulkanContext::recreateSwapchain(uint32_t surfaceWidth, uint32_t surfaceHei
         .setFormat(surfaceFormat.format)
         .setSubresourceRange(
             vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1));
-    swapchainImageViews.at(i) = device.createImageView(imageViewInfo);
+    swapchainImageViews.push_back(device.createImageView(imageViewInfo));
   }
+}
+
+static VulkanContext* CurrentVulkanContext = nullptr;
+
+VulkanContext& GetCurrentVulkanContext() {
+  assert(CurrentVulkanContext != nullptr);
+  return *CurrentVulkanContext;
+}
+
+void SetCurrentVulkanContext(VulkanContext& context) {
+  CurrentVulkanContext = std::addressof(context);
 }
