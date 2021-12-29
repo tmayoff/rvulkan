@@ -1,1 +1,1 @@
-sources += files('Application.cpp', 'main.cpp', 'Renderer.cpp', 'Window.cpp')
+sources += files('Application.cpp', 'main.cpp', 'Renderer.cpp', 'Window.cpp', 'VulkanContext.cpp')

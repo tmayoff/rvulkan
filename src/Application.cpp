@@ -12,59 +12,25 @@ Application *Application::appInstance = nullptr;
 Application::Application() {
   if (appInstance == nullptr) appInstance = this;
 
+  // Create Windwo
   window = std::make_shared<Window>();
   window->SetEventCallback([this](bool quit) { running = !quit; });
 
-  createInstance();
-  pickPhysicalDevice();
-
-  window->Init(instance, physicalDevice);
-
-  renderer = std::make_shared<Renderer>();
+  // Initialize Context
+  VulkanContextCreateOptions vulkanOptions;
+  vulkanOptions.Layers = {"VK_LAYER_KHRONOS_validation"};
+  vulkanOptions.Extensions = window->GetRequiredExtension();
+  vulkanContext = std::make_shared<VulkanContext>(vulkanOptions);
 }
 
 void Application::Run() {
   while (running) {
     window->Update();
 
-    auto image = window->BeginFrame();
+    // auto image = window->BeginFrame();
 
-    // Draw things here
+    // // Draw things here
 
-    window->EndFrame(image);
+    // window->EndFrame(image);
   }
-}
-
-void Application::createInstance() {
-  uint32_t extensionCount = 0;
-  SDL_Vulkan_GetInstanceExtensions(window->GetWindowHandle(), &extensionCount, nullptr);
-  std::vector<const char *> extensions(extensionCount);
-  SDL_Vulkan_GetInstanceExtensions(window->GetWindowHandle(), &extensionCount, extensions.data());
-
-  const std::array<const char *, 1> layers = {"VK_LAYER_KHRONOS_validation"};
-
-  vk::ApplicationInfo appInfo("rvulkan", VK_MAKE_VERSION(1, 0, 0), "rvulkan",
-                              VK_MAKE_VERSION(1, 0, 0), VK_API_VERSION_1_2);
-
-  vk::InstanceCreateInfo instanceInfo(vk::InstanceCreateFlags(), &appInfo, layers, extensions);
-  instance = vk::createInstance(instanceInfo);
-}
-
-void Application::pickPhysicalDevice() {
-  auto devices = instance.enumeratePhysicalDevices();
-
-  for (const auto &d : devices) {
-    if (UsableDevice(d)) {
-      physicalDevice = d;
-      break;
-    }
-  }
-
-  // TODO verify we found a device
-  if (!physicalDevice) throw std::runtime_error("Failed to find suitable GPU");
-}
-
-bool Application::UsableDevice(vk::PhysicalDevice) {
-  // TODO fill this out
-  return true;
 }

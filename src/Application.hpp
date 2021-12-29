@@ -6,6 +6,7 @@
 #include <vulkan/vulkan.hpp>
 
 #include "Renderer.hpp"
+#include "VulkanContext.hpp"
 #include "Window.hpp"
 
 class Application {
@@ -18,6 +19,8 @@ class Application {
   Application(const Application&) = delete;
   Application& operator=(const Application&) = delete;
 
+  const std::shared_ptr<Window>& GetWindow() { return window; }
+
   void Run();
 
  private:
@@ -29,8 +32,7 @@ class Application {
 
   bool running = true;
 
-  vk::Instance instance;
-  vk::PhysicalDevice physicalDevice;
+  std::shared_ptr<VulkanContext> vulkanContext;
 
   std::shared_ptr<Window> window;
   std::shared_ptr<Renderer> renderer;
