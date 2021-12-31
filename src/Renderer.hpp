@@ -4,6 +4,8 @@
 
 #include <vulkan/vulkan.hpp>
 
+#include "RenderPass.hpp"
+
 struct VirtualFrame {
   vk::CommandBuffer Commands;
   vk::Fence CommandQueueFence;
@@ -20,6 +22,8 @@ class Renderer {
   const VirtualFrame& GetCurrentFrame() { return virtualFrames[currentFrameIndex]; }
 
  private:
+  RenderPass renderPass;
+
   uint32_t currentFrameIndex;
 
   std::vector<VirtualFrame> virtualFrames;

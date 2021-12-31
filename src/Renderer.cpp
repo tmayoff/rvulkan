@@ -34,11 +34,19 @@ void Renderer::StartFrame() {
 
   vk::CommandBufferBeginInfo beginInfo(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
   frame.Commands.begin(beginInfo);
+
+  vk::RenderPassBeginInfo renderPassInfo;
+  renderPassInfo.setRenderPass(renderPass.GetRenderPass());
+
+  frame.Commands.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
+  frame.Commands.bindPipeline(vk::PipelineBindPoint::eGraphics, renderPass.GetPipeline());
 }
 
 void Renderer::EndFrame() {
   auto& vulkanContext = GetCurrentVulkanContext();
   auto frame = GetCurrentFrame();
+
+  frame.Commands.endRenderPass();
 
   frame.Commands.end();
 

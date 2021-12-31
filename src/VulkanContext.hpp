@@ -31,6 +31,8 @@ class VulkanContext {
   const vk::PhysicalDevice& GetPhysicalDevice() const { return physicalDevice; }
   const vk::Device& GetDevice() const { return device; }
   const vk::SwapchainKHR& GetSwapchain() const { return swapchain; }
+  const vk::Extent2D& GetSurfaceExtent() const { return surfaceExtent; }
+  const vk::SurfaceFormatKHR& GetSurfaceFormat() const { return surfaceFormat; }
   const vk::Queue& GetGraphicsQueue() const { return graphicsQueue; }
   const vk::Queue& GetPresentQueue() const { return presentQueue; }
   const vk::Semaphore& GetImageAvailableSemaphore() const { return imageAvailableSemaphore; }
