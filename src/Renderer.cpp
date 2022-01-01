@@ -9,6 +9,29 @@ Renderer::Renderer() {
   PipelineOptions pipelineOptions{};
   pipelineOptions.shader =
       Shader(Shader::ReadFile("assets/vert.spv"), Shader::ReadFile("assets/frag.spv"));
+  pipelineOptions.bufferLayout = {BufferElement(ShaderDataType::Float3, "a_Position"),
+                                  BufferElement(ShaderDataType::Float4, "a_Color")};
+
+  vk::BufferCreateInfo bufferInfo{};
+  bufferInfo.setSize(vk::DeviceSize(sizeof(Vertex) * vertices.size()))
+      .setUsage(vk::BufferUsageFlagBits::eVertexBuffer)
+      .setSharingMode(vk::SharingMode::eExclusive);
+
+  vertexBuffer = vulkanContext.GetDevice().createBuffer(bufferInfo);
+
+  {
+    // Allocate buffer
+    VmaAllocationCreateInfo allocInfo = {};
+    allocInfo.usage = VMA_MEMORY_USAGE_GPU_TO_CPU;
+    int res = vmaCreateBuffer(vulkanContext.GetAllocator(), (VkBufferCreateInfo*)&bufferInfo,
+                              &allocInfo, (VkBuffer*)&vertexBuffer, &alloc, nullptr);
+
+    // Copy to buffer
+    void* mem = nullptr;
+    vmaMapMemory(vulkanContext.GetAllocator(), alloc, &mem);
+    std::memcpy(mem, vertices.data(), bufferInfo.size);
+    vmaUnmapMemory(vulkanContext.GetAllocator(), alloc);
+  }
 
   renderPass = RenderPass(pipelineOptions);
 
@@ -69,7 +92,9 @@ void Renderer::StartFrame() {
   frame.Commands.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
   frame.Commands.bindPipeline(vk::PipelineBindPoint::eGraphics, renderPass.GetPipeline());
 
-  renderPass.Render({frame.Commands});
+  frame.Commands.bindVertexBuffers(0, vertexBuffer, {0});
+  frame.Commands.draw(vertices.size(), 1, 0, 0);
+  // renderPass.Render({frame.Commands});
 }
 
 void Renderer::EndFrame() {

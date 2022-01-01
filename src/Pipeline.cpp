@@ -15,10 +15,25 @@ Pipeline::Pipeline(const PipelineOptions& options, const vk::RenderPass renderPa
                                         options.shader.GetFragmentModule(), "main")};
 
   std::vector<vk::VertexInputAttributeDescription> vertexAttributeDescriptions;
-  std::vector<vk::VertexInputBindingDescription> vertexBindingDescriptions;
+  std::vector<vk::VertexInputBindingDescription> vertexBindingDescriptions = {
+      vk::VertexInputBindingDescription(0, options.bufferLayout.GetStride(),
+                                        vk::VertexInputRate::eVertex)};
 
-  vk::PipelineVertexInputStateCreateInfo vertexInputInfo(
-      (vk::PipelineVertexInputStateCreateFlags()));
+  int location = 0;
+  for (auto& inputAttrib : options.bufferLayout) {
+    vk::VertexInputAttributeDescription inputDesc{};
+    inputDesc.setLocation(location)
+        .setBinding(0)
+        .setOffset(inputAttrib.Offset)
+        .setFormat(ShaderDataTypeToVkForamt(inputAttrib.Type));
+
+    vertexAttributeDescriptions.push_back(inputDesc);
+    location++;
+  }
+
+  vk::PipelineVertexInputStateCreateInfo vertexInputInfo(vk::PipelineVertexInputStateCreateFlags(),
+                                                         vertexBindingDescriptions,
+                                                         vertexAttributeDescriptions);
 
   vk::PipelineInputAssemblyStateCreateInfo inputAssemblyInfo;
   inputAssemblyInfo.setPrimitiveRestartEnable(false).setTopology(
