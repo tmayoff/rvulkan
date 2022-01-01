@@ -37,6 +37,7 @@ class VulkanContext {
   const vk::Queue& GetPresentQueue() const { return presentQueue; }
   const vk::Semaphore& GetImageAvailableSemaphore() const { return imageAvailableSemaphore; }
   const vk::Semaphore& GetRenderingFinishedSemaphore() const { return renderingFinishedSemaphore; }
+  const std::vector<vk::ImageView>& GetSwapchainImageViews() const { return swapchainImageViews; }
 
   const VmaAllocator& GetAllocator() const { return allocator; }
   const vk::CommandPool& GetCommandPool() const { return commandPool; }

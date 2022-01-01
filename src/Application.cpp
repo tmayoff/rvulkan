@@ -12,7 +12,7 @@ Application *Application::appInstance = nullptr;
 Application::Application() {
   if (appInstance == nullptr) appInstance = this;
 
-  // Create Windwo
+  // Create Window
   window = std::make_shared<Window>();
   window->SetEventCallback([this](bool quit) { running = !quit; });
 

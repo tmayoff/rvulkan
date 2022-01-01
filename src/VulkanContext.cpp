@@ -75,7 +75,6 @@ void VulkanContext::Init(vk::SurfaceKHR surface) {
   // Swapchain
   recreateSwapchain(surfaceExtent.width, surfaceExtent.width);
 
-  // TODO Create Sync
   imageAvailableSemaphore = device.createSemaphore(vk::SemaphoreCreateInfo());
   renderingFinishedSemaphore = device.createSemaphore(vk::SemaphoreCreateInfo());
 

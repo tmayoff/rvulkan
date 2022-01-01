@@ -2,18 +2,35 @@
 
 #include "VulkanContext.hpp"
 
-const uint32_t FRAME_COUNT = 3;
+const uint32_t FRAMES_IN_FLIGHT = 2;
 
 Renderer::Renderer() {
   auto& vulkanContext = GetCurrentVulkanContext();
+
+  framebuffers.resize(vulkanContext.GetSwapchainImageViews().size());
+  for (size_t i = 0; i < vulkanContext.GetSwapchainImageViews().size(); i++) {
+    std::array attachments = {vulkanContext.GetSwapchainImageViews().at(i)};
+
+    auto extent = vulkanContext.GetSurfaceExtent();
+
+    vk::FramebufferCreateInfo framebufferInfo{};
+    framebufferInfo.setRenderPass(renderPass.GetRenderPass());
+    framebufferInfo.setAttachments(attachments);
+    framebufferInfo.setWidth(extent.width);
+    framebufferInfo.setHeight(extent.height);
+    framebufferInfo.setLayers(1);
+
+    framebuffers.at(i) = vulkanContext.GetDevice().createFramebuffer(framebufferInfo);
+  }
+
   vk::CommandBufferAllocateInfo allocInfo;
   allocInfo.setCommandPool(vulkanContext.GetCommandPool())
-      .setCommandBufferCount(FRAME_COUNT)
+      .setCommandBufferCount(framebuffers.size())
       .setLevel(vk::CommandBufferLevel::ePrimary);
 
   auto commandBuffers = vulkanContext.GetDevice().allocateCommandBuffers(allocInfo);
 
-  for (uint32_t i = 0; i < FRAME_COUNT; i++) {
+  for (size_t i = 0; i < framebuffers.size(); i++) {
     auto fence = vulkanContext.GetDevice().createFence(
         vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
     virtualFrames.push_back(VirtualFrame{commandBuffers[i], fence});
@@ -25,21 +42,29 @@ void Renderer::StartFrame() {
 
   auto acquiredImage = vulkanContext.GetDevice().acquireNextImageKHR(
       vulkanContext.GetSwapchain(), UINT64_MAX, vulkanContext.GetImageAvailableSemaphore());
+  presentImageIndex = acquiredImage.value;
 
   auto frame = GetCurrentFrame();
 
   vk::Result waitForFence =
       vulkanContext.GetDevice().waitForFences(frame.CommandQueueFence, false, UINT64_MAX);
+  assert(waitForFence == vk::Result::eSuccess);
   vulkanContext.GetDevice().resetFences(frame.CommandQueueFence);
 
-  vk::CommandBufferBeginInfo beginInfo(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
-  frame.Commands.begin(beginInfo);
+  frame.Commands.begin(vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
+
+  auto clearColors = vk::ClearValue(vk::ClearColorValue(std::array<float, 4>{0.2f, 0.2f, 0.2f}));
 
   vk::RenderPassBeginInfo renderPassInfo;
-  renderPassInfo.setRenderPass(renderPass.GetRenderPass());
+  renderPassInfo.setFramebuffer(framebuffers.at(currentFrameIndex))
+      .setRenderPass(renderPass.GetRenderPass())
+      .setRenderArea(vk::Rect2D({0, 0}, vulkanContext.GetSurfaceExtent()))
+      .setClearValues(clearColors);
 
   frame.Commands.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
   frame.Commands.bindPipeline(vk::PipelineBindPoint::eGraphics, renderPass.GetPipeline());
+
+  frame.Commands.draw(3, 1, 0, 0);
 }
 
 void Renderer::EndFrame() {
@@ -47,10 +72,10 @@ void Renderer::EndFrame() {
   auto frame = GetCurrentFrame();
 
   frame.Commands.endRenderPass();
-
   frame.Commands.end();
 
-  std::array waitStages = {(vk::PipelineStageFlags)vk::PipelineStageFlagBits::eTransfer};
+  std::array waitStages = {
+      (vk::PipelineStageFlags)vk::PipelineStageFlagBits::eColorAttachmentOutput};
 
   vk::SubmitInfo submitInfo;
   submitInfo.setWaitSemaphores(vulkanContext.GetImageAvailableSemaphore())
@@ -58,12 +83,14 @@ void Renderer::EndFrame() {
       .setSignalSemaphores(vulkanContext.GetRenderingFinishedSemaphore())
       .setCommandBuffers(frame.Commands);
 
+  vulkanContext.GetDevice().resetFences(frame.CommandQueueFence);
+
   vulkanContext.GetGraphicsQueue().submit(submitInfo, frame.CommandQueueFence);
 
   vk::PresentInfoKHR presentInfo;
   presentInfo.setWaitSemaphores(vulkanContext.GetRenderingFinishedSemaphore())
       .setSwapchains(vulkanContext.GetSwapchain())
-      .setImageIndices(currentFrameIndex);
+      .setImageIndices(presentImageIndex);
 
   auto presentSucceeed = vulkanContext.GetPresentQueue().presentKHR(presentInfo);
   assert(presentSucceeed == vk::Result::eSuccess);

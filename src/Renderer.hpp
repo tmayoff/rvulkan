@@ -25,6 +25,9 @@ class Renderer {
   RenderPass renderPass;
 
   uint32_t currentFrameIndex;
+  uint32_t presentImageIndex;
+
+  std::vector<vk::Framebuffer> framebuffers;
 
   std::vector<VirtualFrame> virtualFrames;
 };
