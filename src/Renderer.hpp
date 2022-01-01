@@ -16,7 +16,6 @@ class Renderer {
   Renderer();
 
   void StartFrame();
-
   void EndFrame();
 
   const VirtualFrame& GetCurrentFrame() { return virtualFrames[currentFrameIndex]; }
@@ -24,8 +23,8 @@ class Renderer {
  private:
   RenderPass renderPass;
 
-  uint32_t currentFrameIndex;
-  uint32_t presentImageIndex;
+  uint32_t currentFrameIndex = 0;
+  uint32_t presentImageIndex = 0;
 
   std::vector<vk::Framebuffer> framebuffers;
 

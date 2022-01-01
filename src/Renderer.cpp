@@ -1,11 +1,16 @@
 #include "Renderer.hpp"
 
+#include "Pipeline.hpp"
 #include "VulkanContext.hpp"
-
-const uint32_t FRAMES_IN_FLIGHT = 2;
 
 Renderer::Renderer() {
   auto& vulkanContext = GetCurrentVulkanContext();
+
+  PipelineOptions pipelineOptions{};
+  pipelineOptions.shader =
+      Shader(Shader::ReadFile("assets/vert.spv"), Shader::ReadFile("assets/frag.spv"));
+
+  renderPass = RenderPass(pipelineOptions);
 
   framebuffers.resize(vulkanContext.GetSwapchainImageViews().size());
   for (size_t i = 0; i < vulkanContext.GetSwapchainImageViews().size(); i++) {
@@ -64,7 +69,7 @@ void Renderer::StartFrame() {
   frame.Commands.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
   frame.Commands.bindPipeline(vk::PipelineBindPoint::eGraphics, renderPass.GetPipeline());
 
-  frame.Commands.draw(3, 1, 0, 0);
+  renderPass.Render({frame.Commands});
 }
 
 void Renderer::EndFrame() {

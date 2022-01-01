@@ -4,23 +4,28 @@
 
 #include <vulkan/vulkan.hpp>
 
+#include "Pipeline.hpp"
 #include "Shader.hpp"
+
+struct RenderPassState {
+  vk::CommandBuffer Commands;
+};
 
 class RenderPass {
  public:
-  RenderPass();
+  RenderPass() = default;
+  RenderPass(const PipelineOptions &pipelineOptions);
+
+  void Render(const RenderPassState &state);
 
   const vk::RenderPass &GetRenderPass() const { return renderPass; }
-  const vk::Pipeline &GetPipeline() const { return pipeline; }
-  const vk::Framebuffer &GetFramebuffer() const { return framebuffer; }
-
-  void createPipeline();
+  const vk::Pipeline &GetPipeline() const { return pipeline.GetPipeline(); }
 
  private:
+  Pipeline pipeline;
+
   vk::RenderPass renderPass;
-  vk::Pipeline pipeline;
   vk::PipelineLayout layout;
-  vk::Framebuffer framebuffer;
 
   Shader shader;
 };
