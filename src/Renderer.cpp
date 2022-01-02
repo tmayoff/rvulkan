@@ -12,26 +12,14 @@ Renderer::Renderer() {
   pipelineOptions.bufferLayout = {BufferElement(ShaderDataType::Float3, "a_Position"),
                                   BufferElement(ShaderDataType::Float4, "a_Color")};
 
-  vk::BufferCreateInfo bufferInfo{};
-  bufferInfo.setSize(vk::DeviceSize(sizeof(Vertex) * vertices.size()))
-      .setUsage(vk::BufferUsageFlagBits::eVertexBuffer)
-      .setSharingMode(vk::SharingMode::eExclusive);
+  vertexBuffer =
+      Buffer(sizeof(Vertex) * QuadVertexCount, VmaMemoryUsage::VMA_MEMORY_USAGE_GPU_TO_CPU,
+             vk::BufferUsageFlagBits::eVertexBuffer);
 
-  vertexBuffer = vulkanContext.GetDevice().createBuffer(bufferInfo);
-
-  {
-    // Allocate buffer
-    VmaAllocationCreateInfo allocInfo = {};
-    allocInfo.usage = VMA_MEMORY_USAGE_GPU_TO_CPU;
-    int res = vmaCreateBuffer(vulkanContext.GetAllocator(), (VkBufferCreateInfo*)&bufferInfo,
-                              &allocInfo, (VkBuffer*)&vertexBuffer, &alloc, nullptr);
-
-    // Copy to buffer
-    void* mem = nullptr;
-    vmaMapMemory(vulkanContext.GetAllocator(), alloc, &mem);
-    std::memcpy(mem, vertices.data(), bufferInfo.size);
-    vmaUnmapMemory(vulkanContext.GetAllocator(), alloc);
-  }
+  indexBuffer =
+      Buffer(sizeof(uint32_t) * QuadIndices.size(), VmaMemoryUsage::VMA_MEMORY_USAGE_GPU_TO_CPU,
+             vk::BufferUsageFlagBits::eIndexBuffer);
+  indexBuffer.SetData((void*)QuadIndices.data(), sizeof(uint32_t) * QuadIndices.size());
 
   renderPass = RenderPass(pipelineOptions);
 
@@ -91,10 +79,6 @@ void Renderer::StartFrame() {
 
   frame.Commands.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
   frame.Commands.bindPipeline(vk::PipelineBindPoint::eGraphics, renderPass.GetPipeline());
-
-  frame.Commands.bindVertexBuffers(0, vertexBuffer, {0});
-  frame.Commands.draw(vertices.size(), 1, 0, 0);
-  // renderPass.Render({frame.Commands});
 }
 
 void Renderer::EndFrame() {
@@ -126,4 +110,22 @@ void Renderer::EndFrame() {
   assert(presentSucceeed == vk::Result::eSuccess);
 
   currentFrameIndex = (currentFrameIndex + 1) % virtualFrames.size();
+}
+
+void Renderer::DrawQuad() {
+  auto frame = GetCurrentFrame();
+
+  std::vector<Vertex> vertices(QuadVertexCount);
+  int i = 0;
+  for (auto& v : vertices) {
+    v.Position = QuadVertexPositions.at(i);
+    v.Color = glm::vec4{0.1f, 0.2f, 0.8f, 1.0f};
+    i++;
+  }
+
+  vertexBuffer.SetData(vertices.data(), sizeof(Vertex) * vertices.size());
+
+  frame.Commands.bindVertexBuffers(0, vertexBuffer.GetHandle(), {0});
+  frame.Commands.bindIndexBuffer(indexBuffer.GetHandle(), 0, vk::IndexType::eUint32);
+  frame.Commands.drawIndexed(QuadIndices.size(), 1, 0, 0, 0);
 }

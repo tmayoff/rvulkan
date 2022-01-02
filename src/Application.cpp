@@ -35,7 +35,8 @@ void Application::Run() {
 
     renderer->StartFrame();
 
-    // // Draw things here
+    // Draw things here
+    renderer->DrawQuad();
 
     renderer->EndFrame();
   }

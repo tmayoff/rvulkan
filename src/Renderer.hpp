@@ -7,6 +7,7 @@
 #include <glm/glm.hpp>
 #include <vulkan/vulkan.hpp>
 
+#include "Buffer.hpp"
 #include "RenderPass.hpp"
 
 struct Vertex {
@@ -19,9 +20,12 @@ struct VirtualFrame {
   vk::Fence CommandQueueFence;
 };
 
-const std::vector<Vertex> vertices = {{{0.0f, -0.5f, 0.0f}, {0.5f, 0.0f, 0.5f, 1.0f}},
-                                      {{0.5f, 0.5f, 0.0f}, {0.2f, 0.0f, 0.8f, 1.0f}},
-                                      {{-0.5f, 0.5f, 0.0f}, {0.8f, 0.0f, 0.2f, 1.0f}}};
+const std::array<glm::vec3, 4> QuadVertexPositions = {
+    glm::vec3{-0.5f, -0.5f, 0.0f}, glm::vec3{0.5f, -0.5f, 0.0f}, glm::vec3{0.5f, 0.5f, 0.0f},
+    glm::vec3{-0.5f, 0.5f, 0.0f}};
+
+constexpr size_t QuadVertexCount = 4;
+constexpr std::array<uint32_t, 6> QuadIndices = {0, 1, 2, 2, 3, 0};
 
 class Renderer {
  public:
@@ -29,6 +33,8 @@ class Renderer {
 
   void StartFrame();
   void EndFrame();
+
+  void DrawQuad();
 
   const VirtualFrame& GetCurrentFrame() { return virtualFrames[currentFrameIndex]; }
 
@@ -38,8 +44,8 @@ class Renderer {
   uint32_t currentFrameIndex = 0;
   uint32_t presentImageIndex = 0;
 
-  vk::Buffer vertexBuffer;
-  VmaAllocation alloc = {};
+  Buffer vertexBuffer;
+  Buffer indexBuffer;
 
   std::vector<vk::Framebuffer> framebuffers;
   std::vector<VirtualFrame> virtualFrames;
