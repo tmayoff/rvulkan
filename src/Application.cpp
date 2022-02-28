@@ -17,6 +17,7 @@
 #include <vulkan/vulkan_structs.hpp>
 
 #include "Assert.hpp"
+#include "Shader.hpp"
 #include "glm/ext/matrix_clip_space.hpp"
 #include "glm/ext/matrix_transform.hpp"
 
@@ -391,18 +392,15 @@ void Application::CreateDescriptorSets() {
 }
 
 void Application::CreateGraphicsPipeline() {
-  auto vertShaderCode = ReadFile("assets/vert.spv");
-  auto fragShaderCode = ReadFile("assets/frag.spv");
-  auto vertShaderModule = CreateShaderModule(vertShaderCode);
-  auto fragShaderModule = CreateShaderModule(fragShaderCode);
+  Shader shader(device, "assets/default.glsl");
 
-  vk::PipelineShaderStageCreateInfo vertCreateInfo(vk::PipelineShaderStageCreateFlags(),
-                                                   vk::ShaderStageFlagBits::eVertex,
-                                                   vertShaderModule, "main");
+  vk::PipelineShaderStageCreateInfo vertCreateInfo(
+      vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eVertex,
+      shader.GetShaderModule(vk::ShaderStageFlagBits::eVertex), "main");
 
-  vk::PipelineShaderStageCreateInfo fragCreateInfo(vk::PipelineShaderStageCreateFlags(),
-                                                   vk::ShaderStageFlagBits::eFragment,
-                                                   fragShaderModule, "main");
+  vk::PipelineShaderStageCreateInfo fragCreateInfo(
+      vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eFragment,
+      shader.GetShaderModule(vk::ShaderStageFlagBits::eFragment), "main");
 
   std::array<vk::PipelineShaderStageCreateInfo, 2> shaderStages = {vertCreateInfo, fragCreateInfo};
 
@@ -626,12 +624,6 @@ auto Application::FindMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags pr
   throw std::runtime_error("Failed to find suitable memory type");
 }
 
-auto Application::CreateShaderModule(const std::vector<uint8_t> &code) -> vk::ShaderModule {
-  vk::ShaderModuleCreateInfo createInfo(vk::ShaderModuleCreateFlags(), code.size(),
-                                        reinterpret_cast<const uint32_t *>(code.data()));
-  return device.createShaderModule(createInfo);
-}
-
 auto Application::CreateBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage,
                                vk::MemoryPropertyFlags properties)
     -> std::pair<vk::Buffer, vk::DeviceMemory> {
@@ -665,20 +657,4 @@ void Application::CopyBuffer(vk::Buffer src, vk::Buffer dst, vk::DeviceSize size
   vk::SubmitInfo submitInfo(0, {}, {}, 1, buf.data(), 0, {});
   graphicsQueue.submit(submitInfo);
   graphicsQueue.waitIdle();
-}
-
-auto Application::ReadFile(const std::string &filename) -> std::vector<uint8_t> {
-  std::ifstream file(filename, std::ios::in);
-  if (!file.is_open()) throw std::runtime_error("failed to open file");
-
-  file.seekg(0, std::ios::end);
-  auto filesize = file.tellg();
-
-  std::vector<char> buf(filesize);
-  file.seekg(0, std::ios::beg);
-  file.read(buf.data(), filesize);
-
-  file.close();
-
-  return std::vector<uint8_t>(buf.begin(), buf.end());
 }

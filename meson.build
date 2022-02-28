@@ -8,7 +8,6 @@ add_project_arguments('-DENABLE_ASSERTS', language: 'cpp')
 glm_proj = subproject('glm')
 glm = glm_proj.get_variable('glm_dep')
 
-
 cmake = import('cmake')
 vma_proj = cmake.subproject('vma')
 vma = vma_proj.dependency('VulkanMemoryAllocator')
@@ -20,8 +19,10 @@ sources = []
 
 subdir('src')
 
+shaderc = dependency('shaderc')
+
 exe = executable('rvulkan', sources,
-                dependencies: [vulkan, sdl2, glm, vma],
+                dependencies: [vulkan, sdl2, glm, vma, shaderc],
                 install : true)
 
 test('basic', exe)

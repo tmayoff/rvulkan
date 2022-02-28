@@ -10,6 +10,8 @@
 #include <optional>
 #include <vulkan/vulkan.hpp>
 
+#include "Shader.hpp"
+
 const int MAX_FRAMES_IN_FLIGHT = 2;
 
 struct QueueFamilyIndices {
@@ -72,8 +74,6 @@ class Application {
   void Run();
 
  private:
-  static auto ReadFile(const std::string &filename) -> std::vector<uint8_t>;
-
   void InitWindow();
   void InitVulkan();
   void MainLoop();
@@ -109,11 +109,11 @@ class Application {
 
   auto FindMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties) -> uint32_t;
 
-  auto CreateShaderModule(const std::vector<uint8_t> &code) -> vk::ShaderModule;
-
   auto CreateBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage,
                     vk::MemoryPropertyFlags properties) -> std::pair<vk::Buffer, vk::DeviceMemory>;
   void CopyBuffer(vk::Buffer src, vk::Buffer dst, vk::DeviceSize size);
+
+  Shader shader;
 
   // Vulkan
   vk::Instance instance;
