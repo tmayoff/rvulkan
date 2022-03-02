@@ -10,6 +10,7 @@
 #include <optional>
 #include <vulkan/vulkan.hpp>
 
+#include "RenderPass.hpp"
 #include "Shader.hpp"
 
 const int MAX_FRAMES_IN_FLIGHT = 2;
@@ -78,7 +79,6 @@ class Application {
   void CleanupSwapchain();
   void CreateSwapchain();
   void CreateImageViews();
-  void CreateRenderPass();
   void CreateDescriptorSetLayout();
   void CreateGraphicsPipeline();
   void CreateFramebuffers();
@@ -101,6 +101,8 @@ class Application {
 
   Shader shader;
 
+  RenderPass renderPass;
+
   // Vulkan
   vk::SwapchainKHR swapchain;
   vk::Format swapchainFormat;
@@ -109,7 +111,6 @@ class Application {
   std::vector<vk::ImageView> swapchainImageViews;
 
   vk::Pipeline graphicsPipeline;
-  vk::RenderPass renderPass;
   vk::DescriptorPool descriptorPool;
   std::vector<vk::DescriptorSet> descriptorSets;
   vk::DescriptorSetLayout descriptorSetLayout;

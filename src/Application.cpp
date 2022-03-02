@@ -45,13 +45,17 @@ void Application::InitWindow() {
 }
 
 void Application::InitVulkan() {
-  auto *ctx = &Context::Get();
+  auto *ctx = Context::Get();
 
   // TODO Setup Debugging
 
   CreateSwapchain();
   CreateImageViews();
-  CreateRenderPass();
+
+  RenderPassInfo info{};
+  info.colorAttachmentFormat = swapchainFormat;
+  renderPass = RenderPass(info);
+
   CreateDescriptorSetLayout();
   CreateGraphicsPipeline();
   CreateFramebuffers();
@@ -124,7 +128,7 @@ void Application::InitVulkan() {
 }
 
 void Application::MainLoop() {
-  auto *ctx = &Context::Get();
+  auto *ctx = Context::Get();
 
   while (running) {
     SDL_Event e;
@@ -199,7 +203,7 @@ void Application::MainLoop() {
 }
 
 void Application::UpdateUniformBuffers(uint32_t currentImage) {
-  auto *ctx = &Context::Get();
+  auto *ctx = Context::Get();
   static auto startTime = std::chrono::high_resolution_clock::now();
 
   auto currentTime = std::chrono::high_resolution_clock::now();
@@ -223,7 +227,7 @@ void Application::UpdateUniformBuffers(uint32_t currentImage) {
 void Application::Cleanup() { SDL_Quit(); }
 
 void Application::RecreateSwapchain() {
-  auto *ctx = &Context::Get();
+  auto *ctx = Context::Get();
 
   vkDeviceWaitIdle(ctx->GetDevice());
 
@@ -231,7 +235,11 @@ void Application::RecreateSwapchain() {
 
   CreateSwapchain();
   CreateImageViews();
-  CreateRenderPass();
+
+  RenderPassInfo info{};
+  info.colorAttachmentFormat = swapchainFormat;
+  renderPass = RenderPass(info);
+
   CreateGraphicsPipeline();
   CreateFramebuffers();
   CreateUniformBuffers();
@@ -240,7 +248,7 @@ void Application::RecreateSwapchain() {
 }
 
 void Application::CleanupSwapchain() {
-  auto *ctx = &Context::Get();
+  auto *ctx = Context::Get();
 
   for (auto &swapchainFramebuffer : swapchainFramebuffers)
     ctx->GetDevice().destroyFramebuffer(swapchainFramebuffer);
@@ -249,7 +257,6 @@ void Application::CleanupSwapchain() {
 
   ctx->GetDevice().destroyPipeline(graphicsPipeline);
   ctx->GetDevice().destroyPipelineLayout(pipelineLayout);
-  ctx->GetDevice().destroyRenderPass(renderPass);
   for (auto &swapchainImageView : swapchainImageViews)
     ctx->GetDevice().destroyImageView(swapchainImageView);
 
@@ -257,7 +264,7 @@ void Application::CleanupSwapchain() {
 }
 
 void Application::CreateSwapchain() {
-  auto *ctx = &Context::Get();
+  auto *ctx = Context::Get();
 
   // Create swapchain
   SwapchainSupportDetails details = ctx->QuerySwapchainSupportDetails(ctx->GetPhysicalDevice());
@@ -293,7 +300,7 @@ void Application::CreateSwapchain() {
 }
 
 void Application::CreateImageViews() {
-  auto *ctx = &Context::Get();
+  auto *ctx = Context::Get();
 
   // Swapchain Image Views
   swapchainImageViews.resize(swapchainImages.size());
@@ -308,31 +315,8 @@ void Application::CreateImageViews() {
   }
 }
 
-void Application::CreateRenderPass() {
-  auto *ctx = &Context::Get();
-
-  vk::AttachmentDescription colorAttachment(
-      vk::AttachmentDescriptionFlags(), swapchainFormat, vk::SampleCountFlagBits::e1,
-      vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore, vk::AttachmentLoadOp::eDontCare,
-      vk::AttachmentStoreOp::eDontCare, vk::ImageLayout::eUndefined,
-      vk::ImageLayout::ePresentSrcKHR);
-
-  vk::AttachmentReference colorAttachmentRef(0, vk::ImageLayout::eColorAttachmentOptimal);
-  vk::SubpassDescription subpass(vk::SubpassDescriptionFlags(), vk::PipelineBindPoint::eGraphics,
-                                 {}, colorAttachmentRef);
-
-  // vk::SubpassDependency dependency(0, 0, vk::PipelineStageFlagBits::eColorAttachmentOutput,
-  //                                  vk::PipelineStageFlagBits::eColorAttachmentOutput,
-  //                                  vk::AccessFlagBits::eNoneKHR,
-  //                                  vk::AccessFlagBits::eColorAttachmentWrite);
-
-  vk::RenderPassCreateInfo createInfo({}, colorAttachment, subpass);
-
-  renderPass = ctx->GetDevice().createRenderPass(createInfo);
-}
-
 void Application::CreateDescriptorSetLayout() {
-  auto *ctx = &Context::Get();
+  auto *ctx = Context::Get();
 
   vk::DescriptorSetLayoutBinding uboLayoutBinding(0, vk::DescriptorType::eUniformBuffer, 1,
                                                   vk::ShaderStageFlagBits::eVertex);
@@ -343,7 +327,7 @@ void Application::CreateDescriptorSetLayout() {
 }
 
 void Application::CreateDescriptorSets() {
-  auto *ctx = &Context::Get();
+  auto *ctx = Context::Get();
 
   std::vector<vk::DescriptorSetLayout> layouts(swapchainImages.size(), descriptorSetLayout);
   vk::DescriptorSetAllocateInfo allocInfo(descriptorPool, layouts);
@@ -360,7 +344,7 @@ void Application::CreateDescriptorSets() {
 }
 
 void Application::CreateGraphicsPipeline() {
-  auto *ctx = &Context::Get();
+  auto *ctx = Context::Get();
 
   Shader shader(ctx->GetDevice(), "assets/default.glsl");
 
@@ -418,10 +402,10 @@ void Application::CreateGraphicsPipeline() {
                                                   descriptorSetLayout);
   pipelineLayout = ctx->GetDevice().createPipelineLayout(pipelineLayoutInfo);
 
-  vk::GraphicsPipelineCreateInfo pipelineInfo(vk::PipelineCreateFlags(), shaderStages,
-                                              &vertexInputInfo, &inputAssembly, nullptr,
-                                              &viewportState, &rasterizer, &multisampling, nullptr,
-                                              &colorBlending, nullptr, pipelineLayout, renderPass);
+  vk::GraphicsPipelineCreateInfo pipelineInfo(
+      vk::PipelineCreateFlags(), shaderStages, &vertexInputInfo, &inputAssembly, nullptr,
+      &viewportState, &rasterizer, &multisampling, nullptr, &colorBlending, nullptr, pipelineLayout,
+      renderPass.GetRenderPass());
 
   vk::Result result{};
   std::tie(result, graphicsPipeline) =
@@ -429,14 +413,14 @@ void Application::CreateGraphicsPipeline() {
 }
 
 void Application::CreateFramebuffers() {
-  auto *ctx = &Context::Get();
+  auto *ctx = Context::Get();
 
   // Create Framebuffers
   swapchainFramebuffers.resize(swapchainImageViews.size());
   for (size_t i = 0; i < swapchainImageViews.size(); i++) {
     std::array<vk::ImageView, 1> attachments = {swapchainImageViews[i]};
-    vk::FramebufferCreateInfo fbInfo(vk::FramebufferCreateFlags(), renderPass, attachments,
-                                     swapchainExtent.width, swapchainExtent.height, 1);
+    vk::FramebufferCreateInfo fbInfo(vk::FramebufferCreateFlags(), renderPass.GetRenderPass(),
+                                     attachments, swapchainExtent.width, swapchainExtent.height, 1);
     swapchainFramebuffers[i] = ctx->GetDevice().createFramebuffer(fbInfo);
   }
 }
@@ -455,7 +439,7 @@ void Application::CreateUniformBuffers() {
 }
 
 void Application::CreateDescriptorPool() {
-  auto *ctx = &Context::Get();
+  auto *ctx = Context::Get();
 
   vk::DescriptorPoolSize poolSize(vk::DescriptorType::eUniformBuffer,
                                   static_cast<uint32_t>(swapchainImages.size()));
@@ -466,7 +450,7 @@ void Application::CreateDescriptorPool() {
 }
 
 void Application::CreateCommandBuffers() {
-  auto *ctx = &Context::Get();
+  auto *ctx = Context::Get();
 
   // Create Command Buffers
   vk::CommandBufferAllocateInfo allocInfo(commandPool, vk::CommandBufferLevel::ePrimary,
@@ -478,7 +462,7 @@ void Application::CreateCommandBuffers() {
     vk::CommandBufferBeginInfo beginInfo;
 
     vk::ClearValue clearValue(vk::ClearColorValue(std::array<float, 4>{0.2f, 0.2f, 0.2f, 1.0F}));
-    vk::RenderPassBeginInfo renderPassInfo(renderPass, swapchainFramebuffers[i],
+    vk::RenderPassBeginInfo renderPassInfo(renderPass.GetRenderPass(), swapchainFramebuffers[i],
                                            vk::Rect2D({0, 0}, swapchainExtent), clearValue);
 
     commandBuffers[i].begin(beginInfo);
@@ -535,7 +519,7 @@ auto Application::ChooseSwapExtent(const vk::SurfaceCapabilitiesKHR &capabilites
 
 auto Application::FindMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties)
     -> uint32_t {
-  auto *ctx = &Context::Get();
+  auto *ctx = Context::Get();
   auto memProperties = ctx->GetPhysicalDevice().getMemoryProperties();
 
   for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
@@ -550,7 +534,7 @@ auto Application::FindMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags pr
 auto Application::CreateBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage,
                                vk::MemoryPropertyFlags properties)
     -> std::pair<vk::Buffer, vk::DeviceMemory> {
-  auto *ctx = &Context::Get();
+  auto *ctx = Context::Get();
 
   vk::BufferCreateInfo bufferInfo(vk::BufferCreateFlags(), size, usage,
                                   vk::SharingMode::eExclusive);
@@ -567,7 +551,7 @@ auto Application::CreateBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage,
 }
 
 void Application::CopyBuffer(vk::Buffer src, vk::Buffer dst, vk::DeviceSize size) {
-  auto *ctx = &Context::Get();
+  auto *ctx = Context::Get();
 
   vk::CommandBufferAllocateInfo allocInfo(commandPool, vk::CommandBufferLevel::ePrimary, 1);
 

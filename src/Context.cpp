@@ -8,9 +8,9 @@
 
 #include "Application.hpp"
 
-Context &Context::Get() {
+Context *Context::Get() {
   static Context context;
-  return context;
+  return &context;
 }
 
 Context::Context() {
