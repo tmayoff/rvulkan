@@ -6,7 +6,7 @@
 
 int main() {
   try {
-    auto app = std::make_unique<Application>();
+    auto app = &Application::Get();
     app->Run();
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;

@@ -14,21 +14,6 @@
 
 const int MAX_FRAMES_IN_FLIGHT = 2;
 
-struct QueueFamilyIndices {
-  std::optional<uint32_t> graphicsFamily;
-  std::optional<uint32_t> presentFamily;
-
-  [[nodiscard]] auto IsComplete() const -> bool {
-    return graphicsFamily.has_value() && presentFamily.has_value();
-  }
-};
-
-struct SwapchainSupportDetails {
-  vk::SurfaceCapabilitiesKHR capabilites;
-  std::vector<vk::SurfaceFormatKHR> formats;
-  std::vector<vk::PresentModeKHR> presentModes;
-};
-
 struct UniformBufferObject {
   glm::mat4 model;
   glm::mat4 view;
@@ -65,13 +50,19 @@ const std::vector<Vertex> vertices = {{{-0.5F, -0.5F, 0.0F}, {1.0F, 0.0F, 0.0F, 
 const std::vector<uint16_t> indices = {0, 1, 2, 2, 3, 0};
 
 class Application {
-  const std::vector<const char *> requiredDeviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
-
   const uint32_t WIDTH = 1600;
   const uint32_t HEIGHT = 900;
 
  public:
+  static Application &Get();
+
+  Application() = default;
+  Application(Application const &) = delete;
+  void operator=(Application const &) = delete;
+
   void Run();
+
+  auto GetWindow() -> SDL_Window * { return window; }
 
  private:
   void InitWindow();
@@ -82,7 +73,6 @@ class Application {
 
   void Cleanup();
 
-  void CreateInstance();
   // void SetupDebugMessenger();
   void RecreateSwapchain();
   void CleanupSwapchain();
@@ -97,10 +87,6 @@ class Application {
   void CreateDescriptorSets();
   void CreateCommandBuffers();
 
-  auto IsDeviceSuitable(const vk::PhysicalDevice &device) -> bool;
-  auto FindQueueFamilies(const vk::PhysicalDevice &device) -> QueueFamilyIndices;
-  auto CheckExtensionSupport(const vk::PhysicalDevice &device) -> bool;
-  auto QuerySwapchainSupportDetails(const vk::PhysicalDevice &device) -> SwapchainSupportDetails;
   auto ChooseSwapchainFormat(const std::vector<vk::SurfaceFormatKHR> &availableFormats)
       -> vk::SurfaceFormatKHR;
   auto ChooseSwapchainPresentMode(const std::vector<vk::PresentModeKHR> &availablePresentModes)
@@ -116,13 +102,7 @@ class Application {
   Shader shader;
 
   // Vulkan
-  vk::Instance instance;
-  vk::PhysicalDevice physicalDevice;
-  vk::Device device;
   vk::SwapchainKHR swapchain;
-  vk::SurfaceKHR surface = VK_NULL_HANDLE;
-  vk::Queue presentQueue = VK_NULL_HANDLE;
-  vk::Queue graphicsQueue = VK_NULL_HANDLE;
   vk::Format swapchainFormat;
   vk::Extent2D swapchainExtent;
   std::vector<vk::Image> swapchainImages;

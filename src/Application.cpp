@@ -17,9 +17,15 @@
 #include <vulkan/vulkan_structs.hpp>
 
 #include "Assert.hpp"
+#include "Context.hpp"
 #include "Shader.hpp"
 #include "glm/ext/matrix_clip_space.hpp"
 #include "glm/ext/matrix_transform.hpp"
+
+Application &Application::Get() {
+  static Application app;
+  return app;
+}
 
 void Application::Run() {
   InitWindow();
@@ -34,54 +40,14 @@ void Application::InitWindow() {
   window = SDL_CreateWindow("dvulkan", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                             static_cast<int32_t>(WIDTH), static_cast<int32_t>(HEIGHT),
                             SDL_WINDOW_VULKAN | SDL_WINDOW_SHOWN);
+  if (window == nullptr)
+    throw std::runtime_error("Failed to create window: " + std::string(SDL_GetError()));
 }
 
 void Application::InitVulkan() {
-  CreateInstance();
+  auto *ctx = &Context::Get();
 
   // TODO Setup Debugging
-
-  {
-    // Surface creation
-    VkSurfaceKHR surface = VK_NULL_HANDLE;
-    if (SDL_Vulkan_CreateSurface(window, instance, &surface) == 0U)
-      throw std::runtime_error("Failed to create surface");
-    this->surface = surface;
-  }
-
-  {
-    // Picking physical device
-    auto devices = instance.enumeratePhysicalDevices();
-
-    for (const auto &d : devices) {
-      if (IsDeviceSuitable(d)) {
-        physicalDevice = d;
-        break;
-      }
-    }
-  }
-
-  {
-    // Create Logical Device
-    auto indices = FindQueueFamilies(physicalDevice);
-
-    std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos;
-    std::set<uint32_t> uniqueQueueFamilies = {indices.graphicsFamily.value(),
-                                              indices.presentFamily.value()};
-
-    float queuePrio = 1.0F;
-    for (uint32_t queueFamily : uniqueQueueFamilies) {
-      vk::DeviceQueueCreateInfo queueCreateInfo({}, queueFamily, 1, &queuePrio);
-      queueCreateInfos.push_back(queueCreateInfo);
-    }
-
-    vk::DeviceCreateInfo createInfo(vk::DeviceCreateFlags(), queueCreateInfos, {},
-                                    requiredDeviceExtensions, {});
-    device = physicalDevice.createDevice(createInfo);
-
-    graphicsQueue = device.getQueue(indices.graphicsFamily.value(), 0);
-    presentQueue = device.getQueue(indices.presentFamily.value(), 0);
-  }
 
   CreateSwapchain();
   CreateImageViews();
@@ -92,10 +58,10 @@ void Application::InitVulkan() {
 
   {
     // Create Command Pool
-    QueueFamilyIndices queueIndices = FindQueueFamilies(physicalDevice);
+    QueueFamilyIndices queueIndices = ctx->FindQueueFamilies(ctx->GetPhysicalDevice());
     vk::CommandPoolCreateInfo poolInfo(vk::CommandPoolCreateFlags(),
                                        queueIndices.graphicsFamily.value());
-    commandPool = device.createCommandPool(poolInfo);
+    commandPool = ctx->GetDevice().createCommandPool(poolInfo);
   }
 
   {
@@ -106,9 +72,9 @@ void Application::InitVulkan() {
         bufSize, vk::BufferUsageFlagBits::eTransferSrc,
         vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
 
-    uint8_t *data = static_cast<uint8_t *>(device.mapMemory(stagingMem, 0, bufSize));
+    uint8_t *data = static_cast<uint8_t *>(ctx->GetDevice().mapMemory(stagingMem, 0, bufSize));
     memcpy(data, vertices.data(), sizeof(Vertex) * vertices.size());
-    device.unmapMemory(stagingMem);
+    ctx->GetDevice().unmapMemory(stagingMem);
 
     std::tie(vertexBuffer, vertexBufferMemory) = CreateBuffer(
         bufSize, vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer,
@@ -125,9 +91,9 @@ void Application::InitVulkan() {
         bufSize, vk::BufferUsageFlagBits::eTransferSrc,
         vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
 
-    void *data = device.mapMemory(stagingMem, 0, bufSize);
+    void *data = ctx->GetDevice().mapMemory(stagingMem, 0, bufSize);
     memcpy(data, indices.data(), bufSize);
-    device.unmapMemory(stagingMem);
+    ctx->GetDevice().unmapMemory(stagingMem);
 
     std::tie(indexBuffer, indexBufferMemory) = CreateBuffer(
         bufSize, vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer,
@@ -150,14 +116,16 @@ void Application::InitVulkan() {
     vk::FenceCreateInfo fenceInfo(vk::FenceCreateFlagBits::eSignaled);
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-      imageAvailableSempaphores.at(i) = device.createSemaphore(semaphoreInfo);
-      renderFinishedSemaphores.at(i) = device.createSemaphore(semaphoreInfo);
-      inFlightFences.at(i) = device.createFence(fenceInfo);
+      imageAvailableSempaphores.at(i) = ctx->GetDevice().createSemaphore(semaphoreInfo);
+      renderFinishedSemaphores.at(i) = ctx->GetDevice().createSemaphore(semaphoreInfo);
+      inFlightFences.at(i) = ctx->GetDevice().createFence(fenceInfo);
     }
   }
 }
 
 void Application::MainLoop() {
+  auto *ctx = &Context::Get();
+
   while (running) {
     SDL_Event e;
     while (SDL_PollEvent(&e) != 0) {
@@ -172,11 +140,11 @@ void Application::MainLoop() {
     }
 
     while (vk::Result::eTimeout ==
-           device.waitForFences(inFlightFences.at(currentFrame), VK_TRUE, UINT64_MAX))
+           ctx->GetDevice().waitForFences(inFlightFences.at(currentFrame), VK_TRUE, UINT64_MAX))
       ;
 
-    auto currentBuffer = device.acquireNextImageKHR(swapchain, UINT64_MAX,
-                                                    imageAvailableSempaphores.at(currentFrame));
+    auto currentBuffer = ctx->GetDevice().acquireNextImageKHR(
+        swapchain, UINT64_MAX, imageAvailableSempaphores.at(currentFrame));
 
     if (currentBuffer.result == vk::Result::eErrorOutOfDateKHR) {
       RecreateSwapchain();
@@ -194,7 +162,7 @@ void Application::MainLoop() {
 
     if (imagesInFlight.at(imageIndex)) {
       while (vk::Result::eTimeout ==
-             device.waitForFences(imagesInFlight.at(imageIndex), VK_TRUE, UINT64_MAX)) {
+             ctx->GetDevice().waitForFences(imagesInFlight.at(imageIndex), VK_TRUE, UINT64_MAX)) {
         ;
       }
     }
@@ -208,13 +176,13 @@ void Application::MainLoop() {
     vk::SubmitInfo submitInfo(imageAvailableSempaphores.at(currentFrame), waitStages,
                               commandBuffers, signalSemaphores);
 
-    device.resetFences(inFlightFences.at(currentFrame));
+    ctx->GetDevice().resetFences(inFlightFences.at(currentFrame));
 
-    graphicsQueue.submit(submitInfo, inFlightFences.at(currentFrame));
+    ctx->GetGraphicsQueue().submit(submitInfo, inFlightFences.at(currentFrame));
 
     // Present
     vk::PresentInfoKHR presentInfo(signalSemaphores, swapchain, imageIndex);
-    vk::Result result = presentQueue.presentKHR(presentInfo);
+    vk::Result result = ctx->GetPresentQueue().presentKHR(presentInfo);
 
     if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR ||
         framebufferResized) {
@@ -223,14 +191,15 @@ void Application::MainLoop() {
     } else if (result != vk::Result::eSuccess)
       throw std::runtime_error("Failed to present swapchain image");
 
-    presentQueue.waitIdle();
+    ctx->GetPresentQueue().waitIdle();
     currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
   }
 
-  device.waitIdle();
+  ctx->GetDevice().waitIdle();
 }
 
 void Application::UpdateUniformBuffers(uint32_t currentImage) {
+  auto *ctx = &Context::Get();
   static auto startTime = std::chrono::high_resolution_clock::now();
 
   auto currentTime = std::chrono::high_resolution_clock::now();
@@ -246,31 +215,17 @@ void Application::UpdateUniformBuffers(uint32_t currentImage) {
       1000.0F);
   ubo.proj[1][1] *= -1;
 
-  void *data = device.mapMemory(uniformBuffersMemory[currentImage], 0, sizeof(ubo));
+  void *data = ctx->GetDevice().mapMemory(uniformBuffersMemory[currentImage], 0, sizeof(ubo));
   memcpy(data, &ubo, sizeof(ubo));
-  device.unmapMemory(uniformBuffersMemory[currentImage]);
+  ctx->GetDevice().unmapMemory(uniformBuffersMemory[currentImage]);
 }
 
 void Application::Cleanup() { SDL_Quit(); }
 
-void Application::CreateInstance() {
-  // Extensions
-  uint32_t extensionCount = 0;
-  SDL_Vulkan_GetInstanceExtensions(window, &extensionCount, nullptr);
-  std::vector<const char *> extensions(extensionCount);
-  SDL_Vulkan_GetInstanceExtensions(window, &extensionCount, extensions.data());
-
-  // Layers
-  const std::array<const char *, 1> layers = {"VK_LAYER_KHRONOS_validation"};
-
-  // Create Instance
-  vk::ApplicationInfo appInfo("dvulkan", 1, "dvulkan", 1, VK_API_VERSION_1_2);
-  vk::InstanceCreateInfo createInfo({}, &appInfo, layers, extensions);
-  instance = vk::createInstance(createInfo);
-}
-
 void Application::RecreateSwapchain() {
-  vkDeviceWaitIdle(device);
+  auto *ctx = &Context::Get();
+
+  vkDeviceWaitIdle(ctx->GetDevice());
 
   CleanupSwapchain();
 
@@ -285,22 +240,27 @@ void Application::RecreateSwapchain() {
 }
 
 void Application::CleanupSwapchain() {
+  auto *ctx = &Context::Get();
+
   for (auto &swapchainFramebuffer : swapchainFramebuffers)
-    device.destroyFramebuffer(swapchainFramebuffer);
+    ctx->GetDevice().destroyFramebuffer(swapchainFramebuffer);
 
-  device.freeCommandBuffers(commandPool, commandBuffers);
+  ctx->GetDevice().freeCommandBuffers(commandPool, commandBuffers);
 
-  device.destroyPipeline(graphicsPipeline);
-  device.destroyPipelineLayout(pipelineLayout);
-  device.destroyRenderPass(renderPass);
-  for (auto &swapchainImageView : swapchainImageViews) device.destroyImageView(swapchainImageView);
+  ctx->GetDevice().destroyPipeline(graphicsPipeline);
+  ctx->GetDevice().destroyPipelineLayout(pipelineLayout);
+  ctx->GetDevice().destroyRenderPass(renderPass);
+  for (auto &swapchainImageView : swapchainImageViews)
+    ctx->GetDevice().destroyImageView(swapchainImageView);
 
-  device.destroySwapchainKHR(swapchain);
+  ctx->GetDevice().destroySwapchainKHR(swapchain);
 }
 
 void Application::CreateSwapchain() {
+  auto *ctx = &Context::Get();
+
   // Create swapchain
-  SwapchainSupportDetails details = QuerySwapchainSupportDetails(physicalDevice);
+  SwapchainSupportDetails details = ctx->QuerySwapchainSupportDetails(ctx->GetPhysicalDevice());
   auto format = ChooseSwapchainFormat(details.formats);
   auto presentMode = ChooseSwapchainPresentMode(details.presentModes);
   auto extent = ChooseSwapExtent(details.capabilites);
@@ -312,7 +272,7 @@ void Application::CreateSwapchain() {
   if (details.capabilites.maxImageCount > 0 && imageCount > details.capabilites.maxImageCount)
     imageCount = details.capabilites.maxImageCount;
 
-  QueueFamilyIndices indices = FindQueueFamilies(physicalDevice);
+  QueueFamilyIndices indices = ctx->FindQueueFamilies(ctx->GetPhysicalDevice());
   std::vector<uint32_t> queueFamilyIndices = {indices.graphicsFamily.value(),
                                               indices.presentFamily.value()};
 
@@ -323,16 +283,18 @@ void Application::CreateSwapchain() {
   }
 
   vk::SwapchainCreateInfoKHR createInfo(
-      {}, surface, imageCount, format.format, format.colorSpace, extent, 1,
+      {}, ctx->GetSurface(), imageCount, format.format, format.colorSpace, extent, 1,
       vk::ImageUsageFlagBits::eColorAttachment, sharingMode, queueFamilyIndices,
       details.capabilites.currentTransform, vk::CompositeAlphaFlagBitsKHR::eOpaque, presentMode,
       VK_TRUE);
 
-  swapchain = device.createSwapchainKHR(createInfo);
-  swapchainImages = device.getSwapchainImagesKHR(swapchain);
+  swapchain = ctx->GetDevice().createSwapchainKHR(createInfo);
+  swapchainImages = ctx->GetDevice().getSwapchainImagesKHR(swapchain);
 }
 
 void Application::CreateImageViews() {
+  auto *ctx = &Context::Get();
+
   // Swapchain Image Views
   swapchainImageViews.resize(swapchainImages.size());
   for (size_t i = 0; i < swapchainImages.size(); i++) {
@@ -342,11 +304,13 @@ void Application::CreateImageViews() {
          vk::ComponentSwizzle::eIdentity, vk::ComponentSwizzle::eIdentity},
         {vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1});
 
-    swapchainImageViews[i] = device.createImageView(createInfo);
+    swapchainImageViews[i] = ctx->GetDevice().createImageView(createInfo);
   }
 }
 
 void Application::CreateRenderPass() {
+  auto *ctx = &Context::Get();
+
   vk::AttachmentDescription colorAttachment(
       vk::AttachmentDescriptionFlags(), swapchainFormat, vk::SampleCountFlagBits::e1,
       vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore, vk::AttachmentLoadOp::eDontCare,
@@ -364,22 +328,26 @@ void Application::CreateRenderPass() {
 
   vk::RenderPassCreateInfo createInfo({}, colorAttachment, subpass);
 
-  renderPass = device.createRenderPass(createInfo);
+  renderPass = ctx->GetDevice().createRenderPass(createInfo);
 }
 
 void Application::CreateDescriptorSetLayout() {
+  auto *ctx = &Context::Get();
+
   vk::DescriptorSetLayoutBinding uboLayoutBinding(0, vk::DescriptorType::eUniformBuffer, 1,
                                                   vk::ShaderStageFlagBits::eVertex);
 
   vk::DescriptorSetLayoutCreateInfo layoutInfo(vk::DescriptorSetLayoutCreateFlags(),
                                                uboLayoutBinding);
-  descriptorSetLayout = device.createDescriptorSetLayout(layoutInfo);
+  descriptorSetLayout = ctx->GetDevice().createDescriptorSetLayout(layoutInfo);
 }
 
 void Application::CreateDescriptorSets() {
+  auto *ctx = &Context::Get();
+
   std::vector<vk::DescriptorSetLayout> layouts(swapchainImages.size(), descriptorSetLayout);
   vk::DescriptorSetAllocateInfo allocInfo(descriptorPool, layouts);
-  descriptorSets = device.allocateDescriptorSets(allocInfo);
+  descriptorSets = ctx->GetDevice().allocateDescriptorSets(allocInfo);
 
   for (size_t i = 0; i < swapchainImages.size(); i++) {
     vk::DescriptorBufferInfo bufInfo(uniformBuffers[i], 0, sizeof(UniformBufferObject));
@@ -387,12 +355,14 @@ void Application::CreateDescriptorSets() {
     vk::WriteDescriptorSet descriptorWrite(
         descriptorSets[i], 0, 0, vk::DescriptorType::eUniformBuffer, nullptr, bufInfo, nullptr);
 
-    device.updateDescriptorSets(descriptorWrite, {});
+    ctx->GetDevice().updateDescriptorSets(descriptorWrite, {});
   }
 }
 
 void Application::CreateGraphicsPipeline() {
-  Shader shader(device, "assets/default.glsl");
+  auto *ctx = &Context::Get();
+
+  Shader shader(ctx->GetDevice(), "assets/default.glsl");
 
   vk::PipelineShaderStageCreateInfo vertCreateInfo(
       vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eVertex,
@@ -446,7 +416,7 @@ void Application::CreateGraphicsPipeline() {
 
   vk::PipelineLayoutCreateInfo pipelineLayoutInfo(vk::PipelineLayoutCreateFlags(),
                                                   descriptorSetLayout);
-  pipelineLayout = device.createPipelineLayout(pipelineLayoutInfo);
+  pipelineLayout = ctx->GetDevice().createPipelineLayout(pipelineLayoutInfo);
 
   vk::GraphicsPipelineCreateInfo pipelineInfo(vk::PipelineCreateFlags(), shaderStages,
                                               &vertexInputInfo, &inputAssembly, nullptr,
@@ -454,17 +424,20 @@ void Application::CreateGraphicsPipeline() {
                                               &colorBlending, nullptr, pipelineLayout, renderPass);
 
   vk::Result result{};
-  std::tie(result, graphicsPipeline) = device.createGraphicsPipeline(nullptr, pipelineInfo);
+  std::tie(result, graphicsPipeline) =
+      ctx->GetDevice().createGraphicsPipeline(nullptr, pipelineInfo);
 }
 
 void Application::CreateFramebuffers() {
+  auto *ctx = &Context::Get();
+
   // Create Framebuffers
   swapchainFramebuffers.resize(swapchainImageViews.size());
   for (size_t i = 0; i < swapchainImageViews.size(); i++) {
     std::array<vk::ImageView, 1> attachments = {swapchainImageViews[i]};
     vk::FramebufferCreateInfo fbInfo(vk::FramebufferCreateFlags(), renderPass, attachments,
                                      swapchainExtent.width, swapchainExtent.height, 1);
-    swapchainFramebuffers[i] = device.createFramebuffer(fbInfo);
+    swapchainFramebuffers[i] = ctx->GetDevice().createFramebuffer(fbInfo);
   }
 }
 
@@ -482,19 +455,23 @@ void Application::CreateUniformBuffers() {
 }
 
 void Application::CreateDescriptorPool() {
+  auto *ctx = &Context::Get();
+
   vk::DescriptorPoolSize poolSize(vk::DescriptorType::eUniformBuffer,
                                   static_cast<uint32_t>(swapchainImages.size()));
 
   vk::DescriptorPoolCreateInfo poolInfo(vk::DescriptorPoolCreateFlags(),
                                         static_cast<uint32_t>(swapchainImages.size()), poolSize);
-  descriptorPool = device.createDescriptorPool(poolInfo);
+  descriptorPool = ctx->GetDevice().createDescriptorPool(poolInfo);
 }
 
 void Application::CreateCommandBuffers() {
+  auto *ctx = &Context::Get();
+
   // Create Command Buffers
   vk::CommandBufferAllocateInfo allocInfo(commandPool, vk::CommandBufferLevel::ePrimary,
                                           swapchainFramebuffers.size());
-  commandBuffers = device.allocateCommandBuffers(allocInfo);
+  commandBuffers = ctx->GetDevice().allocateCommandBuffers(allocInfo);
 
   // Begin Recording command buffers
   for (size_t i = 0; i < commandBuffers.size(); i++) {
@@ -517,61 +494,6 @@ void Application::CreateCommandBuffers() {
     commandBuffers[i].endRenderPass();
     commandBuffers[i].end();
   }
-}
-
-auto Application::IsDeviceSuitable(const vk::PhysicalDevice &device) -> bool {
-  auto indices = FindQueueFamilies(device);
-
-  bool extensionsSupported = CheckExtensionSupport(device);
-
-  bool swapchainAdequate = false;
-  if (extensionsSupported) {
-    auto details = QuerySwapchainSupportDetails(device);
-    swapchainAdequate = !details.formats.empty() && !details.presentModes.empty();
-  }
-
-  return indices.IsComplete() && extensionsSupported && swapchainAdequate;
-}
-
-auto Application::FindQueueFamilies(const vk::PhysicalDevice &device) -> QueueFamilyIndices {
-  QueueFamilyIndices indices{};
-
-  auto queueFamilies = device.getQueueFamilyProperties();
-
-  int i = 0;
-  for (const auto &queueFamily : queueFamilies) {
-    if (queueFamily.queueFlags & vk::QueueFlagBits::eGraphics) indices.graphicsFamily = i;
-    auto presentSupport = device.getSurfaceSupportKHR(i, surface);
-
-    if (presentSupport != 0) indices.presentFamily = i;
-    if (indices.IsComplete()) break;
-
-    i++;
-  }
-
-  return indices;
-}
-
-auto Application::CheckExtensionSupport(const vk::PhysicalDevice &device) -> bool {
-  auto availableExtensions = device.enumerateDeviceExtensionProperties();
-
-  std::set<std::string> deviceExtensions(requiredDeviceExtensions.begin(),
-                                         requiredDeviceExtensions.end());
-
-  for (const auto &e : availableExtensions) deviceExtensions.erase(e.extensionName);
-  return deviceExtensions.empty();
-}
-
-auto Application::QuerySwapchainSupportDetails(const vk::PhysicalDevice &device)
-    -> SwapchainSupportDetails {
-  SwapchainSupportDetails details;
-
-  details.capabilites = device.getSurfaceCapabilitiesKHR(surface);
-
-  details.formats = device.getSurfaceFormatsKHR(surface);
-  details.presentModes = device.getSurfacePresentModesKHR(surface);
-
-  return details;
 }
 
 auto Application::ChooseSwapchainFormat(const std::vector<vk::SurfaceFormatKHR> &availableFormats)
@@ -613,7 +535,8 @@ auto Application::ChooseSwapExtent(const vk::SurfaceCapabilitiesKHR &capabilites
 
 auto Application::FindMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties)
     -> uint32_t {
-  auto memProperties = physicalDevice.getMemoryProperties();
+  auto *ctx = &Context::Get();
+  auto memProperties = ctx->GetPhysicalDevice().getMemoryProperties();
 
   for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
     if (((typeFilter & (1U << i)) != 0U) &&
@@ -627,24 +550,28 @@ auto Application::FindMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags pr
 auto Application::CreateBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage,
                                vk::MemoryPropertyFlags properties)
     -> std::pair<vk::Buffer, vk::DeviceMemory> {
+  auto *ctx = &Context::Get();
+
   vk::BufferCreateInfo bufferInfo(vk::BufferCreateFlags(), size, usage,
                                   vk::SharingMode::eExclusive);
-  auto buf = device.createBuffer(bufferInfo);
+  auto buf = ctx->GetDevice().createBuffer(bufferInfo);
 
-  vk::MemoryRequirements memReqs = device.getBufferMemoryRequirements(buf);
+  vk::MemoryRequirements memReqs = ctx->GetDevice().getBufferMemoryRequirements(buf);
   vk::MemoryAllocateInfo allocInfo(memReqs.size,
                                    FindMemoryType(memReqs.memoryTypeBits, properties));
-  auto mem = device.allocateMemory(allocInfo);
+  auto mem = ctx->GetDevice().allocateMemory(allocInfo);
 
-  device.bindBufferMemory(buf, mem, 0);
+  ctx->GetDevice().bindBufferMemory(buf, mem, 0);
 
   return {buf, mem};
 }
 
 void Application::CopyBuffer(vk::Buffer src, vk::Buffer dst, vk::DeviceSize size) {
+  auto *ctx = &Context::Get();
+
   vk::CommandBufferAllocateInfo allocInfo(commandPool, vk::CommandBufferLevel::ePrimary, 1);
 
-  std::vector<vk::CommandBuffer> buf = device.allocateCommandBuffers(allocInfo);
+  std::vector<vk::CommandBuffer> buf = ctx->GetDevice().allocateCommandBuffers(allocInfo);
 
   vk::CommandBufferBeginInfo beginInfo(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
   buf[0].begin(beginInfo);
@@ -655,6 +582,6 @@ void Application::CopyBuffer(vk::Buffer src, vk::Buffer dst, vk::DeviceSize size
   buf[0].end();
 
   vk::SubmitInfo submitInfo(0, {}, {}, 1, buf.data(), 0, {});
-  graphicsQueue.submit(submitInfo);
-  graphicsQueue.waitIdle();
+  ctx->GetGraphicsQueue().submit(submitInfo);
+  ctx->GetGraphicsQueue().waitIdle();
 }
