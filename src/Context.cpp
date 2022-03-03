@@ -8,11 +8,6 @@
 
 #include "Application.hpp"
 
-Context *Context::Get() {
-  static Context context;
-  return &context;
-}
-
 Context::Context() {
   CreateInstance();
   CreateSurface();

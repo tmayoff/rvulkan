@@ -22,11 +22,6 @@
 #include "glm/ext/matrix_clip_space.hpp"
 #include "glm/ext/matrix_transform.hpp"
 
-Application &Application::Get() {
-  static Application app;
-  return app;
-}
-
 void Application::Run() {
   InitWindow();
   InitVulkan();

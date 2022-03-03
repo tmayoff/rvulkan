@@ -24,7 +24,11 @@ class Context {
   const std::vector<const char*> requiredDeviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
  public:
-  static Context* Get();
+  inline static std::shared_ptr<Context> Instance = nullptr;
+  inline static auto Get() {
+    if (Instance == nullptr) Instance = std::make_shared<Context>();
+    return Instance;
+  }
 
   Context();
   Context(Context const&) = delete;

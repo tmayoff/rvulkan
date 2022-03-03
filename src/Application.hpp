@@ -55,7 +55,11 @@ class Application {
   const uint32_t HEIGHT = 900;
 
  public:
-  static Application &Get();
+  inline static std::shared_ptr<Application> Instance = nullptr;
+  inline static auto Get() {
+    if (Instance == nullptr) Instance = std::make_shared<Application>();
+    return Instance;
+  }
 
   Application() = default;
   Application(Application const &) = delete;
