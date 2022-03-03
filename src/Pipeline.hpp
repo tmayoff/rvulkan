@@ -20,8 +20,11 @@ class Pipeline {
   Pipeline() = default;
   Pipeline(const PipelineInfo& info);
 
+  auto GetHandle() const { return handle; }
+  auto GetLayout() const { return pipelineLayout; }
+
  private:
-  vk::Pipeline pipeline;
+  vk::Pipeline handle;
   vk::PipelineLayout pipelineLayout;
 };
 

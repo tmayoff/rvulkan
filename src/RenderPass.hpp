@@ -14,10 +14,10 @@ class RenderPass {
   RenderPass(const RenderPassInfo& info);
   ~RenderPass();
 
-  auto GetRenderPass() const -> vk::RenderPass { return renderPass; }
+  auto GetHandle() const -> vk::RenderPass { return handle; }
 
  private:
-  vk::RenderPass renderPass;
+  vk::RenderPass handle;
 };
 
 #endif  // RENDERPASS_HPP_

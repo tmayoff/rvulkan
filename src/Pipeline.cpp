@@ -53,9 +53,9 @@ Pipeline::Pipeline(const PipelineInfo& info) {
   vk::GraphicsPipelineCreateInfo pipelineInfo(
       vk::PipelineCreateFlags(), shaderStages, &vertexInputInfo, &inputAssembly, nullptr,
       &viewportState, &rasterizer, &multisampling, nullptr, &colorBlending, nullptr, pipelineLayout,
-      info.renderPass->GetRenderPass());
+      info.renderPass->GetHandle());
 
   vk::Result result{};
-  std::tie(result, pipeline) =
+  std::tie(result, handle) =
       Context::Get()->GetDevice().createGraphicsPipeline(nullptr, pipelineInfo);
 }

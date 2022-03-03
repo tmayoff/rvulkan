@@ -13,14 +13,14 @@ RenderPass::RenderPass(const RenderPassInfo& info) {
   vk::SubpassDescription subpass(vk::SubpassDescriptionFlags(), vk::PipelineBindPoint::eGraphics,
                                  {}, colorAttachmentRef);
 
-  // vk::SubpassDependency dependency(0, 0, vk::PipelineStageFlagBits::eColorAttachmentOutput,
-  //                                  vk::PipelineStageFlagBits::eColorAttachmentOutput,
-  //                                  vk::AccessFlagBits::eNoneKHR,
-  //                                  vk::AccessFlagBits::eColorAttachmentWrite);
+  vk::SubpassDependency dependency(0, 0, vk::PipelineStageFlagBits::eColorAttachmentOutput,
+                                   vk::PipelineStageFlagBits::eColorAttachmentOutput,
+                                   vk::AccessFlagBits::eNoneKHR,
+                                   vk::AccessFlagBits::eColorAttachmentWrite);
 
-  vk::RenderPassCreateInfo createInfo({}, colorAttachment, subpass);
+  vk::RenderPassCreateInfo createInfo(vk::RenderPassCreateFlags(), colorAttachment, subpass);
 
-  renderPass = Context::Get()->GetDevice().createRenderPass(createInfo);
+  handle = Context::Get()->GetDevice().createRenderPass(createInfo);
 }
 
-RenderPass::~RenderPass() { Context::Get()->GetDevice().destroyRenderPass(renderPass); }
+RenderPass::~RenderPass() {}

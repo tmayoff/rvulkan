@@ -250,8 +250,8 @@ void Application::CleanupSwapchain() {
 
   ctx->GetDevice().freeCommandBuffers(commandPool, commandBuffers);
 
-  ctx->GetDevice().destroyPipeline(graphicsPipeline);
-  ctx->GetDevice().destroyPipelineLayout(pipelineLayout);
+  // ctx->GetDevice().destroyPipeline();
+  // ctx->GetDevice().destroyPipelineLayout(pipelineLayout);
   for (auto &swapchainImageView : swapchainImageViews)
     ctx->GetDevice().destroyImageView(swapchainImageView);
 
@@ -360,7 +360,7 @@ void Application::CreateFramebuffers() {
   swapchainFramebuffers.resize(swapchainImageViews.size());
   for (size_t i = 0; i < swapchainImageViews.size(); i++) {
     std::array<vk::ImageView, 1> attachments = {swapchainImageViews[i]};
-    vk::FramebufferCreateInfo fbInfo(vk::FramebufferCreateFlags(), renderPass.GetRenderPass(),
+    vk::FramebufferCreateInfo fbInfo(vk::FramebufferCreateFlags(), renderPass.GetHandle(),
                                      attachments, swapchainExtent.width, swapchainExtent.height, 1);
     swapchainFramebuffers[i] = ctx->GetDevice().createFramebuffer(fbInfo);
   }
@@ -403,18 +403,19 @@ void Application::CreateCommandBuffers() {
     vk::CommandBufferBeginInfo beginInfo;
 
     vk::ClearValue clearValue(vk::ClearColorValue(std::array<float, 4>{0.2f, 0.2f, 0.2f, 1.0F}));
-    vk::RenderPassBeginInfo renderPassInfo(renderPass.GetRenderPass(), swapchainFramebuffers[i],
+    vk::RenderPassBeginInfo renderPassInfo(renderPass.GetHandle(), swapchainFramebuffers[i],
                                            vk::Rect2D({0, 0}, swapchainExtent), clearValue);
 
     commandBuffers[i].begin(beginInfo);
     commandBuffers[i].beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
-    commandBuffers[i].bindPipeline(vk::PipelineBindPoint::eGraphics, graphicsPipeline);
+    commandBuffers[i].bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline.GetHandle());
 
     commandBuffers[i].bindVertexBuffers(0, vertexBuffer, {0});
     commandBuffers[i].bindIndexBuffer(indexBuffer, 0, vk::IndexType::eUint16);
 
-    commandBuffers[i].bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipelineLayout, 0,
-                                         descriptorSets[i], {});
+    // commandBuffers[i].bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipeline.GetLayout(),
+    // 0,
+    //                                      descriptorSets[i], {});
     commandBuffers[i].drawIndexed(static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
     commandBuffers[i].endRenderPass();
     commandBuffers[i].end();

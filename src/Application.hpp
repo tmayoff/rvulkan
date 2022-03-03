@@ -115,11 +115,9 @@ class Application {
   std::vector<vk::Image> swapchainImages;
   std::vector<vk::ImageView> swapchainImageViews;
 
-  vk::Pipeline graphicsPipeline;
   vk::DescriptorPool descriptorPool;
   std::vector<vk::DescriptorSet> descriptorSets;
   vk::DescriptorSetLayout descriptorSetLayout;
-  vk::PipelineLayout pipelineLayout;
 
   std::vector<vk::Framebuffer> swapchainFramebuffers;
 
