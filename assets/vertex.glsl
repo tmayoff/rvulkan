@@ -1,4 +1,3 @@
-#type vertex
 #version 450 core
 
 layout(location = 0) in vec3 a_Position;
@@ -15,20 +14,4 @@ void main() {
 
   // Set vertex position
   gl_Position = vec4(a_Position, 1.0);
-}
-
-#type fragment
-#version 450 core
-
-layout(location = 0) out vec4 color;
-
-struct VertexOutput {
-  vec4 Color;
-};
-
-layout(location = 0) in VertexOutput Input;
-
-void main() {
-  vec4 texColor = Input.Color;
-  color = texColor;
 }

@@ -22,8 +22,12 @@ auto VKShaderTypeToShaderC(vk::ShaderStageFlagBits type) -> shaderc_shader_kind 
 
 }  // namespace Utils
 
-Shader::Shader(const vk::Device& device, const std::string& filepath) : filepath(filepath) {
-  auto sources = PreProcess(ReadFile(filepath));
+Shader::Shader(const vk::Device& device, std::vector<ShaderInfo> shaders) {
+  std::unordered_map<vk::ShaderStageFlagBits, std::string> sources;
+  for (auto shader : shaders) {
+    sources[shader.stage] = ReadFile(shader.filepath);
+    shaderFilepaths[shader.stage] = shader.filepath;
+  }
   Compile(device, sources);
 }
 
@@ -51,36 +55,13 @@ auto Shader::ReadFile(const std::string& path) -> std::string {
   return "";
 }
 
-auto Shader::PreProcess(const std::string& source)
-    -> std::unordered_map<vk::ShaderStageFlagBits, std::string> {
-  std::unordered_map<vk::ShaderStageFlagBits, std::string> shaderSources;
-
-  const char* typeToken = "#type";
-  size_t typeTokenLength = std::strlen(typeToken);
-  auto pos = source.find(typeToken);  // Current pos initted to first shader type declaration
-  while (pos != std::string::npos) {
-    auto endOfLine = source.find_first_of("\n", pos);
-    auto begShaderType = pos + typeTokenLength + 1;
-    auto type = source.substr(begShaderType, endOfLine - begShaderType);
-
-    auto nextLinePos = source.find_first_of("\n", endOfLine);
-    pos = source.find(typeToken, nextLinePos);
-
-    shaderSources[Utils::ShaderTypeFromString(type)] =
-        (pos == std::string::npos) ? source.substr(nextLinePos)
-                                   : source.substr(nextLinePos, pos - nextLinePos);
-  }
-
-  return shaderSources;
-}
-
 void Shader::Compile(const vk::Device& device,
                      const std::unordered_map<vk::ShaderStageFlagBits, std::string>& sources) {
   shaderc::Compiler compiler;
   shaderc::CompileOptions options;
   for (auto&& [stage, source] : sources) {
     shaderc::SpvCompilationResult shaderModule = compiler.CompileGlslToSpv(
-        source, Utils::VKShaderTypeToShaderC(stage), filepath.c_str(), options);
+        source, Utils::VKShaderTypeToShaderC(stage), shaderFilepaths[stage].c_str(), options);
     if (shaderModule.GetCompilationStatus() != shaderc_compilation_status_success) assert(false);
 
     //
