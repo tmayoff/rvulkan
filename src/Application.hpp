@@ -4,12 +4,12 @@
 
 #include <SDL2/SDL.h>
 
-#define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <optional>
 #include <vulkan/vulkan.hpp>
 
+#include "Pipeline.hpp"
 #include "RenderPass.hpp"
 #include "Shader.hpp"
 
@@ -31,8 +31,8 @@ struct Vertex {
     return bindingDescription;
   }
 
-  static auto GetAttributeDescriptions() -> std::array<vk::VertexInputAttributeDescription, 2> {
-    std::array<vk::VertexInputAttributeDescription, 2> attributeDescriptions{};
+  static auto GetAttributeDescriptions() {
+    std::vector<vk::VertexInputAttributeDescription> attributeDescriptions(2);
 
     attributeDescriptions[0] = vk::VertexInputAttributeDescription(
         0, 0, vk::Format::eR32G32B32Sfloat, offsetof(Vertex, Position));
@@ -106,6 +106,7 @@ class Application {
   Shader shader;
 
   RenderPass renderPass;
+  Pipeline pipeline;
 
   // Vulkan
   vk::SwapchainKHR swapchain;

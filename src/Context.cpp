@@ -17,9 +17,9 @@ Context::Context() {
 
 void Context::CreateInstance() {
   uint32_t extensionCount = 0;
-  SDL_Vulkan_GetInstanceExtensions(Application::Get().GetWindow(), &extensionCount, nullptr);
+  SDL_Vulkan_GetInstanceExtensions(Application::Get()->GetWindow(), &extensionCount, nullptr);
   std::vector<const char *> extensions(extensionCount);
-  SDL_Vulkan_GetInstanceExtensions(Application::Get().GetWindow(), &extensionCount,
+  SDL_Vulkan_GetInstanceExtensions(Application::Get()->GetWindow(), &extensionCount,
                                    extensions.data());
 
   // Layers
@@ -32,7 +32,7 @@ void Context::CreateInstance() {
 }
 
 void Context::CreateSurface() {
-  auto window = Application::Get().GetWindow();
+  auto window = Application::Get()->GetWindow();
 
   // Surface creation
   VkSurfaceKHR surface = VK_NULL_HANDLE;

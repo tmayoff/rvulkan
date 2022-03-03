@@ -3,8 +3,6 @@
 #include "Context.hpp"
 
 RenderPass::RenderPass(const RenderPassInfo& info) {
-  auto ctx = Context::Get();
-
   vk::AttachmentDescription colorAttachment(
       vk::AttachmentDescriptionFlags(), info.colorAttachmentFormat, vk::SampleCountFlagBits::e1,
       vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore, vk::AttachmentLoadOp::eDontCare,
@@ -22,7 +20,7 @@ RenderPass::RenderPass(const RenderPassInfo& info) {
 
   vk::RenderPassCreateInfo createInfo({}, colorAttachment, subpass);
 
-  ctx->GetDevice().createRenderPass(createInfo);
+  renderPass = Context::Get()->GetDevice().createRenderPass(createInfo);
 }
 
 RenderPass::~RenderPass() { Context::Get()->GetDevice().destroyRenderPass(renderPass); }

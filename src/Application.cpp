@@ -40,7 +40,7 @@ void Application::InitWindow() {
 }
 
 void Application::InitVulkan() {
-  auto *ctx = Context::Get();
+  auto ctx = Context::Get();
 
   // TODO Setup Debugging
 
@@ -123,7 +123,7 @@ void Application::InitVulkan() {
 }
 
 void Application::MainLoop() {
-  auto *ctx = Context::Get();
+  auto ctx = Context::Get();
 
   while (running) {
     SDL_Event e;
@@ -198,7 +198,7 @@ void Application::MainLoop() {
 }
 
 void Application::UpdateUniformBuffers(uint32_t currentImage) {
-  auto *ctx = Context::Get();
+  auto ctx = Context::Get();
   static auto startTime = std::chrono::high_resolution_clock::now();
 
   auto currentTime = std::chrono::high_resolution_clock::now();
@@ -222,7 +222,7 @@ void Application::UpdateUniformBuffers(uint32_t currentImage) {
 void Application::Cleanup() { SDL_Quit(); }
 
 void Application::RecreateSwapchain() {
-  auto *ctx = Context::Get();
+  auto ctx = Context::Get();
 
   vkDeviceWaitIdle(ctx->GetDevice());
 
@@ -243,7 +243,7 @@ void Application::RecreateSwapchain() {
 }
 
 void Application::CleanupSwapchain() {
-  auto *ctx = Context::Get();
+  auto ctx = Context::Get();
 
   for (auto &swapchainFramebuffer : swapchainFramebuffers)
     ctx->GetDevice().destroyFramebuffer(swapchainFramebuffer);
@@ -259,7 +259,7 @@ void Application::CleanupSwapchain() {
 }
 
 void Application::CreateSwapchain() {
-  auto *ctx = Context::Get();
+  auto ctx = Context::Get();
 
   // Create swapchain
   SwapchainSupportDetails details = ctx->QuerySwapchainSupportDetails(ctx->GetPhysicalDevice());
@@ -295,7 +295,7 @@ void Application::CreateSwapchain() {
 }
 
 void Application::CreateImageViews() {
-  auto *ctx = Context::Get();
+  auto ctx = Context::Get();
 
   // Swapchain Image Views
   swapchainImageViews.resize(swapchainImages.size());
@@ -311,7 +311,7 @@ void Application::CreateImageViews() {
 }
 
 void Application::CreateDescriptorSetLayout() {
-  auto *ctx = Context::Get();
+  auto ctx = Context::Get();
 
   vk::DescriptorSetLayoutBinding uboLayoutBinding(0, vk::DescriptorType::eUniformBuffer, 1,
                                                   vk::ShaderStageFlagBits::eVertex);
@@ -322,7 +322,7 @@ void Application::CreateDescriptorSetLayout() {
 }
 
 void Application::CreateDescriptorSets() {
-  auto *ctx = Context::Get();
+  auto ctx = Context::Get();
 
   std::vector<vk::DescriptorSetLayout> layouts(swapchainImages.size(), descriptorSetLayout);
   vk::DescriptorSetAllocateInfo allocInfo(descriptorPool, layouts);
@@ -339,76 +339,22 @@ void Application::CreateDescriptorSets() {
 }
 
 void Application::CreateGraphicsPipeline() {
-  auto *ctx = Context::Get();
+  auto ctx = Context::Get();
 
-  Shader shader(ctx->GetDevice(), "assets/default.glsl");
+  Shader shader(ctx->GetDevice(), {{vk::ShaderStageFlagBits::eVertex, "assets/vertex.glsl"},
+                                   {vk::ShaderStageFlagBits::eFragment, "assets/fragment.glsl"}});
 
-  vk::PipelineShaderStageCreateInfo vertCreateInfo(
-      vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eVertex,
-      shader.GetShaderModule(vk::ShaderStageFlagBits::eVertex), "main");
-
-  vk::PipelineShaderStageCreateInfo fragCreateInfo(
-      vk::PipelineShaderStageCreateFlags(), vk::ShaderStageFlagBits::eFragment,
-      shader.GetShaderModule(vk::ShaderStageFlagBits::eFragment), "main");
-
-  std::array<vk::PipelineShaderStageCreateInfo, 2> shaderStages = {vertCreateInfo, fragCreateInfo};
-
-  auto bindingDescription = Vertex::GetBindingDescription();
-  auto attributeDescriptions = Vertex::GetAttributeDescriptions();
-
-  vk::PipelineVertexInputStateCreateInfo vertexInputInfo(vk::PipelineVertexInputStateCreateFlags(),
-                                                         bindingDescription, attributeDescriptions);
-
-  vk::PipelineInputAssemblyStateCreateInfo inputAssembly(
-      vk::PipelineInputAssemblyStateCreateFlags(), vk::PrimitiveTopology::eTriangleList, VK_FALSE);
-
-  vk::Viewport viewport(0, 0, static_cast<float>(swapchainExtent.width),
-                        static_cast<float>(swapchainExtent.height), 0.0F, 1.0F);
-  vk::Rect2D scissor({0, 0}, swapchainExtent);
-
-  vk::PipelineViewportStateCreateInfo viewportState(vk::PipelineViewportStateCreateFlags(),
-                                                    viewport, scissor);
-
-  vk::PipelineRasterizationStateCreateInfo rasterizer(
-      vk::PipelineRasterizationStateCreateFlags(), VK_FALSE, VK_FALSE, vk::PolygonMode::eFill,
-      vk::CullModeFlagBits::eBack, vk::FrontFace::eCounterClockwise, VK_FALSE, 0.0F, 0.0F, 0.0F,
-      1.0F);
-
-  vk::PipelineMultisampleStateCreateInfo multisampling(vk::PipelineMultisampleStateCreateFlags(),
-                                                       vk::SampleCountFlagBits::e1, VK_FALSE, 1.0F,
-                                                       nullptr, VK_FALSE, VK_FALSE);
-
-  vk::PipelineColorBlendAttachmentState colorBlendAttachment(
-      VK_FALSE, vk::BlendFactor::eOne, vk::BlendFactor::eZero, vk::BlendOp::eAdd,
-      vk::BlendFactor::eOne, vk::BlendFactor::eZero, vk::BlendOp::eAdd,
-      vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
-          vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA);
-
-  vk::PipelineColorBlendStateCreateInfo colorBlending(
-      vk::PipelineColorBlendStateCreateFlags(), VK_FALSE, vk::LogicOp::eNoOp, colorBlendAttachment);
-
-  std::array<vk::DynamicState, 2> dynamicStates = {vk::DynamicState::eViewport,
-                                                   vk::DynamicState::eScissor};
-
-  vk::PipelineDynamicStateCreateInfo dynamicState(vk::PipelineDynamicStateCreateFlags(),
-                                                  dynamicStates);
-
-  vk::PipelineLayoutCreateInfo pipelineLayoutInfo(vk::PipelineLayoutCreateFlags(),
-                                                  descriptorSetLayout);
-  pipelineLayout = ctx->GetDevice().createPipelineLayout(pipelineLayoutInfo);
-
-  vk::GraphicsPipelineCreateInfo pipelineInfo(
-      vk::PipelineCreateFlags(), shaderStages, &vertexInputInfo, &inputAssembly, nullptr,
-      &viewportState, &rasterizer, &multisampling, nullptr, &colorBlending, nullptr, pipelineLayout,
-      renderPass.GetRenderPass());
-
-  vk::Result result{};
-  std::tie(result, graphicsPipeline) =
-      ctx->GetDevice().createGraphicsPipeline(nullptr, pipelineInfo);
+  PipelineInfo info;
+  info.renderPass = &renderPass;
+  info.shader = shader;
+  info.vertexBindingDescription = Vertex::GetBindingDescription();
+  info.vertexAttributeDescriptions = Vertex::GetAttributeDescriptions();
+  info.extent = swapchainExtent;
+  pipeline = Pipeline(info);
 }
 
 void Application::CreateFramebuffers() {
-  auto *ctx = Context::Get();
+  auto ctx = Context::Get();
 
   // Create Framebuffers
   swapchainFramebuffers.resize(swapchainImageViews.size());
@@ -434,7 +380,7 @@ void Application::CreateUniformBuffers() {
 }
 
 void Application::CreateDescriptorPool() {
-  auto *ctx = Context::Get();
+  auto ctx = Context::Get();
 
   vk::DescriptorPoolSize poolSize(vk::DescriptorType::eUniformBuffer,
                                   static_cast<uint32_t>(swapchainImages.size()));
@@ -445,7 +391,7 @@ void Application::CreateDescriptorPool() {
 }
 
 void Application::CreateCommandBuffers() {
-  auto *ctx = Context::Get();
+  auto ctx = Context::Get();
 
   // Create Command Buffers
   vk::CommandBufferAllocateInfo allocInfo(commandPool, vk::CommandBufferLevel::ePrimary,
@@ -514,7 +460,7 @@ auto Application::ChooseSwapExtent(const vk::SurfaceCapabilitiesKHR &capabilites
 
 auto Application::FindMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties)
     -> uint32_t {
-  auto *ctx = Context::Get();
+  auto ctx = Context::Get();
   auto memProperties = ctx->GetPhysicalDevice().getMemoryProperties();
 
   for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
@@ -529,7 +475,7 @@ auto Application::FindMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags pr
 auto Application::CreateBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage,
                                vk::MemoryPropertyFlags properties)
     -> std::pair<vk::Buffer, vk::DeviceMemory> {
-  auto *ctx = Context::Get();
+  auto ctx = Context::Get();
 
   vk::BufferCreateInfo bufferInfo(vk::BufferCreateFlags(), size, usage,
                                   vk::SharingMode::eExclusive);
@@ -546,7 +492,7 @@ auto Application::CreateBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage,
 }
 
 void Application::CopyBuffer(vk::Buffer src, vk::Buffer dst, vk::DeviceSize size) {
-  auto *ctx = Context::Get();
+  auto ctx = Context::Get();
 
   vk::CommandBufferAllocateInfo allocInfo(commandPool, vk::CommandBufferLevel::ePrimary, 1);
 

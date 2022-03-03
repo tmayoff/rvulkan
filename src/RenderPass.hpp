@@ -14,7 +14,7 @@ class RenderPass {
   RenderPass(const RenderPassInfo& info);
   ~RenderPass();
 
-  auto GetRenderPass() -> vk::RenderPass { return renderPass; }
+  auto GetRenderPass() const -> vk::RenderPass { return renderPass; }
 
  private:
   vk::RenderPass renderPass;
