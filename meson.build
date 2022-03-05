@@ -18,11 +18,10 @@ sdl2   = dependency('SDL2')
 sources = []
 
 subdir('src')
-
-shaderc = dependency('shaderc')
+subdir('assets')
 
 exe = executable('rvulkan', sources,
-                dependencies: [vulkan, sdl2, glm, vma, shaderc],
+                dependencies: [vulkan, sdl2, glm, vma],
                 install : true)
 
 test('basic', exe)
