@@ -7,12 +7,6 @@
 
 namespace Utils {
 
-auto ShaderTypeFromString(const std::string& type) -> vk::ShaderStageFlagBits {
-  if (type == "vertex") return vk::ShaderStageFlagBits::eVertex;
-  if (type == "fragment" || type == "pixel") return vk::ShaderStageFlagBits::eFragment;
-  assert(false);
-}
-
 auto VKShaderTypeToShaderC(vk::ShaderStageFlagBits type) -> shaderc_shader_kind {
   if (type == vk::ShaderStageFlagBits::eFragment)
     return shaderc_shader_kind::shaderc_fragment_shader;
@@ -23,7 +17,7 @@ auto VKShaderTypeToShaderC(vk::ShaderStageFlagBits type) -> shaderc_shader_kind 
 }  // namespace Utils
 
 Shader::Shader(const vk::Device& device, std::vector<ShaderInfo> shaders) {
-  std::unordered_map<vk::ShaderStageFlagBits, std::string> sources;
+  std::unordered_map<vk::ShaderStageFlagBits, std::vector<uint8_t>> sources;
   for (auto shader : shaders) {
     sources[shader.stage] = ReadFile(shader.filepath);
     shaderFilepaths[shader.stage] = shader.filepath;
@@ -31,42 +25,30 @@ Shader::Shader(const vk::Device& device, std::vector<ShaderInfo> shaders) {
   Compile(device, sources);
 }
 
-Shader::Shader(const vk::Device& device, const std::string& vertexSource,
-               const std::string& fragmentSource) {
-  Compile(device, {{vk::ShaderStageFlagBits::eVertex, vertexSource},
-                   {vk::ShaderStageFlagBits::eFragment, fragmentSource}});
-}
-
-auto Shader::ReadFile(const std::string& path) -> std::string {
+auto Shader::ReadFile(const std::string& path) -> std::vector<uint8_t> {
   std::fstream file;
-  file.open(path);
+  file.open(path, std::ios::in | std::ios::binary);
 
   if (file.is_open()) {
     file.seekg(0, std::ios::end);
     auto size = file.tellg();
     file.seekg(std::ios::beg);
 
-    std::string source;
+    std::vector<char> source;
     source.resize(size);
     file.read(source.data(), size);
-    return source;
+    return {source.begin(), source.end()};
   }
 
-  return "";
+  return {};
 }
 
-void Shader::Compile(const vk::Device& device,
-                     const std::unordered_map<vk::ShaderStageFlagBits, std::string>& sources) {
-  shaderc::Compiler compiler;
-  shaderc::CompileOptions options;
+void Shader::Compile(
+    const vk::Device& device,
+    const std::unordered_map<vk::ShaderStageFlagBits, std::vector<uint8_t>>& sources) {
   for (auto&& [stage, source] : sources) {
-    shaderc::SpvCompilationResult shaderModule = compiler.CompileGlslToSpv(
-        source, Utils::VKShaderTypeToShaderC(stage), shaderFilepaths[stage].c_str(), options);
-    if (shaderModule.GetCompilationStatus() != shaderc_compilation_status_success) assert(false);
-
-    //
     vk::ShaderModuleCreateInfo createInfo;
-    std::vector<uint32_t> code(shaderModule.cbegin(), shaderModule.cend());
+    std::vector<uint32_t> code(source.cbegin(), source.cend());
     createInfo.setCode(code);
     shaderModules[stage] = device.createShaderModule(createInfo);
   }

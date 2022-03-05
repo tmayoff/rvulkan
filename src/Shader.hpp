@@ -15,17 +15,15 @@ class Shader {
  public:
   Shader() = default;
   Shader(const vk::Device& device, std::vector<ShaderInfo> shaders);
-  Shader(const vk::Device& device, const std::string& vertexSource,
-         const std::string& fragmentSource);
 
   auto GetShaderModules() const { return shaderModules; }
   auto GetShaderModule(vk::ShaderStageFlagBits shaderStage) { return shaderModules[shaderStage]; }
 
  private:
-  static auto ReadFile(const std::string& path) -> std::string;
+  static auto ReadFile(const std::string& path) -> std::vector<uint8_t>;
 
   void Compile(const vk::Device& device,
-               const std::unordered_map<vk::ShaderStageFlagBits, std::string>& sources);
+               const std::unordered_map<vk::ShaderStageFlagBits, std::vector<uint8_t>>& sources);
 
   std::unordered_map<vk::ShaderStageFlagBits, vk::ShaderModule> shaderModules;
   std::unordered_map<vk::ShaderStageFlagBits, std::filesystem::path> shaderFilepaths;
