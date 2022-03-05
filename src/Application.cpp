@@ -47,12 +47,25 @@ void Application::InitVulkan() {
   CreateSwapchain();
   CreateImageViews();
 
-  RenderPassInfo info{};
-  info.colorAttachmentFormat = swapchainFormat;
-  renderPass = RenderPass(info);
+  {
+    RenderPassInfo info{};
+    info.colorAttachmentFormat = swapchainFormat;
+    renderPass = RenderPass(info);
+  }
 
   CreateDescriptorSetLayout();
-  CreateGraphicsPipeline();
+  {
+    Shader shader(ctx->GetDevice(), {{vk::ShaderStageFlagBits::eVertex, "assets/vert.spirv"},
+                                     {vk::ShaderStageFlagBits::eFragment, "assets/frag.spirv"}});
+    PipelineInfo info;
+    info.renderPass = &renderPass;
+    info.shader = shader;
+    info.vertexBindingDescription = Vertex::GetBindingDescription();
+    info.vertexAttributeDescriptions = Vertex::GetAttributeDescriptions();
+    info.extent = swapchainExtent;
+    pipeline = Pipeline(info);
+  }
+
   CreateFramebuffers();
 
   {
@@ -235,7 +248,6 @@ void Application::RecreateSwapchain() {
   info.colorAttachmentFormat = swapchainFormat;
   renderPass = RenderPass(info);
 
-  CreateGraphicsPipeline();
   CreateFramebuffers();
   CreateUniformBuffers();
   CreateDescriptorPool();
@@ -336,21 +348,6 @@ void Application::CreateDescriptorSets() {
 
     ctx->GetDevice().updateDescriptorSets(descriptorWrite, {});
   }
-}
-
-void Application::CreateGraphicsPipeline() {
-  auto ctx = Context::Get();
-
-  Shader shader(ctx->GetDevice(), {{vk::ShaderStageFlagBits::eVertex, "assets/vertex.glsl"},
-                                   {vk::ShaderStageFlagBits::eFragment, "assets/fragment.glsl"}});
-
-  PipelineInfo info;
-  info.renderPass = &renderPass;
-  info.shader = shader;
-  info.vertexBindingDescription = Vertex::GetBindingDescription();
-  info.vertexAttributeDescriptions = Vertex::GetAttributeDescriptions();
-  info.extent = swapchainExtent;
-  pipeline = Pipeline(info);
 }
 
 void Application::CreateFramebuffers() {

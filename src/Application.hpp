@@ -84,7 +84,6 @@ class Application {
   void CreateSwapchain();
   void CreateImageViews();
   void CreateDescriptorSetLayout();
-  void CreateGraphicsPipeline();
   void CreateFramebuffers();
   void CreateUniformBuffers();
   void CreateDescriptorPool();
