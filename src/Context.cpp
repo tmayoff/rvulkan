@@ -23,10 +23,10 @@ void Context::CreateInstance() {
                                    extensions.data());
 
   // Layers
-  const std::array<const char *, 1> layers = {"VK_LAYER_KHRONOS_validation"};
+  const std::array layers = {"VK_LAYER_KHRONOS_validation"};
 
   // Create Instance
-  vk::ApplicationInfo appInfo("dvulkan", 1, "dvulkan", 1, VK_API_VERSION_1_2);
+  vk::ApplicationInfo appInfo("rvulkan", 1, "rvulkan", 1, VK_API_VERSION_1_2);
   vk::InstanceCreateInfo createInfo({}, &appInfo, layers, extensions);
   instance = vk::createInstance(createInfo);
 }
