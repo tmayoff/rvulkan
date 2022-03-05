@@ -20,10 +20,10 @@ class Shader {
   auto GetShaderModule(vk::ShaderStageFlagBits shaderStage) { return shaderModules[shaderStage]; }
 
  private:
-  static auto ReadFile(const std::string& path) -> std::vector<uint8_t>;
+  static auto ReadFile(const std::string& path) -> std::vector<char>;
 
   void Compile(const vk::Device& device,
-               const std::unordered_map<vk::ShaderStageFlagBits, std::vector<uint8_t>>& sources);
+               const std::unordered_map<vk::ShaderStageFlagBits, std::vector<char>>& sources);
 
   std::unordered_map<vk::ShaderStageFlagBits, vk::ShaderModule> shaderModules;
   std::unordered_map<vk::ShaderStageFlagBits, std::filesystem::path> shaderFilepaths;

@@ -18,7 +18,6 @@ sdl2   = dependency('SDL2')
 sources = []
 
 subdir('src')
-subdir('assets')
 
 exe = executable('rvulkan', sources,
                 dependencies: [vulkan, sdl2, glm, vma],

@@ -4,10 +4,9 @@
 
 Pipeline::Pipeline(const PipelineInfo& info) {
   std::vector<vk::PipelineShaderStageCreateInfo> shaderStages;
-  for (auto&& [stage, shader] : info.shader.GetShaderModules()) {
+  for (auto&& [stage, shader] : info.shader.GetShaderModules())
     shaderStages.push_back(vk::PipelineShaderStageCreateInfo(vk::PipelineShaderStageCreateFlags(),
                                                              stage, shader, "main"));
-  }
 
   vk::PipelineVertexInputStateCreateInfo vertexInputInfo(vk::PipelineVertexInputStateCreateFlags(),
                                                          info.vertexBindingDescription,
@@ -41,8 +40,7 @@ Pipeline::Pipeline(const PipelineInfo& info) {
   vk::PipelineColorBlendStateCreateInfo colorBlending(
       vk::PipelineColorBlendStateCreateFlags(), VK_FALSE, vk::LogicOp::eNoOp, colorBlendAttachment);
 
-  std::array<vk::DynamicState, 2> dynamicStates = {vk::DynamicState::eViewport,
-                                                   vk::DynamicState::eScissor};
+  std::array dynamicStates = {vk::DynamicState::eViewport, vk::DynamicState::eScissor};
 
   vk::PipelineDynamicStateCreateInfo dynamicState(vk::PipelineDynamicStateCreateFlags(),
                                                   dynamicStates);
