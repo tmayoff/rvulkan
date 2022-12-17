@@ -8,7 +8,7 @@ Renderer::Renderer() {
 
   PipelineOptions pipelineOptions{};
   pipelineOptions.shader =
-      Shader(Shader::ReadFile("assets/vert.spv"), Shader::ReadFile("assets/frag.spv"));
+      Shader(Shader::ReadFile("assets/vert.spv"), Shader::ReadFile("rvulkan/assets/frag.spv"));
   pipelineOptions.bufferLayout = {BufferElement(ShaderDataType::Float3, "a_Position"),
                                   BufferElement(ShaderDataType::Float4, "a_Color")};
 
