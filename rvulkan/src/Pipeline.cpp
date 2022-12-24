@@ -1,12 +1,11 @@
 #include "Pipeline.hpp"
 
 #include "VulkanContext.hpp"
-#include "vulkan/vulkan.hpp"
 
 Pipeline::Pipeline(const PipelineOptions& options, const vk::RenderPass renderPass) {
   auto& context = GetCurrentVulkanContext();
 
-  std::array shaderStageInfos = {
+  const std::array shaderStageInfos = {
       vk::PipelineShaderStageCreateInfo(vk::PipelineShaderStageCreateFlags(),
                                         vk::ShaderStageFlagBits::eVertex,
                                         options.shader.GetVertexModule(), "main"),
@@ -15,12 +14,12 @@ Pipeline::Pipeline(const PipelineOptions& options, const vk::RenderPass renderPa
                                         options.shader.GetFragmentModule(), "main")};
 
   std::vector<vk::VertexInputAttributeDescription> vertexAttributeDescriptions;
-  std::vector<vk::VertexInputBindingDescription> vertexBindingDescriptions = {
+  const std::vector<vk::VertexInputBindingDescription> vertexBindingDescriptions = {
       vk::VertexInputBindingDescription(0, options.bufferLayout.GetStride(),
                                         vk::VertexInputRate::eVertex)};
 
   int location = 0;
-  for (auto& inputAttrib : options.bufferLayout) {
+  for (const auto& inputAttrib : options.bufferLayout) {
     vk::VertexInputAttributeDescription inputDesc{};
     inputDesc.setLocation(location)
         .setBinding(0)
@@ -36,16 +35,16 @@ Pipeline::Pipeline(const PipelineOptions& options, const vk::RenderPass renderPa
                                                          vertexAttributeDescriptions);
 
   vk::PipelineInputAssemblyStateCreateInfo inputAssemblyInfo;
-  inputAssemblyInfo.setPrimitiveRestartEnable(false).setTopology(
+  inputAssemblyInfo.setPrimitiveRestartEnable(VK_FALSE).setTopology(
       vk::PrimitiveTopology::eTriangleList);
 
   vk::Viewport viewport;
   viewport.setX(0)
       .setY(0)
-      .setWidth((float)context.GetSurfaceExtent().width)
-      .setHeight((float)context.GetSurfaceExtent().height)
-      .setMinDepth(0.0f)
-      .setMaxDepth(1.0f);
+      .setWidth(static_cast<float>(context.GetSurfaceExtent().width))
+      .setHeight(static_cast<float>(context.GetSurfaceExtent().height))
+      .setMinDepth(0.0F)
+      .setMaxDepth(1.0F);
 
   vk::Rect2D scissors;
   scissors.setOffset({0, 0}).setExtent(context.GetSurfaceExtent());
@@ -55,18 +54,18 @@ Pipeline::Pipeline(const PipelineOptions& options, const vk::RenderPass renderPa
 
   vk::PipelineRasterizationStateCreateInfo rasterizer;
   rasterizer.setDepthClampEnable(VK_FALSE)
-      .setRasterizerDiscardEnable(false)
+      .setRasterizerDiscardEnable(VK_FALSE)
       .setPolygonMode(vk::PolygonMode::eFill)
       .setCullMode(vk::CullModeFlagBits::eBack)
       .setFrontFace(vk::FrontFace::eClockwise)
-      .setDepthBiasEnable(false)
-      .setLineWidth(1.0f);
+      .setDepthBiasEnable(VK_FALSE)
+      .setLineWidth(1.0F);
 
   vk::PipelineMultisampleStateCreateInfo multisample;
-  multisample.setSampleShadingEnable(false).setRasterizationSamples(vk::SampleCountFlagBits::e1);
+  multisample.setSampleShadingEnable(VK_FALSE).setRasterizationSamples(vk::SampleCountFlagBits::e1);
 
   vk::PipelineColorBlendAttachmentState colorAttachment;
-  colorAttachment.setBlendEnable(false)
+  colorAttachment.setBlendEnable(VK_FALSE)
       .setSrcColorBlendFactor(vk::BlendFactor::eOne)
       .setDstColorBlendFactor(vk::BlendFactor::eZero)
       .setColorBlendOp(vk::BlendOp::eAdd)
@@ -77,10 +76,10 @@ Pipeline::Pipeline(const PipelineOptions& options, const vk::RenderPass renderPa
                          vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA);
 
   vk::PipelineColorBlendStateCreateInfo colorBlend{};
-  colorBlend.setLogicOpEnable(false)
+  colorBlend.setLogicOpEnable(VK_FALSE)
       .setLogicOp(vk::LogicOp::eCopy)
       .setAttachments(colorAttachment)
-      .setBlendConstants({0.0f, 0.0f, 0.0f, 0.0f});
+      .setBlendConstants({0.0F, 0.0F, 0.0F, 0.0F});
 
   layout = context.GetDevice().createPipelineLayout(vk::PipelineLayoutCreateInfo());
 

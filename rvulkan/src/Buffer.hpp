@@ -9,9 +9,12 @@
 class Buffer {
  public:
   Buffer() = default;
-  Buffer(size_t byteSize, VmaMemoryUsage usage, vk::BufferUsageFlags bufferUsage);
+  Buffer(size_t byte_size, VmaMemoryUsage memory_usage, vk::BufferUsageFlags buffer_usage);
+  Buffer(const Buffer&) = delete;
 
-  const vk::Buffer& GetHandle() const { return buffer; }
+  ~Buffer();
+
+  [[nodiscard]] const vk::Buffer& GetHandle() const { return buffer; }
 
   void SetData(void* data, uint32_t size);
 

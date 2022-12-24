@@ -2,20 +2,24 @@
 
 #include "VulkanContext.hpp"
 
-Buffer::Buffer(size_t byteSize, VmaMemoryUsage memoryUsage, vk::BufferUsageFlags bufferUsage) {
+Buffer::Buffer(size_t byte_size, VmaMemoryUsage memory_usage, vk::BufferUsageFlags buffer_usage) {
   auto& vulkanContext = GetCurrentVulkanContext();
 
   vk::BufferCreateInfo bufferInfo{};
-  bufferInfo.setSize(vk::DeviceSize(byteSize))
-      .setUsage(bufferUsage)
+  bufferInfo.setSize(static_cast<vk::DeviceSize>(byte_size))
+      .setUsage(buffer_usage)
       .setSharingMode(vk::SharingMode::eExclusive);
 
   buffer = vulkanContext.GetDevice().createBuffer(bufferInfo);
 
   VmaAllocationCreateInfo allocInfo = {};
-  allocInfo.usage = memoryUsage;
-  vmaCreateBuffer(vulkanContext.GetAllocator(), (VkBufferCreateInfo*)&bufferInfo, &allocInfo,
-                  (VkBuffer*)&buffer, &allocation, nullptr);
+  allocInfo.usage = memory_usage;
+  vmaCreateBuffer(vulkanContext.GetAllocator(), reinterpret_cast<VkBufferCreateInfo*>(&bufferInfo),
+                  &allocInfo, reinterpret_cast<VkBuffer*>(&buffer), &allocation, nullptr);
+}
+
+Buffer::~Buffer() {
+  vmaDestroyBuffer(GetCurrentVulkanContext().GetAllocator(), buffer, allocation);
 }
 
 void Buffer::SetData(void* data, uint32_t size) {
@@ -23,5 +27,5 @@ void Buffer::SetData(void* data, uint32_t size) {
   vmaMapMemory(GetCurrentVulkanContext().GetAllocator(), allocation, &mem);
   std::memcpy(mem, data, size);
   vmaUnmapMemory(GetCurrentVulkanContext().GetAllocator(), allocation);
-  memory = (uint8_t*)mem;
+  memory = static_cast<uint8_t*>(mem);
 }
