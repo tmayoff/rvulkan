@@ -1,7 +1,12 @@
 ---
-Checks:          'clang-diagnostic-*,clang-analyzer-*,cppcoreguidelines-*'
+Checks: '-*,bugprone-*,cert-dcl21-cpp,cert-dcl50-cpp,cert-env33-c,cert-err34-c,cert-err52-cpp,cert-err60-cpp,cert-flp30-c,cert-msc50-cpp,cert-msc51-cpp,cppcoreguidelines-*,-cppcoreguidelines-macro-usage,-cppcoreguidelines-pro-type-reinterpret-cast,-cppcoreguidelines-pro-type-union-access,-cppcoreguidelines-pro-bounds-pointer-arithmetic,-cppcoreguidelines-pro-type-vararg,-cppcoreguidelines-non-private-member-variables-in-classes,-cppcoreguidelines-avoid-magic-numbers,google-build-using-namespace,google-explicit-constructor,google-global-names-in-headers,google-readability-casting,google-runtime-int,google-runtime-operator,hicpp-*,-hicpp-vararg,-hicpp-braces-around-statements,misc-*,modernize-*,-modernize-use-trailing-return-type,performance-*,readability-*,-readability-named-parameter,-readability-magic-numbers,-readability-braces-around-statements,-readability-identifier-length,-misc-no-recursion'
 WarningsAsErrors: ''
 HeaderFilterRegex: ''
 AnalyzeTemporaryDtors: false
-FormatStyle:     Google
+FormatStyle: Google
+CheckOptions:
+    - key: readability-identifier-naming.TypeAliasSuffix
+      value: _t
+    - key: readability-identifier-naming.TypdefSuffix
+      value: _t
 ...
