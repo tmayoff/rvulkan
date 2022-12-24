@@ -1,11 +1,6 @@
 #include "Application.hpp"
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_vulkan.h>
-
-#include <memory>
-#include <set>
-#include <stdexcept>
+#include "VulkanContext.hpp"
 
 Application *Application::appInstance = nullptr;
 
@@ -20,24 +15,24 @@ Application::Application() {
   VulkanContextCreateOptions vulkanOptions;
   vulkanOptions.Layers = {"VK_LAYER_KHRONOS_validation"};
   vulkanOptions.Extensions = window->GetRequiredExtension();
-  vulkanContext = std::make_shared<VulkanContext>(vulkanOptions);
+  vulkan_context = VulkanContext(vulkanOptions);
 
-  vulkanContext->Init(window->GetSurface(vulkanContext->GetInstance()));
+  vulkan_context.Init(window->GetSurface(vulkan_context.GetInstance()));
 
-  SetCurrentVulkanContext(*vulkanContext.get());
+  SetCurrentVulkanContext(vulkan_context);
 
-  renderer = std::make_shared<Renderer>();
+  renderer = std::make_shared<Renderer>(vulkan_context);
 }
 
 void Application::Run() {
   while (running) {
     window->Update();
 
-    renderer->StartFrame();
+    // renderer->StartFrame();
 
-    // Draw things here
-    renderer->DrawQuad();
+    // // Draw things here
+    // renderer->DrawQuad();
 
-    renderer->EndFrame();
+    // renderer->EndFrame();
   }
 }

@@ -2,10 +2,8 @@
 #ifndef APPLICATION_HPP_
 #define APPLICATION_HPP_
 
-#include <optional>
-#include <vulkan/vulkan.hpp>
+#include <Renderer.hpp>
 
-#include "Renderer.hpp"
 #include "VulkanContext.hpp"
 #include "Window.hpp"
 
@@ -32,7 +30,7 @@ class Application {
 
   bool running = true;
 
-  std::shared_ptr<VulkanContext> vulkanContext;
+  VulkanContext vulkan_context;
   std::shared_ptr<Window> window;
   std::shared_ptr<Renderer> renderer;
 };

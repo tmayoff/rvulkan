@@ -7,22 +7,20 @@
 
 #include "Application.hpp"
 
-Window::Window() {
+Window::Window()
+    : window(SDL_CreateWindow("rvulkan", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1600, 900,
+                              SDL_WINDOW_VULKAN | SDL_WINDOW_SHOWN)) {
   SDL_Init(SDL_INIT_VIDEO);
 
-  window = SDL_CreateWindow("rvulkan", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1600, 900,
-                            SDL_WINDOW_VULKAN | SDL_WINDOW_SHOWN);
-  if (!window) throw std::runtime_error("Failed to create window");
+  if (window == nullptr) throw std::runtime_error("Failed to create window");
 }
 
 void Window::Update() {
   SDL_Event event;
 
-  while (SDL_PollEvent(&event)) {
+  while (SDL_PollEvent(&event) != 0) {
     switch (event.type) {
-      case SDL_QUIT:
-        eventCallback(true);
-        break;
+      case SDL_QUIT: eventCallback(true); break;
     }
   }
 }
@@ -38,7 +36,7 @@ std::vector<const char*> Window::GetRequiredExtension() {
   return extensions;
 }
 
-vk::SurfaceKHR Window::GetSurface(const vk::Instance& instance) {
+vk::SurfaceKHR Window::GetSurface(const vkb::Instance& instance) {
   VkSurfaceKHR surface = VK_NULL_HANDLE;
   SDL_Vulkan_CreateSurface(window, instance, &surface);
   return surface;
