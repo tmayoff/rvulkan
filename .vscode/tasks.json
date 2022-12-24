@@ -3,14 +3,13 @@
 	"tasks": [
 		{
 			"type": "meson",
-			"target": "rvulkan",
+			"target": "sandbox/Sandbox",
 			"mode": "build",
-			"group": {
-				"kind": "build",
-				"isDefault": true
-			},
-			"problemMatcher": [],
-			"label": "build rvulkan"
+			"problemMatcher": [
+				"$meson-gcc"
+			],
+			"group": "build",
+			"label": "Meson: Build sandbox/Sandbox"
 		}
 	]
 }
