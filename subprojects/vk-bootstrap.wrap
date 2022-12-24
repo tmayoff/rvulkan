@@ -1,0 +1,9 @@
+[wrap-file]
+directory = vk-bootstrap-0.6
+source_url = https://github.com/charles-lunarg/vk-bootstrap/archive/refs/tags/v0.6.tar.gz
+source_filename = vk-bootstrap-v0.6.tar.gz
+source_hash = 95dedaa5cedf7a271f051d91b24b3b6c78aa3c5b2bc3cf058554c92748a421b2
+patch_directory = vk-bootstrap
+
+[provide]
+vk-bootstrap = vk_bootstrap_dep
