@@ -1,6 +1,8 @@
 #ifndef MEMORY_HPP
 #define MEMORY_HPP
 
+#include <vk_mem_alloc.h>
+
 #include <cstdint>
 #include <vulkan/vulkan.hpp>
 #include <vulkan/vulkan_structs.hpp>

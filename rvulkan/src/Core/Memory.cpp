@@ -1,5 +1,8 @@
 #include "Memory.hpp"
 
+#define VMA_IMPLEMENTATION
+#include <vk_mem_alloc.h>
+
 vk::DeviceMemory AllocateDeviceMemory(const vk::Device& device,
                                       const vk::PhysicalDeviceMemoryProperties& mem_properties,
                                       const vk::MemoryRequirements& mem_reqs,

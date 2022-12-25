@@ -41,12 +41,12 @@ VulkanContext::VulkanContext(const VulkanContextCreateOptions& options, const Wi
 }
 
 void VulkanContext::CreateAllocator() {
-  // VmaAllocatorCreateInfo allocator_info{};
-  // allocator_info.vulkanApiVersion = VK_API_VERSION_1_2;  // NOLINT
-  // allocator_info.instance = instance;
-  // allocator_info.physicalDevice = physical_device.physical_device;
-  // allocator_info.device = device;
-  // vmaCreateAllocator(&allocator_info, &allocator);
+  VmaAllocatorCreateInfo allocator_info{};
+  allocator_info.vulkanApiVersion = VK_API_VERSION_1_2;  // NOLINT
+  allocator_info.instance = instance;
+  allocator_info.physicalDevice = physical_device.GetHandle();
+  allocator_info.device = device.GetHandle();
+  vmaCreateAllocator(&allocator_info, &allocator);
 }
 
 void VulkanContext::RecreateSwapchain(uint32_t surfaceWidth, uint32_t surfaceHeight) {

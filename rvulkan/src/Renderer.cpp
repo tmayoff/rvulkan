@@ -14,13 +14,11 @@ Renderer::Renderer(const VulkanContext& context) : context(context) {
                                   BufferElement(ShaderDataType::Float4, "a_Color")};
 
   vertex_buffer =
-      Buffer(context, sizeof(Vertex) * QuadVertexCount,
-             vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+      Buffer(context, sizeof(Vertex) * QuadVertexCount, VmaMemoryUsage::VMA_MEMORY_USAGE_AUTO,
              vk::BufferUsageFlagBits::eVertexBuffer);
 
   indexBuffer =
-      Buffer(context, sizeof(uint32_t) * QuadIndices.size(),
-             vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+      Buffer(context, sizeof(uint32_t) * QuadIndices.size(), VmaMemoryUsage::VMA_MEMORY_USAGE_AUTO,
              vk::BufferUsageFlagBits::eIndexBuffer);
   indexBuffer.SetData((void*)QuadIndices.data(), sizeof(uint32_t) * QuadIndices.size());
 

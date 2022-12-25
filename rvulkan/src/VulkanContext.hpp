@@ -3,6 +3,7 @@
 
 #include <VkBootstrap.h>
 
+#include <Core/Memory.hpp>
 #include <optional>
 #include <vulkan/LogicalDevice.hpp>
 #include <vulkan/PhysicalDevice.hpp>
@@ -40,6 +41,8 @@ class VulkanContext {
 
   [[nodiscard]] const vk::CommandPool& GetCommandPool() const { return commandPool; }
 
+  [[nodiscard]] const VmaAllocator& GetAllocator() const { return allocator; }
+
  private:
   void pickPhysicalDevice(std::vector<vk::PhysicalDevice> devices);
 
@@ -54,6 +57,8 @@ class VulkanContext {
   LogicalDevice device;
 
   vk::Extent2D surfaceExtent;
+
+  VmaAllocator allocator;
 
   vk::SwapchainKHR swapchain;
   std::vector<vk::Image> swapchainImages;

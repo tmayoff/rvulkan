@@ -5,27 +5,30 @@
 
 #include "VulkanContext.hpp"
 
-Buffer::Buffer(const VulkanContext& context, size_t byte_size,
-               vk::MemoryPropertyFlags property_flags, vk::BufferUsageFlags buffer_usage)
-    : context(context) {
-  auto device = context.GetLogicalDevice();
-  auto phys_device = context.GetPhysicalDevice();
+Buffer::Buffer(const VulkanContext& context, size_t byte_size, VmaMemoryUsage memory_usage,
+               vk::BufferUsageFlags buffer_usage)
+    : allocator(context.GetAllocator()) {
+  vk::BufferCreateInfo bufferInfo{};
+  bufferInfo.setSize(static_cast<vk::DeviceSize>(byte_size))
+      .setUsage(buffer_usage)
+      .setSharingMode(vk::SharingMode::eExclusive);
 
-  buffer = device.GetHandle().createBuffer(
-      vk::BufferCreateInfo(vk::BufferCreateFlags(), byte_size, buffer_usage));
+  buffer = context.GetLogicalDevice().GetHandle().createBuffer(bufferInfo);
 
-  // Allocate Device memory
-  device_memory =
-      AllocateDeviceMemory(device.GetHandle(), phys_device.GetHandle().getMemoryProperties(),
-                           device.GetHandle().getBufferMemoryRequirements(buffer), property_flags);
+  VmaAllocationCreateInfo allocInfo = {};
+  allocInfo.usage = memory_usage;
+  allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT |
+                    VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT;
+  vmaCreateBuffer(allocator, reinterpret_cast<VkBufferCreateInfo*>(&bufferInfo), &allocInfo,
+                  reinterpret_cast<VkBuffer*>(&buffer), &allocation, nullptr);
 }
 
 Buffer::~Buffer() {}
 
 void Buffer::SetData(void* data, uint32_t size) {
-  auto device = context.GetLogicalDevice().GetHandle();
-  auto* p = device.mapMemory(device_memory, 0, size);
-  std::memcpy(p, data, size);
-  device.unmapMemory(device_memory);
-  device.bindBufferMemory(buffer, device_memory, 0);
+  void* mem = nullptr;
+  vmaMapMemory(allocator, allocation, &mem);
+  std::memcpy(mem, data, size);
+  vmaUnmapMemory(allocator, allocation);
+  memory = static_cast<uint8_t*>(mem);
 }

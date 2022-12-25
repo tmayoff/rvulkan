@@ -8,7 +8,7 @@
 class Buffer {
  public:
   Buffer() = default;
-  Buffer(const VulkanContext& context, size_t byte_size, vk::MemoryPropertyFlags property_flags,
+  Buffer(const VulkanContext& context, size_t byte_size, VmaMemoryUsage memory_usage,
          vk::BufferUsageFlags buffer_usage);
   Buffer(const Buffer&) = delete;
   //   Buffer operator=(const Buffer&) = delete;
@@ -20,11 +20,11 @@ class Buffer {
   void SetData(void* data, uint32_t size);
 
  private:
-  VulkanContext context;
+  VmaAllocator allocator;
 
   vk::Buffer buffer;
-  vk::DeviceMemory device_memory;
-  uint8_t* p_data;
+  VmaAllocation allocation = {};
+  uint8_t* memory = nullptr;
 };
 
 #endif  // BUFFER_HPP_
