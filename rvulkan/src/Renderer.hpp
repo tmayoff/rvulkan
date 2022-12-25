@@ -37,12 +37,14 @@ class Renderer {
   const VirtualFrame& GetCurrentFrame() { return virtualFrames[currentFrameIndex]; }
 
  private:
+  VulkanContext context;
+
   RenderPass renderPass;
 
   uint32_t currentFrameIndex = 0;
   uint32_t presentImageIndex = 0;
 
-  Buffer vertexBuffer;
+  Buffer vertex_buffer;
   Buffer indexBuffer;
 
   std::vector<vk::Framebuffer> framebuffers;

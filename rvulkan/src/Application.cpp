@@ -8,18 +8,14 @@ Application::Application() {
   if (appInstance == nullptr) appInstance = this;
 
   // Create Window
-  window = std::make_shared<Window>();
-  window->SetEventCallback([this](bool quit) { running = !quit; });
+  Window window;
+  window.SetEventCallback([this](bool quit) { running = !quit; });
 
   // Initialize Context
-  VulkanContextCreateOptions vulkanOptions;
-  vulkanOptions.Layers = {"VK_LAYER_KHRONOS_validation"};
-  vulkanOptions.Extensions = window->GetRequiredExtension();
-  vulkan_context = VulkanContext(vulkanOptions);
-
-  vulkan_context.Init(window->GetSurface(vulkan_context.GetInstance()));
-
-  SetCurrentVulkanContext(vulkan_context);
+  VulkanContextCreateOptions vulkan_options;
+  vulkan_options.Layers = {"VK_LAYER_KHRONOS_validation"};
+  vulkan_options.Extensions = window.GetRequiredExtension();
+  vulkan_context = VulkanContext(vulkan_options, window);
 
   renderer = std::make_shared<Renderer>(vulkan_context);
 }

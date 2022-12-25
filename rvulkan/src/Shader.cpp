@@ -11,19 +11,18 @@ std::vector<uint32_t> Shader::ReadFile(const std::string& filepath) {
   auto binaryData =
       std::vector<char>(std::istreambuf_iterator(file), std::istreambuf_iterator<char>());
   byteCode.resize(binaryData.size() / sizeof(uint32_t));
-  std::copy((uint32_t*)binaryData.data(), (uint32_t*)(binaryData.data() + binaryData.size()),
-            byteCode.begin());
+  std::copy(reinterpret_cast<uint32_t*>(binaryData.data()),
+            reinterpret_cast<uint32_t*>(binaryData.data() + binaryData.size()), byteCode.begin());
   return byteCode;
 }
 
-Shader::Shader(const std::vector<uint32_t>& vertCode, const std::vector<uint32_t>& fragCode) {
-  auto& vulkan = GetCurrentVulkanContext();
-
+Shader::Shader(const VulkanContext& context, const std::vector<uint32_t>& vertCode,
+               const std::vector<uint32_t>& fragCode) {
   vk::ShaderModuleCreateInfo vertShaderInfo;
   vertShaderInfo.setCode(vertCode);
-  vertexShader = vulkan.GetDevice().createShaderModule(vertShaderInfo);
+  vertexShader = context.GetLogicalDevice().GetHandle().createShaderModule(vertShaderInfo);
 
   vk::ShaderModuleCreateInfo fragShaderInfo;
   fragShaderInfo.setCode(fragCode);
-  fragmentShader = vulkan.GetDevice().createShaderModule(fragShaderInfo);
+  fragmentShader = context.GetLogicalDevice().GetHandle().createShaderModule(fragShaderInfo);
 }

@@ -1,4 +1,5 @@
 #pragma once
+#include "VulkanContext.hpp"
 #ifndef RENDERPASS_HPP_
 #define RENDERPASS_HPP_
 
@@ -14,7 +15,7 @@ struct RenderPassState {
 class RenderPass {
  public:
   RenderPass() = default;
-  RenderPass(const PipelineOptions &pipelineOptions);
+  RenderPass(const VulkanContext &context, const PipelineOptions &pipelineOptions);
 
   void Render(const RenderPassState &state);
 

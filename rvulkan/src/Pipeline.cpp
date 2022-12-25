@@ -2,9 +2,8 @@
 
 #include "VulkanContext.hpp"
 
-Pipeline::Pipeline(const PipelineOptions& options, const vk::RenderPass renderPass) {
-  auto& context = GetCurrentVulkanContext();
-
+Pipeline::Pipeline(const VulkanContext& context, const PipelineOptions& options,
+                   const vk::RenderPass renderPass) {
   const std::array shaderStageInfos = {
       vk::PipelineShaderStageCreateInfo(vk::PipelineShaderStageCreateFlags(),
                                         vk::ShaderStageFlagBits::eVertex,
@@ -81,7 +80,8 @@ Pipeline::Pipeline(const PipelineOptions& options, const vk::RenderPass renderPa
       .setAttachments(colorAttachment)
       .setBlendConstants({0.0F, 0.0F, 0.0F, 0.0F});
 
-  layout = context.GetDevice().createPipelineLayout(vk::PipelineLayoutCreateInfo());
+  layout =
+      context.GetLogicalDevice().GetHandle().createPipelineLayout(vk::PipelineLayoutCreateInfo());
 
   vk::GraphicsPipelineCreateInfo pipelineCreateInfo;
   pipelineCreateInfo.setStages(shaderStageInfos)
@@ -96,6 +96,6 @@ Pipeline::Pipeline(const PipelineOptions& options, const vk::RenderPass renderPa
       .setLayout(layout);
 
   vk::ResultValue<vk::Pipeline> res =
-      GetCurrentVulkanContext().GetDevice().createGraphicsPipeline({}, pipelineCreateInfo);
+      context.GetLogicalDevice().GetHandle().createGraphicsPipeline({}, pipelineCreateInfo);
   pipeline = res.value;
 }

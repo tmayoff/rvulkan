@@ -1,15 +1,15 @@
-#pragma once
 #ifndef BUFFER_HPP_
 #define BUFFER_HPP_
 
-#include <vk_mem_alloc.h>
-
 #include <vulkan/vulkan.hpp>
+
+#include "VulkanContext.hpp"
 
 class Buffer {
  public:
   Buffer() = default;
-  Buffer(size_t byte_size, VmaMemoryUsage memory_usage, vk::BufferUsageFlags buffer_usage);
+  Buffer(const VulkanContext& context, size_t byte_size, vk::MemoryPropertyFlags property_flags,
+         vk::BufferUsageFlags buffer_usage);
   Buffer(const Buffer&) = delete;
 
   ~Buffer();
@@ -19,9 +19,11 @@ class Buffer {
   void SetData(void* data, uint32_t size);
 
  private:
+  VulkanContext context;
+
   vk::Buffer buffer;
-  VmaAllocation allocation = {};
-  uint8_t* memory = nullptr;
+  vk::DeviceMemory device_memory;
+  uint8_t* p_data;
 };
 
 #endif  // BUFFER_HPP_

@@ -1,11 +1,11 @@
 #include "RenderPass.hpp"
 
+#include <vulkan/vulkan_enums.hpp>
+
 #include "Pipeline.hpp"
 #include "VulkanContext.hpp"
 
-RenderPass::RenderPass(const PipelineOptions& pipelineOptions) {
-  auto& context = GetCurrentVulkanContext();
-
+RenderPass::RenderPass(const VulkanContext& context, const PipelineOptions& pipelineOptions) {
   vk::AttachmentDescription colorAttachment{};
   colorAttachment.setFormat(context.GetSurfaceFormat().format)
       .setSamples(vk::SampleCountFlagBits::e1)
@@ -33,8 +33,8 @@ RenderPass::RenderPass(const PipelineOptions& pipelineOptions) {
   vk::RenderPassCreateInfo renderPassInfo;
   renderPassInfo.setAttachments(colorAttachment).setSubpasses(subpass).setDependencies(dependency);
 
-  renderPass = context.GetDevice().createRenderPass(renderPassInfo);
-  pipeline = Pipeline(pipelineOptions, renderPass);
+  renderPass = context.GetLogicalDevice().GetHandle().createRenderPass(renderPassInfo);
+  pipeline = Pipeline(context, pipelineOptions, renderPass);
 }
 
 void RenderPass::Render(const RenderPassState& state) { state.Commands.draw(3, 1, 0, 0); }
