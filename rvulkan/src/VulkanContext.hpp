@@ -1,40 +1,33 @@
-#pragma once
 #ifndef VULKANCONTEXT_HPP_
 #define VULKANCONTEXT_HPP_
 
 #include <VkBootstrap.h>
-#include <vk_mem_alloc.h>
 
 #include <optional>
+#include <vulkan/LogicalDevice.hpp>
+#include <vulkan/PhysicalDevice.hpp>
+#include <vulkan/Surface.hpp>
 #include <vulkan/vulkan.hpp>
+#include <vulkan/vulkan_handles.hpp>
+
+#include "Window.hpp"
 
 struct VulkanContextCreateOptions {
   std::vector<const char*> Extensions;
   std::vector<const char*> Layers;
 };
 
-struct QueueFamilyIndices {
-  std::optional<uint32_t> graphicsFamily;
-  std::optional<uint32_t> presentFamily;
-
-  bool IsComplete() { return graphicsFamily.has_value() && presentFamily.has_value(); }
-};
-
 class VulkanContext {
  public:
   VulkanContext() = default;
-  explicit VulkanContext(const VulkanContextCreateOptions& options);
+  explicit VulkanContext(const VulkanContextCreateOptions& options, const Window& window);
 
-  void Init(vk::SurfaceKHR surface);
-
-  [[nodiscard]] const vkb::Instance& GetInstance() const { return instance; }
-  [[nodiscard]] vk::PhysicalDevice GetPhysicalDevice() const {
-    return physical_device.physical_device;
-  }
-  [[nodiscard]] const vk::Device& GetDevice() const { return device; }
-  [[nodiscard]] vk::SwapchainKHR GetSwapchain() const { return swapchain.swapchain; }
+  [[nodiscard]] const vk::Instance& GetInstance() const { return instance; }
+  [[nodiscard]] const PhysicalDevice& GetPhysicalDevice() const { return physical_device; }
+  [[nodiscard]] const LogicalDevice& GetLogicalDevice() const { return device; }
+  [[nodiscard]] vk::SwapchainKHR GetSwapchain() const { return swapchain; }
   [[nodiscard]] const vk::Extent2D& GetSurfaceExtent() const { return surfaceExtent; }
-  [[nodiscard]] const vk::SurfaceFormatKHR& GetSurfaceFormat() const { return surfaceFormat; }
+  [[nodiscard]] const vk::SurfaceFormatKHR& GetSurfaceFormat() const { return surface.GetFormat(); }
   [[nodiscard]] const vk::Queue& GetGraphicsQueue() const { return graphics_queue; }
   [[nodiscard]] const vk::Queue& GetPresentQueue() const { return present_queue; }
   [[nodiscard]] const vk::Semaphore& GetImageAvailableSemaphore() const {
@@ -47,34 +40,28 @@ class VulkanContext {
     return swapchainImageViews;
   }
 
-  [[nodiscard]] const VmaAllocator& GetAllocator() const { return allocator; }
   [[nodiscard]] const vk::CommandPool& GetCommandPool() const { return commandPool; }
 
  private:
   void pickPhysicalDevice(std::vector<vk::PhysicalDevice> devices);
-  QueueFamilyIndices findQueueFamilies(const vk::PhysicalDevice& device);
 
   void CreateAllocator();
-  void CreateSwapchain();
-  void recreateSwapchain(uint32_t surfaceWidth, uint32_t surfaceHeight);
+  void RecreateSwapchain(uint32_t surfaceWidth, uint32_t surfaceHeight);
 
-  vkb::Instance instance;
+  vk::Instance instance;
 
-  vkb::PhysicalDevice physical_device;
+  Surface surface;
+
+  PhysicalDevice physical_device;
+  LogicalDevice device;
 
   vk::Extent2D surfaceExtent;
-  vk::PresentModeKHR surfacePresentMode;
-  uint32_t presentImageCount = 1;
-  vk::SurfaceFormatKHR surfaceFormat;
 
-  vk::Device device;
   vkb::Device vkb_device;
   vk::Queue graphics_queue;
   vk::Queue present_queue;
 
-  VmaAllocator allocator = {};
-
-  vkb::Swapchain swapchain;
+  vk::SwapchainKHR swapchain;
   std::vector<vk::Image> swapchainImages;
   std::vector<vk::ImageView> swapchainImageViews;
 
@@ -83,8 +70,5 @@ class VulkanContext {
 
   vk::CommandPool commandPool;
 };
-
-VulkanContext& GetCurrentVulkanContext();
-void SetCurrentVulkanContext(VulkanContext&);
 
 #endif  // VULKANCONTEXT_HPP_
