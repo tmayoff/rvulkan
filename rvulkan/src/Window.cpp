@@ -20,7 +20,10 @@ void Window::Update() {
 
   while (SDL_PollEvent(&event) != 0) {
     switch (event.type) {
-      case SDL_QUIT: eventCallback(true); break;
+      case SDL_QUIT: {
+        if (eventCallback) eventCallback(true);
+        break;
+      }
     }
   }
 }

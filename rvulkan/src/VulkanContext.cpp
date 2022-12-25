@@ -11,7 +11,8 @@
 
 #include "VkBootstrap.h"
 
-VulkanContext::VulkanContext(const VulkanContextCreateOptions& options, const Window& window) {
+VulkanContext::VulkanContext(const VulkanContextCreateOptions& options,
+                             const std::shared_ptr<Window>& window) {
   vk::ApplicationInfo appInfo("rvulkan", VK_MAKE_VERSION(1, 0, 0), "rvulkan",  // NOLINT
                               VK_MAKE_VERSION(1, 0, 0), VK_API_VERSION_1_2);   // NOLINT
 

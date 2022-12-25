@@ -44,8 +44,8 @@ class Renderer {
   uint32_t currentFrameIndex = 0;
   uint32_t presentImageIndex = 0;
 
-  Buffer vertex_buffer;
-  Buffer indexBuffer;
+  std::shared_ptr<Buffer> vertex_buffer;
+  std::shared_ptr<Buffer> indexBuffer;
 
   std::vector<vk::Framebuffer> framebuffers;
   std::vector<VirtualFrame> virtualFrames;

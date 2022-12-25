@@ -21,7 +21,8 @@ struct VulkanContextCreateOptions {
 class VulkanContext {
  public:
   VulkanContext() = default;
-  explicit VulkanContext(const VulkanContextCreateOptions& options, const Window& window);
+  explicit VulkanContext(const VulkanContextCreateOptions& options,
+                         const std::shared_ptr<Window>& window);
 
   [[nodiscard]] const vk::Instance& GetInstance() const { return instance; }
   [[nodiscard]] const PhysicalDevice& GetPhysicalDevice() const { return physical_device; }

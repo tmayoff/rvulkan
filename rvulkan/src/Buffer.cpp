@@ -23,7 +23,7 @@ Buffer::Buffer(const VulkanContext& context, size_t byte_size, VmaMemoryUsage me
                   reinterpret_cast<VkBuffer*>(&buffer), &allocation, nullptr);
 }
 
-Buffer::~Buffer() {}
+Buffer::~Buffer() { vmaDestroyBuffer(allocator, buffer, allocation); }
 
 void Buffer::SetData(void* data, uint32_t size) {
   void* mem = nullptr;

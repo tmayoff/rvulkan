@@ -13,14 +13,14 @@ Renderer::Renderer(const VulkanContext& context) : context(context) {
   pipelineOptions.bufferLayout = {BufferElement(ShaderDataType::Float3, "a_Position"),
                                   BufferElement(ShaderDataType::Float4, "a_Color")};
 
-  vertex_buffer =
-      Buffer(context, sizeof(Vertex) * QuadVertexCount, VmaMemoryUsage::VMA_MEMORY_USAGE_AUTO,
-             vk::BufferUsageFlagBits::eVertexBuffer);
+  vertex_buffer = std::make_shared<Buffer>(context, sizeof(Vertex) * QuadVertexCount,
+                                           VmaMemoryUsage::VMA_MEMORY_USAGE_AUTO,
+                                           vk::BufferUsageFlagBits::eVertexBuffer);
 
-  indexBuffer =
-      Buffer(context, sizeof(uint32_t) * QuadIndices.size(), VmaMemoryUsage::VMA_MEMORY_USAGE_AUTO,
-             vk::BufferUsageFlagBits::eIndexBuffer);
-  indexBuffer.SetData((void*)QuadIndices.data(), sizeof(uint32_t) * QuadIndices.size());
+  indexBuffer = std::make_shared<Buffer>(context, sizeof(uint32_t) * QuadIndices.size(),
+                                         VmaMemoryUsage::VMA_MEMORY_USAGE_AUTO,
+                                         vk::BufferUsageFlagBits::eIndexBuffer);
+  indexBuffer->SetData((void*)QuadIndices.data(), sizeof(uint32_t) * QuadIndices.size());
 
   renderPass = RenderPass(context, pipelineOptions);
 
@@ -124,9 +124,9 @@ void Renderer::DrawQuad() {
     i++;
   }
 
-  vertex_buffer.SetData(vertices.data(), sizeof(Vertex) * vertices.size());
+  vertex_buffer->SetData(vertices.data(), sizeof(Vertex) * vertices.size());
 
-  frame.Commands.bindVertexBuffers(0, vertex_buffer.GetHandle(), {0});
-  frame.Commands.bindIndexBuffer(indexBuffer.GetHandle(), 0, vk::IndexType::eUint32);
+  frame.Commands.bindVertexBuffers(0, vertex_buffer->GetHandle(), {0});
+  frame.Commands.bindIndexBuffer(indexBuffer->GetHandle(), 0, vk::IndexType::eUint32);
   frame.Commands.drawIndexed(QuadIndices.size(), 1, 0, 0, 0);
 }
