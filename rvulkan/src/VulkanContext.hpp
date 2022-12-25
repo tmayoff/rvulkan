@@ -28,8 +28,6 @@ class VulkanContext {
   [[nodiscard]] vk::SwapchainKHR GetSwapchain() const { return swapchain; }
   [[nodiscard]] const vk::Extent2D& GetSurfaceExtent() const { return surfaceExtent; }
   [[nodiscard]] const vk::SurfaceFormatKHR& GetSurfaceFormat() const { return surface.GetFormat(); }
-  [[nodiscard]] const vk::Queue& GetGraphicsQueue() const { return graphics_queue; }
-  [[nodiscard]] const vk::Queue& GetPresentQueue() const { return present_queue; }
   [[nodiscard]] const vk::Semaphore& GetImageAvailableSemaphore() const {
     return imageAvailableSemaphore;
   }
@@ -56,10 +54,6 @@ class VulkanContext {
   LogicalDevice device;
 
   vk::Extent2D surfaceExtent;
-
-  vkb::Device vkb_device;
-  vk::Queue graphics_queue;
-  vk::Queue present_queue;
 
   vk::SwapchainKHR swapchain;
   std::vector<vk::Image> swapchainImages;

@@ -11,6 +11,7 @@ class Buffer {
   Buffer(const VulkanContext& context, size_t byte_size, vk::MemoryPropertyFlags property_flags,
          vk::BufferUsageFlags buffer_usage);
   Buffer(const Buffer&) = delete;
+  //   Buffer operator=(const Buffer&) = delete;
 
   ~Buffer();
 

@@ -24,11 +24,11 @@ void Application::Run() {
   while (running) {
     window->Update();
 
-    // renderer->StartFrame();
+    renderer->StartFrame();
 
-    // // Draw things here
-    // renderer->DrawQuad();
+    // Draw things here
+    renderer->DrawQuad();
 
-    // renderer->EndFrame();
+    renderer->EndFrame();
   }
 }

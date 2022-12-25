@@ -71,7 +71,7 @@ void Renderer::StartFrame() {
 
   frame.Commands.begin(vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
 
-  auto clearColors = vk::ClearValue(vk::ClearColorValue(std::array<float, 4>{0.2f, 0.2f, 0.2f}));
+  auto clearColors = vk::ClearValue(vk::ClearColorValue(std::array<float, 4>{0.2F, 0.2F, 0.2F}));
 
   vk::RenderPassBeginInfo renderPassInfo;
   renderPassInfo.setFramebuffer(framebuffers.at(currentFrameIndex))
@@ -100,7 +100,7 @@ void Renderer::EndFrame() {
 
   context.GetLogicalDevice().GetHandle().resetFences(frame.CommandQueueFence);
 
-  context.GetGraphicsQueue().submit(submitInfo, frame.CommandQueueFence);
+  context.GetLogicalDevice().GetGraphicsQueue().submit(submitInfo, frame.CommandQueueFence);
 
   vk::SwapchainKHR swapchain = context.GetSwapchain();
 
@@ -109,7 +109,7 @@ void Renderer::EndFrame() {
       .setSwapchains(swapchain)
       .setImageIndices(presentImageIndex);
 
-  auto presentSucceeed = context.GetPresentQueue().presentKHR(presentInfo);
+  auto presentSucceeed = context.GetLogicalDevice().GetPresentQueue().presentKHR(presentInfo);
   assert(presentSucceeed == vk::Result::eSuccess);
 
   currentFrameIndex = (currentFrameIndex + 1) % virtualFrames.size();

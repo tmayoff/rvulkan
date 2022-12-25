@@ -2,6 +2,7 @@
 #define LOGICALDEVICE_HPP
 
 #include <optional>
+#include <vulkan/vulkan.hpp>
 
 #include "PhysicalDevice.hpp"
 #include "Surface.hpp"
@@ -23,6 +24,9 @@ class LogicalDevice {
   [[nodiscard]] const vk::Device& GetHandle() const { return device; }
 
   [[nodiscard]] const QueueFamilyIndices& GetIndices() const { return family_indices; }
+
+  [[nodiscard]] const vk::Queue& GetGraphicsQueue() const { return graphics_queue; }
+  [[nodiscard]] const vk::Queue& GetPresentQueue() const { return present_queue; }
 
  private:
   static QueueFamilyIndices FindQueueFamilies(const PhysicalDevice& physical_device,

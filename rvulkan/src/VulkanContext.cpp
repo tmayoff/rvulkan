@@ -12,8 +12,8 @@
 #include "VkBootstrap.h"
 
 VulkanContext::VulkanContext(const VulkanContextCreateOptions& options, const Window& window) {
-  vk::ApplicationInfo appInfo("rvulkan", VK_MAKE_VERSION(1, 0, 0), "rvulkan",
-                              VK_MAKE_VERSION(1, 0, 0), VK_API_VERSION_1_2);
+  vk::ApplicationInfo appInfo("rvulkan", VK_MAKE_VERSION(1, 0, 0), "rvulkan",  // NOLINT
+                              VK_MAKE_VERSION(1, 0, 0), VK_API_VERSION_1_2);   // NOLINT
 
   vk::InstanceCreateInfo instanceInfo(vk::InstanceCreateFlags(), &appInfo, options.Layers,
                                       options.Extensions);
@@ -33,7 +33,8 @@ VulkanContext::VulkanContext(const VulkanContextCreateOptions& options, const Wi
   renderingFinishedSemaphore = device.GetHandle().createSemaphore(vk::SemaphoreCreateInfo());
 
   vk::CommandPoolCreateInfo commandPoolInfo;
-  commandPoolInfo.setQueueFamilyIndex(device.GetIndices().graphics_family.value())
+  commandPoolInfo
+      .setQueueFamilyIndex(device.GetIndices().graphics_family.value())  // NOLINT
       .setFlags(vk::CommandPoolCreateFlagBits::eResetCommandBuffer |
                 vk::CommandPoolCreateFlagBits::eTransient);
   commandPool = device.GetHandle().createCommandPool(commandPoolInfo);
