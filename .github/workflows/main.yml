@@ -24,6 +24,6 @@ jobs:
       - name: Meson Build
         uses: BSFishy/meson-build@v1.0.3
         with:
+          meson-version: 1.0.0
           action: build
           directory: build
-          options: --verbose
