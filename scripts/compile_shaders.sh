@@ -1,3 +1,3 @@
 # !/bin/bash
-glslc assets/shader.frag -o assets/frag.spv
-glslc assets/shader.vert -o assets/vert.spv
+glslc rvulkan/assets/shaders/shader.frag -o rvulkan/assets/shaders/frag.spv
+glslc rvulkan/assets/shaders/shader.vert -o rvulkan/assets/shaders/vert.spv
