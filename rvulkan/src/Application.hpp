@@ -1,9 +1,11 @@
 #pragma once
+#include <vector>
 #ifndef APPLICATION_HPP_
 #define APPLICATION_HPP_
 
 #include <Renderer.hpp>
 
+#include "Core/Layer.hpp"
 #include "VulkanContext.hpp"
 #include "Window.hpp"
 
@@ -21,14 +23,12 @@ class Application {
 
   void Run();
 
+  void PushLayer(const std::shared_ptr<Layer>& layer);
+
  private:
-  void createInstance();
-  void createSurface();
-  void pickPhysicalDevice();
-
-  bool UsableDevice(vk::PhysicalDevice device);
-
   bool running = true;
+
+  std::vector<std::shared_ptr<Layer>> layers;
 
   VulkanContext vulkan_context;
   std::shared_ptr<Window> window;

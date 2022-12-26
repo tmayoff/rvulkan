@@ -2,7 +2,7 @@
 
 #include "VulkanContext.hpp"
 
-Application *Application::appInstance = nullptr;
+Application* Application::appInstance = nullptr;
 
 Application::Application() {
   if (appInstance == nullptr) appInstance = this;
@@ -29,6 +29,12 @@ void Application::Run() {
     // Draw things here
     renderer->DrawQuad();
 
+    for (const auto& l : layers) {
+      if (l != nullptr) l->OnUpdate();
+    }
+
     renderer->EndFrame();
   }
 }
+
+void Application::PushLayer(const std::shared_ptr<Layer>& layer) { layers.push_back(layer); }

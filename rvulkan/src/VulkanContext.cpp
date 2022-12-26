@@ -9,8 +9,6 @@
 #include <stdexcept>
 #include <vulkan/vulkan_handles.hpp>
 
-#include "VkBootstrap.h"
-
 VulkanContext::VulkanContext(const VulkanContextCreateOptions& options,
                              const std::shared_ptr<Window>& window) {
   vk::ApplicationInfo appInfo("rvulkan", VK_MAKE_VERSION(1, 0, 0), "rvulkan",  // NOLINT

@@ -1,8 +1,6 @@
 #ifndef VULKANCONTEXT_HPP_
 #define VULKANCONTEXT_HPP_
 
-#include <VkBootstrap.h>
-
 #include <Core/Memory.hpp>
 #include <optional>
 #include <vulkan/LogicalDevice.hpp>
