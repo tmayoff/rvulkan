@@ -1,11 +1,11 @@
-#pragma once
-#include "VulkanContext.hpp"
 #ifndef PIPELINE_HPP_
 #define PIPELINE_HPP_
 
+#include <utility>
 #include <vulkan/vulkan.hpp>
 
 #include "Shader.hpp"
+#include "VulkanContext.hpp"
 
 enum class ShaderDataType {
   None = 0,
@@ -39,34 +39,13 @@ static uint32_t ShaderDataTypeSize(ShaderDataType type) {
   }
 }
 
-static vk::Format ShaderDataTypeToVkForamt(ShaderDataType type) {
-  switch (type) {
-    case ShaderDataType::Float: return vk::Format::eR32Sfloat;
-    case ShaderDataType::Float2: return vk::Format::eR32G32Sfloat;
-    case ShaderDataType::Float3: return vk::Format::eR32G32B32Sfloat;
-    case ShaderDataType::Float4: return vk::Format::eR32G32B32A32Sfloat;
-    case ShaderDataType::Int: return vk::Format::eR32Sint;
-    case ShaderDataType::Int2: return vk::Format::eR32G32Sint;
-    case ShaderDataType::Int3: return vk::Format::eR32G32B32Sint;
-    case ShaderDataType::Int4: return vk::Format::eR32G32B32A32Sint;
-    case ShaderDataType::Bool: return vk::Format::eR32Sint;
-    default: return vk::Format::eUndefined;
-  }
-}
+class BufferElement {
+ public:
+  BufferElement(ShaderDataType type, std::string name)
+      : name(std::move(name)), type(type), size(ShaderDataTypeSize(type)) {}
 
-struct BufferElement {
-  std::string Name;
-  ShaderDataType Type;
-  uint32_t Size;
-  size_t Offset;
-  bool Normalized;
-
-  BufferElement() = default;
-  BufferElement(ShaderDataType type, const std::string& name, bool normalized = false)
-      : Name(name), Type(type), Size(ShaderDataTypeSize(type)), Offset(0), Normalized(normalized) {}
-
-  uint32_t GetComponentCount() const {
-    switch (Type) {
+  [[nodiscard]] uint32_t GetComponentCount() const {
+    switch (type) {
       case ShaderDataType::Float: return 1;
       case ShaderDataType::Float2: return 2;
       case ShaderDataType::Float3: return 3;
@@ -81,31 +60,47 @@ struct BufferElement {
       default: return 0;
     }
   }
+
+  [[nodiscard]] const std::string& GetName() const { return name; }
+  [[nodiscard]] const ShaderDataType& GetType() const { return type; }
+  [[nodiscard]] uint32_t GetSize() const { return size; }
+
+  void SetOffset(uint32_t offset) { this->offset = offset; }
+  [[nodiscard]] size_t GetOffset() const { return offset; }
+
+ private:
+  std::string name;
+  ShaderDataType type;
+  uint32_t size;
+  size_t offset{};
 };
 
 class BufferLayout {
  public:
-  BufferLayout() {}
+  BufferLayout() = default;
   BufferLayout(std::initializer_list<BufferElement> elements) : elements(elements) {
     CalculateOffsetsAndStride();
   }
 
-  uint32_t GetStride() const { return stride; }
-  const std::vector<BufferElement>& GetElements() const { return elements; }
+  [[nodiscard]] uint32_t GetStride() const { return stride; }
+  [[nodiscard]] const std::vector<BufferElement>& GetElements() const { return elements; }
 
   std::vector<BufferElement>::iterator begin() { return elements.begin(); }
   std::vector<BufferElement>::iterator end() { return elements.end(); }
-  std::vector<BufferElement>::const_iterator begin() const { return elements.begin(); }
-  std::vector<BufferElement>::const_iterator end() const { return elements.end(); }
+
+  [[nodiscard]] std::vector<BufferElement>::const_iterator begin() const {
+    return elements.begin();
+  }
+  [[nodiscard]] std::vector<BufferElement>::const_iterator end() const { return elements.end(); }
 
  private:
   void CalculateOffsetsAndStride() {
     size_t offset = 0;
     stride = 0;
     for (auto& element : elements) {
-      element.Offset = offset;
-      offset += element.Size;
-      stride += element.Size;
+      element.SetOffset(offset);
+      offset += element.GetSize();
+      stride += element.GetSize();
     }
   }
 
@@ -122,9 +117,9 @@ class Pipeline {
  public:
   Pipeline() = default;
   Pipeline(const VulkanContext& context, const PipelineOptions& options,
-           const vk::RenderPass renderPass);
+           const vk::RenderPass& renderPass);
 
-  const vk::Pipeline& GetPipeline() const { return pipeline; }
+  [[nodiscard]] const vk::Pipeline& GetPipeline() const { return pipeline; }
 
  private:
   vk::Pipeline pipeline;
