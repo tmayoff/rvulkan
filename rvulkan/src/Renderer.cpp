@@ -61,7 +61,7 @@ void Renderer::StartFrame() {
 
   frame.Commands.begin(vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
 
-  auto clearColors = vk::ClearValue(vk::ClearColorValue(std::array<float, 4>{0.2F, 0.2F, 0.2F}));
+  auto clearColors = vk::ClearValue(vk::ClearColorValue(std::array<float, 4>{0.1F, 0.1F, 0.1F}));
 
   vk::RenderPassBeginInfo renderPassInfo;
   renderPassInfo.setFramebuffer(framebuffers.at(currentFrameIndex))

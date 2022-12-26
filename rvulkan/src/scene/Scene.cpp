@@ -14,7 +14,10 @@ Entity Scene::CreateEntity(const std::string& tag) {
 }
 
 void Scene::OnUpdate() {
-  registry.view<Component::MeshRenderer>().each([](const Component::MeshRenderer& mesh_renderer) {
-    //
-  });
+  renderer->StartFrame();
+
+  registry.view<Component::MeshRenderer>().each(
+      [this](const Component::MeshRenderer& mesh_renderer) { renderer->DrawMesh(mesh_renderer); });
+
+  renderer->EndFrame();
 }
