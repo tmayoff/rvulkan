@@ -10,8 +10,10 @@ class Buffer {
   Buffer() = default;
   Buffer(const VulkanContext& context, size_t byte_size, VmaMemoryUsage memory_usage,
          vk::BufferUsageFlags buffer_usage);
+
+  // Create copy constructors
   Buffer(const Buffer&) = delete;
-  Buffer operator=(const Buffer&) = delete;
+  Buffer& operator=(const Buffer&) = delete;
 
   ~Buffer();
 
@@ -20,7 +22,7 @@ class Buffer {
   void SetData(void* data, uint32_t size);
 
  private:
-  VmaAllocator allocator;
+  VmaAllocator allocator{};
 
   vk::Buffer buffer;
   VmaAllocation allocation = {};

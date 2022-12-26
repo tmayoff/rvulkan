@@ -11,7 +11,7 @@ class Scene {
   friend class Entity;
 
  public:
-  void CreateEntity(const std::string& tag);
+  Entity CreateEntity(const std::string& tag);
 
   void OnUpdate();
 

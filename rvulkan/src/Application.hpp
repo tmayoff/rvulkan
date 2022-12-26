@@ -21,6 +21,8 @@ class Application {
 
   const std::shared_ptr<Window>& GetWindow() { return window; }
 
+  [[nodiscard]] const VulkanContext& GetVulkanContext() const { return vulkan_context; }
+
   void Run();
 
   void PushLayer(const std::shared_ptr<Layer>& layer);

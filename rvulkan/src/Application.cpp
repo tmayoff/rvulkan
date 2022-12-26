@@ -16,25 +16,19 @@ Application::Application() {
   vulkan_options.Layers = {"VK_LAYER_KHRONOS_validation"};
   vulkan_options.Extensions = window->GetRequiredExtension();
   vulkan_context = VulkanContext(vulkan_options, window);
-
-  renderer = std::make_shared<Renderer>(vulkan_context);
 }
 
 void Application::Run() {
   while (running) {
     if (window != nullptr) window->Update();
 
-    renderer->StartFrame();
-
-    // Draw things here
-    renderer->DrawQuad();
-
     for (const auto& l : layers) {
       if (l != nullptr) l->OnUpdate();
     }
-
-    renderer->EndFrame();
   }
 }
 
-void Application::PushLayer(const std::shared_ptr<Layer>& layer) { layers.push_back(layer); }
+void Application::PushLayer(const std::shared_ptr<Layer>& layer) {
+  layers.push_back(layer);
+  layer->OnAttach();
+}

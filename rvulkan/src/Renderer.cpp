@@ -5,22 +5,14 @@
 
 #include "Pipeline.hpp"
 #include "VulkanContext.hpp"
+#include "renderer/Mesh.hpp"
 
 Renderer::Renderer(const VulkanContext& context) : context(context) {
   PipelineOptions pipelineOptions{};
-  pipelineOptions.shader = Shader(context, Shader::ReadFile("rvulkan/assets/vert.spv"),
-                                  Shader::ReadFile("rvulkan/assets/frag.spv"));
-  pipelineOptions.bufferLayout = {BufferElement(ShaderDataType::Float3, "a_Position"),
-                                  BufferElement(ShaderDataType::Float4, "a_Color")};
+  pipelineOptions.shader = Shader(context, Shader::ReadFile("rvulkan/assets/shaders/vert.spv"),
+                                  Shader::ReadFile("rvulkan/assets/shaders/frag.spv"));
 
-  vertex_buffer = std::make_shared<Buffer>(context, sizeof(Vertex) * QuadVertexCount,
-                                           VmaMemoryUsage::VMA_MEMORY_USAGE_AUTO,
-                                           vk::BufferUsageFlagBits::eVertexBuffer);
-
-  indexBuffer = std::make_shared<Buffer>(context, sizeof(uint32_t) * QuadIndices.size(),
-                                         VmaMemoryUsage::VMA_MEMORY_USAGE_AUTO,
-                                         vk::BufferUsageFlagBits::eIndexBuffer);
-  indexBuffer->SetData((void*)QuadIndices.data(), sizeof(uint32_t) * QuadIndices.size());
+  pipelineOptions.bufferLayout = Vertex::GetLayout();
 
   renderPass = RenderPass(context, pipelineOptions);
 
@@ -113,20 +105,11 @@ void Renderer::EndFrame() {
   currentFrameIndex = (currentFrameIndex + 1) % virtualFrames.size();
 }
 
-void Renderer::DrawQuad() {
-  auto frame = GetCurrentFrame();
+void Renderer::DrawMesh(const Component::MeshRenderer& mesh_renderer) {
+  const auto& frame = GetCurrentFrame();
 
-  std::vector<Vertex> vertices(QuadVertexCount);
-  int i = 0;
-  for (auto& v : vertices) {
-    v.Position = QuadVertexPositions.at(i);
-    v.Color = glm::vec4{0.1F, 0.2F, 0.8F, 1.0F};
-    i++;
-  }
-
-  vertex_buffer->SetData(vertices.data(), sizeof(Vertex) * vertices.size());
-
-  frame.Commands.bindVertexBuffers(0, vertex_buffer->GetHandle(), {0});
-  frame.Commands.bindIndexBuffer(indexBuffer->GetHandle(), 0, vk::IndexType::eUint32);
-  frame.Commands.drawIndexed(QuadIndices.size(), 1, 0, 0, 0);
+  frame.Commands.bindVertexBuffers(0, mesh_renderer.GetMesh().GetVertexBuffer()->GetHandle(), {0});
+  frame.Commands.bindIndexBuffer(mesh_renderer.GetMesh().GetIndexBuffer()->GetHandle(), 0,
+                                 vk::IndexType::eUint32);
+  frame.Commands.drawIndexed(mesh_renderer.GetMesh().GetIndices().size(), 1, 0, 0, 0);
 }

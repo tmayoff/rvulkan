@@ -2,3 +2,4 @@ sources += files('Application.cpp', 'Buffer.cpp', 'Pipeline.cpp', 'Renderer.cpp'
 subdir('Core')
 subdir('vulkan')
 subdir('scene')
+subdir('renderer')

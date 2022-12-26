@@ -7,23 +7,12 @@
 #include "Buffer.hpp"
 #include "RenderPass.hpp"
 #include "VulkanContext.hpp"
-
-struct Vertex {
-  glm::vec3 Position;
-  glm::vec4 Color;
-};
+#include "scene/Components/MeshRenderer.hpp"
 
 struct VirtualFrame {
   vk::CommandBuffer Commands;
   vk::Fence CommandQueueFence;
 };
-
-const std::array<glm::vec3, 4> QuadVertexPositions = {
-    glm::vec3{-0.5F, -0.5F, 0.0F}, glm::vec3{0.5F, -0.5F, 0.0F}, glm::vec3{0.5F, 0.5F, 0.0F},
-    glm::vec3{-0.5F, 0.5F, 0.0F}};
-
-constexpr size_t QuadVertexCount = 4;
-constexpr std::array<uint32_t, 6> QuadIndices = {0, 1, 2, 2, 3, 0};
 
 class Renderer {
  public:
@@ -32,7 +21,7 @@ class Renderer {
   void StartFrame();
   void EndFrame();
 
-  void DrawQuad();
+  void DrawMesh(const Component::MeshRenderer& mesh_renderer);
 
   const VirtualFrame& GetCurrentFrame() { return virtualFrames[currentFrameIndex]; }
 
