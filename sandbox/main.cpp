@@ -6,6 +6,7 @@
 #include <utility>
 
 #include "VulkanContext.hpp"
+#include "scene/Components/Camera.hpp"
 #include "scene/Components/MeshRenderer.hpp"
 
 class SandboxLayer : public Layer {
@@ -36,6 +37,11 @@ inline void SandboxLayer::OnAttach() {
   scene = std::make_shared<Scene>(context);
 
   // Add entities
+  auto camera = scene->CreateEntity("Main Camera");
+
+  camera.AddComponent<Component::Camera>(Component::ProjectionType::Orthographic, 16.0F / 9.0F,
+                                         Component::OrthographicData{});
+
   auto quad = scene->CreateEntity("Quad");
   quad.AddComponent<Component::MeshRenderer>(Mesh::CreateQuadMesh(context));
 }
