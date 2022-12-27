@@ -28,6 +28,8 @@ class Application {
   void PushLayer(const std::shared_ptr<Layer>& layer);
 
  private:
+  void OnEvent(Event& e);
+
   bool running = true;
 
   std::vector<std::shared_ptr<Layer>> layers;

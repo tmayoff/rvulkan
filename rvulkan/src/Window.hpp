@@ -1,13 +1,14 @@
-#pragma once
 #ifndef WINDOW_HPP_
 #define WINDOW_HPP_
 
 #include <array>
+#include <events/event.hpp>
 #include <functional>
 #include <optional>
+#include <utility>
 #include <vulkan/vulkan.hpp>
 
-using SDL_Window = struct SDL_Window;
+using SDL_Window = struct SDL_Window;  // NOLINT
 
 class Window {
  public:
@@ -15,7 +16,7 @@ class Window {
 
   void Update();
 
-  void SetEventCallback(std::function<void(bool)> cb) { eventCallback = cb; }
+  void SetEventCallback(std::function<void(Event&)> cb) { event_callback = std::move(cb); }
 
   std::vector<const char*> GetRequiredExtension();
   vk::SurfaceKHR GetSurface(const vk::Instance& instance);
@@ -24,7 +25,7 @@ class Window {
  private:
   SDL_Window* window = nullptr;
 
-  std::function<void(bool)> eventCallback;
+  std::function<void(Event&)> event_callback;
 
   uint64_t currentFrame = 0;
 };

@@ -1,5 +1,8 @@
 #include "Application.hpp"
 
+#include <events/event.hpp>
+#include <events/window_events.hpp>
+
 #include "VulkanContext.hpp"
 
 Application* Application::appInstance = nullptr;
@@ -9,7 +12,7 @@ Application::Application() {
 
   // Create Window
   window = std::make_shared<Window>();
-  window->SetEventCallback([this](bool quit) { running = !quit; });
+  window->SetEventCallback([this](Event& e) { OnEvent(e); });
 
   // Initialize Context
   VulkanContextCreateOptions vulkan_options;
@@ -31,4 +34,12 @@ void Application::Run() {
 void Application::PushLayer(const std::shared_ptr<Layer>& layer) {
   layers.push_back(layer);
   layer->OnAttach();
+}
+
+void Application::OnEvent(Event& e) {
+  Dispatcher dispatcher(e);
+  dispatcher.Dispatch<WindowCloseEvent>([this](WindowCloseEvent&) {
+    running = false;
+    return true;
+  });
 }

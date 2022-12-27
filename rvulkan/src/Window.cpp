@@ -3,6 +3,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_vulkan.h>
 
+#include <events/window_events.hpp>
 #include <set>
 
 #include "Application.hpp"
@@ -22,7 +23,14 @@ void Window::Update() {
   while (SDL_PollEvent(&event) != 0) {
     switch (event.type) {
       case SDL_QUIT: {
-        if (eventCallback) eventCallback(true);
+        WindowCloseEvent e;
+        event_callback(e);
+        break;
+      }
+
+      case SDL_WINDOWEVENT_RESIZED: {
+        WindowResizeEvent e({event.window.data1, event.window.data2});
+        event_callback(e);
         break;
       }
     }
