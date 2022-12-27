@@ -127,9 +127,9 @@ void Renderer::EndFrame() {
   auto present_result = context->GetLogicalDevice().GetPresentQueue().presentKHR(presentInfo);
   if (present_result == vk::Result::eErrorOutOfDateKHR ||
       present_result == vk::Result::eSuboptimalKHR || view_resized) {
-    context->RecreateSwapchain(view_resized->first, view_resized->second);
+    // context->RecreateSwapchain(view_resized->first, view_resized->second);
 
-    view_resized.reset();
+    // view_resized.reset();
   }
 
   currentFrameIndex = (currentFrameIndex + 1) % virtualFrames.size();

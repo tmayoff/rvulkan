@@ -1,7 +1,5 @@
 #include "RenderPass.hpp"
 
-#include <vulkan/vulkan_core.h>
-
 #include <vulkan/vulkan_enums.hpp>
 
 #include "Pipeline.hpp"
@@ -22,7 +20,7 @@ RenderPass::RenderPass(const std::shared_ptr<VulkanContext>& context,
       vk::PipelineStageFlagBits::eColorAttachmentOutput, vk::AccessFlagBits::eMemoryRead,
       vk::AccessFlagBits::eColorAttachmentWrite);
 
-  vk::SubpassDescription subpass({}, vk::PipelineBindPoint::eGraphics, colour_ref);
+  vk::SubpassDescription subpass({}, vk::PipelineBindPoint::eGraphics, {}, colour_ref);
 
   vk::RenderPassCreateInfo renderPassInfo({}, color_attachment, subpass, dependency);
 
