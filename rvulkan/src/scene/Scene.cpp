@@ -27,7 +27,9 @@ void Scene::OnUpdate() {
     }
   }
 
-  renderer->StartFrame();
+  if (!main_camera) return;
+
+  renderer->StartFrame(main_camera->GetViewMatrix());
 
   registry.view<Component::MeshRenderer>().each(
       [this](const Component::MeshRenderer& mesh_renderer) { renderer->DrawMesh(mesh_renderer); });

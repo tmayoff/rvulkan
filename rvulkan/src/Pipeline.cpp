@@ -1,5 +1,8 @@
 #include "Pipeline.hpp"
 
+#include <vulkan/vulkan_enums.hpp>
+#include <vulkan/vulkan_structs.hpp>
+
 #include "VulkanContext.hpp"
 
 static vk::Format ShaderDataTypeToVkFormat(ShaderDataType type) {
@@ -19,6 +22,8 @@ static vk::Format ShaderDataTypeToVkFormat(ShaderDataType type) {
 
 Pipeline::Pipeline(const VulkanContext& context, const PipelineOptions& options,
                    const vk::RenderPass& renderPass) {
+  CreateDescriptorSets(context, options);
+
   const std::array shaderStageInfos = {
       vk::PipelineShaderStageCreateInfo(vk::PipelineShaderStageCreateFlags(),
                                         vk::ShaderStageFlagBits::eVertex,
@@ -95,8 +100,11 @@ Pipeline::Pipeline(const VulkanContext& context, const PipelineOptions& options,
       .setAttachments(colorAttachment)
       .setBlendConstants({0.0F, 0.0F, 0.0F, 0.0F});
 
-  layout =
-      context.GetLogicalDevice().GetHandle().createPipelineLayout(vk::PipelineLayoutCreateInfo());
+  // Pipeline Layout Create
+  vk::PipelineLayoutCreateInfo pipeline_layout_create(vk::PipelineLayoutCreateFlags(),
+                                                      descriptorset_layout);
+
+  layout = context.GetLogicalDevice().GetHandle().createPipelineLayout(pipeline_layout_create);
 
   vk::GraphicsPipelineCreateInfo pipelineCreateInfo;
   pipelineCreateInfo.setStages(shaderStageInfos)
@@ -110,7 +118,31 @@ Pipeline::Pipeline(const VulkanContext& context, const PipelineOptions& options,
       .setSubpass(0)
       .setLayout(layout);
 
-  vk::ResultValue<vk::Pipeline> res =
-      context.GetLogicalDevice().GetHandle().createGraphicsPipeline({}, pipelineCreateInfo);
+  auto res = context.GetLogicalDevice().GetHandle().createGraphicsPipeline({}, pipelineCreateInfo);
   pipeline = res.value;
+}
+
+void Pipeline::CreateDescriptorSets(const VulkanContext& context, const PipelineOptions& options) {
+  std::vector<vk::DescriptorSetLayoutBinding> descriptor_bindings;
+  for (size_t i = 0; i < options.uniform_buffer_layouts.size(); i++) {
+    const BufferLayout b = options.uniform_buffer_layouts[i];
+
+    vk::DescriptorSetLayoutBinding binding(i, vk::DescriptorType::eUniformBuffer,
+                                           b.GetElements().size(),
+                                           vk::ShaderStageFlagBits::eVertex);
+    descriptor_bindings.push_back(binding);
+  }
+
+  vk::DescriptorSetLayoutCreateInfo layout_create_info(vk::DescriptorSetLayoutCreateFlags(),
+                                                       descriptor_bindings);
+
+  descriptorset_layout =
+      context.GetLogicalDevice().GetHandle().createDescriptorSetLayout(layout_create_info);
+
+  vk::DescriptorPoolSize pool_size(vk::DescriptorType::eUniformBuffer, 1);
+  vk::DescriptorPoolCreateInfo pool_create(vk::DescriptorPoolCreateFlags(), 1, 1, &pool_size);
+  descriptor_pool = context.GetLogicalDevice().GetHandle().createDescriptorPool(pool_create);
+
+  vk::DescriptorSetAllocateInfo alloc_info(descriptor_pool, descriptorset_layout);
+  descriptor_sets = context.GetLogicalDevice().GetHandle().allocateDescriptorSets(alloc_info);
 }

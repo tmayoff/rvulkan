@@ -27,6 +27,8 @@ class Camera {
 
   [[nodiscard]] bool IsPrimary() const { return is_primary; }
 
+  [[nodiscard]] const glm::mat4& GetViewMatrix() const { return view_matrix; }
+
  private:
   void RecalculateProjection();
 

@@ -3,6 +3,7 @@
 
 #include <utility>
 #include <vulkan/vulkan.hpp>
+#include <vulkan/vulkan_handles.hpp>
 
 #include "Shader.hpp"
 #include "VulkanContext.hpp"
@@ -111,6 +112,7 @@ class BufferLayout {
 struct PipelineOptions {
   Shader shader;
   BufferLayout bufferLayout;
+  std::vector<BufferLayout> uniform_buffer_layouts;
 };
 
 class Pipeline {
@@ -119,11 +121,20 @@ class Pipeline {
   Pipeline(const VulkanContext& context, const PipelineOptions& options,
            const vk::RenderPass& renderPass);
 
-  [[nodiscard]] const vk::Pipeline& GetPipeline() const { return pipeline; }
+  [[nodiscard]] const vk::Pipeline& GetHandle() const { return pipeline; }
+  [[nodiscard]] const vk::PipelineLayout& GetLayout() const { return layout; }
+  [[nodiscard]] const std::vector<vk::DescriptorSet>& GetDescriptorSets() const {
+    return descriptor_sets;
+  }
 
  private:
+  void CreateDescriptorSets(const VulkanContext& context, const PipelineOptions& options);
+
   vk::Pipeline pipeline;
   vk::PipelineLayout layout;
+  vk::DescriptorSetLayout descriptorset_layout;
+  vk::DescriptorPool descriptor_pool;
+  std::vector<vk::DescriptorSet> descriptor_sets;
 };
 
 #endif  // PIPELINE_HPP_

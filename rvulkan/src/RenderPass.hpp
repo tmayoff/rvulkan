@@ -19,8 +19,8 @@ class RenderPass {
 
   void Render(const RenderPassState &state);
 
-  const vk::RenderPass &GetRenderPass() const { return renderPass; }
-  const vk::Pipeline &GetPipeline() const { return pipeline.GetPipeline(); }
+  [[nodiscard]] const vk::RenderPass &GetRenderPass() const { return renderPass; }
+  [[nodiscard]] const Pipeline &GetPipeline() const { return pipeline; }
 
  private:
   Pipeline pipeline;

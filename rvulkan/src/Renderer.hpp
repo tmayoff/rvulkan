@@ -18,7 +18,7 @@ class Renderer {
  public:
   explicit Renderer(const VulkanContext& context);
 
-  void StartFrame();
+  void StartFrame(const glm::mat4& view_projection);
   void EndFrame();
 
   void DrawMesh(const Component::MeshRenderer& mesh_renderer);
@@ -27,6 +27,12 @@ class Renderer {
 
  private:
   VulkanContext context;
+
+  struct UniformBufferData {
+    glm::mat4 view_projection{1.0F};
+  } uniform_buffer_data;
+
+  std::shared_ptr<Buffer> uniform_buffer;
 
   RenderPass renderPass;
 

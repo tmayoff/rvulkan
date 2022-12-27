@@ -22,6 +22,12 @@ struct Vertex {
         {ShaderDataType::Float3, "a_Normal"},
     };
   }
+
+  static BufferLayout GetUniformLayout() {
+    return BufferLayout{
+        {ShaderDataType::Mat4, "u_ViewProjection"},
+    };
+  }
 };
 
 class Mesh {
