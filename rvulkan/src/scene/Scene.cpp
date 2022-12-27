@@ -1,8 +1,10 @@
 #include "Scene.hpp"
 
+#include <optional>
 #include <string>
 #include <type_traits>
 
+#include "Components/Camera.hpp"
 #include "Components/MeshRenderer.hpp"
 #include "Components/Tag.hpp"
 #include "Entity.hpp"
@@ -14,6 +16,17 @@ Entity Scene::CreateEntity(const std::string& tag) {
 }
 
 void Scene::OnUpdate() {
+  std::optional<Component::Camera> main_camera = std::nullopt;
+  auto cameras = registry.view<Component::Camera>();
+  for (const auto& cam_entity : cameras) {
+    const auto cam = cameras.get<Component::Camera>(cam_entity);
+
+    if (cam.IsPrimary()) {
+      main_camera = cam;
+      break;
+    }
+  }
+
   renderer->StartFrame();
 
   registry.view<Component::MeshRenderer>().each(
