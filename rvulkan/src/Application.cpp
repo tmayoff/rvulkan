@@ -18,7 +18,7 @@ Application::Application() {
   VulkanContextCreateOptions vulkan_options;
   vulkan_options.Layers = {"VK_LAYER_KHRONOS_validation"};
   vulkan_options.Extensions = window->GetRequiredExtension();
-  vulkan_context = VulkanContext(vulkan_options, window);
+  vulkan_context = std::make_shared<VulkanContext>(vulkan_options, window);
 }
 
 void Application::Run() {

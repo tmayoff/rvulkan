@@ -48,6 +48,8 @@ void VulkanContext::CreateAllocator() {
   vmaCreateAllocator(&allocator_info, &allocator);
 }
 
+void VulkanContext::CleanupSwapchain() {}
+
 void VulkanContext::RecreateSwapchain(uint32_t surfaceWidth, uint32_t surfaceHeight) {
   device.GetHandle().waitIdle();
 

@@ -31,6 +31,7 @@ class VulkanContext {
   [[nodiscard]] const vk::Semaphore& GetImageAvailableSemaphore() const {
     return imageAvailableSemaphore;
   }
+
   [[nodiscard]] const vk::Semaphore& GetRenderingFinishedSemaphore() const {
     return renderingFinishedSemaphore;
   }
@@ -42,11 +43,11 @@ class VulkanContext {
 
   [[nodiscard]] const VmaAllocator& GetAllocator() const { return allocator; }
 
- private:
-  void pickPhysicalDevice(std::vector<vk::PhysicalDevice> devices);
-
-  void CreateAllocator();
   void RecreateSwapchain(uint32_t surfaceWidth, uint32_t surfaceHeight);
+
+ private:
+  void CreateAllocator();
+  void CleanupSwapchain();
 
   vk::Instance instance;
 
@@ -57,11 +58,12 @@ class VulkanContext {
 
   vk::Extent2D surfaceExtent;
 
-  VmaAllocator allocator;
+  VmaAllocator allocator{};
 
   vk::SwapchainKHR swapchain;
   std::vector<vk::Image> swapchainImages;
   std::vector<vk::ImageView> swapchainImageViews;
+  std::vector<vk::Framebuffer> framebuffers;
 
   vk::Semaphore imageAvailableSemaphore;
   vk::Semaphore renderingFinishedSemaphore;

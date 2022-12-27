@@ -15,9 +15,7 @@ struct RenderPassState {
 class RenderPass {
  public:
   RenderPass() = default;
-  RenderPass(const VulkanContext &context, const PipelineOptions &pipelineOptions);
-
-  void Render(const RenderPassState &state);
+  RenderPass(const std::shared_ptr<VulkanContext> &context, const PipelineOptions &pipelineOptions);
 
   [[nodiscard]] const vk::RenderPass &GetRenderPass() const { return renderPass; }
   [[nodiscard]] const Pipeline &GetPipeline() const { return pipeline; }

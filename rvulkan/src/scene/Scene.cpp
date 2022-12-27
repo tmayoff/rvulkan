@@ -36,3 +36,5 @@ void Scene::OnUpdate() {
 
   renderer->EndFrame();
 }
+
+void Scene::OnWindowResize(std::pair<float, float> size) { renderer->ResizeViewport(size); }

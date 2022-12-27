@@ -118,7 +118,7 @@ struct PipelineOptions {
 class Pipeline {
  public:
   Pipeline() = default;
-  Pipeline(const VulkanContext& context, const PipelineOptions& options,
+  Pipeline(const std::shared_ptr<VulkanContext>& context, const PipelineOptions& options,
            const vk::RenderPass& renderPass);
 
   [[nodiscard]] const vk::Pipeline& GetHandle() const { return pipeline; }
@@ -128,7 +128,8 @@ class Pipeline {
   }
 
  private:
-  void CreateDescriptorSets(const VulkanContext& context, const PipelineOptions& options);
+  void CreateDescriptorSets(const std::shared_ptr<VulkanContext>& context,
+                            const PipelineOptions& options);
 
   vk::Pipeline pipeline;
   vk::PipelineLayout layout;

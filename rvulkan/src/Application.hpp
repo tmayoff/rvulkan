@@ -21,7 +21,9 @@ class Application {
 
   const std::shared_ptr<Window>& GetWindow() { return window; }
 
-  [[nodiscard]] const VulkanContext& GetVulkanContext() const { return vulkan_context; }
+  [[nodiscard]] const std::shared_ptr<VulkanContext>& GetVulkanContext() const {
+    return vulkan_context;
+  }
 
   void Run();
 
@@ -34,7 +36,7 @@ class Application {
 
   std::vector<std::shared_ptr<Layer>> layers;
 
-  VulkanContext vulkan_context;
+  std::shared_ptr<VulkanContext> vulkan_context;
   std::shared_ptr<Window> window;
   std::shared_ptr<Renderer> renderer;
 };

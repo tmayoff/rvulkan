@@ -10,7 +10,7 @@ class Shader {
   static std::vector<uint32_t> ReadFile(const std::string& filepath);
 
   Shader() = default;
-  Shader(const VulkanContext& context, const std::vector<uint32_t>& vertCode,
+  Shader(const std::shared_ptr<VulkanContext>& context, const std::vector<uint32_t>& vertCode,
          const std::vector<uint32_t>& fragCode);
 
   const vk::ShaderModule& GetVertexModule() const { return vertexShader; }

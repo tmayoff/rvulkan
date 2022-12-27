@@ -6,7 +6,7 @@
 
 #include "glm/fwd.hpp"
 
-Mesh Mesh::CreateQuadMesh(const VulkanContext& context) {
+Mesh Mesh::CreateQuadMesh(const std::shared_ptr<VulkanContext>& context) {
   Mesh mesh;
 
   glm::vec4 color{1.0F};

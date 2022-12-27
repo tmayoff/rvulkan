@@ -14,18 +14,18 @@
 
 class SandboxLayer : public Layer {
  public:
-  explicit SandboxLayer(VulkanContext vulkan_context) : context(std::move(vulkan_context)) {}
+  explicit SandboxLayer(std::shared_ptr<VulkanContext> vulkan_context)
+      : context(std::move(vulkan_context)) {}
 
   void OnAttach() override;
   void OnUpdate() override;
   void OnEvent(Event& e) override;
 
  private:
-  VulkanContext context;
-
+  std::shared_ptr<VulkanContext> context;
   std::shared_ptr<Scene> scene;
 
-  Entity camera;
+  Entity camera{};
 };
 
 int main() {
@@ -57,12 +57,12 @@ inline void SandboxLayer::OnUpdate() { scene->OnUpdate(); }
 inline void SandboxLayer::OnEvent(Event& e) {
   Dispatcher dispatcher(e);
   dispatcher.Dispatch<WindowResizeEvent>([this](WindowResizeEvent& e) {
-    logger::info("Window resized");
-
     auto [width, height] = e.GetSize();
 
     auto& cam = this->camera.GetComponent<Component::Camera>();
     cam.SetAspectRatio(static_cast<float>(width) / static_cast<float>(height));
+
+    scene->OnWindowResize({width, height});
 
     return false;
   });

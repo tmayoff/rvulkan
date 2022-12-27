@@ -14,19 +14,25 @@ struct VirtualFrame {
   vk::Fence CommandQueueFence;
 };
 
+const int MAX_FRAMES_IN_FLIGHT = 2;
+
 class Renderer {
  public:
-  explicit Renderer(const VulkanContext& context);
+  explicit Renderer(const std::shared_ptr<VulkanContext>& context);
 
   void StartFrame(const glm::mat4& view_projection);
   void EndFrame();
+
+  void ResizeViewport(std::pair<float, float> size);
 
   void DrawMesh(const Component::MeshRenderer& mesh_renderer);
 
   const VirtualFrame& GetCurrentFrame() { return virtualFrames[currentFrameIndex]; }
 
  private:
-  VulkanContext context;
+  std::shared_ptr<VulkanContext> context;
+
+  std::optional<std::pair<float, float>> view_resized;
 
   struct UniformBufferData {
     glm::mat4 view_projection{1.0F};

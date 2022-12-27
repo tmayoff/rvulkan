@@ -8,8 +8,8 @@
 class Buffer {
  public:
   Buffer() = default;
-  Buffer(const VulkanContext& context, size_t byte_size, VmaMemoryUsage memory_usage,
-         vk::BufferUsageFlags buffer_usage);
+  Buffer(const std::shared_ptr<VulkanContext>& context, size_t byte_size,
+         VmaMemoryUsage memory_usage, vk::BufferUsageFlags buffer_usage);
 
   // Create copy constructors
   Buffer(const Buffer&) = delete;

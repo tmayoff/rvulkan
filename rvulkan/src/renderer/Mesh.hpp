@@ -32,7 +32,7 @@ struct Vertex {
 
 class Mesh {
  public:
-  static Mesh CreateQuadMesh(const VulkanContext& context);
+  static Mesh CreateQuadMesh(const std::shared_ptr<VulkanContext>& context);
 
   [[nodiscard]] const std::vector<Vertex>& GetVertices() const { return vertices; }
   [[nodiscard]] const std::vector<uint32_t>& GetIndices() const { return indices; }

@@ -13,13 +13,15 @@ class Scene {
   friend class Entity;
 
  public:
-  explicit Scene(const VulkanContext& vulkan_context) {
+  explicit Scene(const std::shared_ptr<VulkanContext>& vulkan_context) {
     renderer = std::make_shared<Renderer>(vulkan_context);
   }
 
   Entity CreateEntity(const std::string& tag);
 
   void OnUpdate();
+
+  void OnWindowResize(std::pair<float, float> size);
 
   [[nodiscard]] const entt::registry& GetRegistry() const { return registry; }
 
