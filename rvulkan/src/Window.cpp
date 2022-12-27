@@ -20,7 +20,7 @@ Window::Window()
 void Window::Update() {
   SDL_Event event;
 
-  while (SDL_PollEvent(&event) != 0) {
+  while (SDL_PollEvent(&event) == 1) {
     switch (event.type) {
       case SDL_QUIT: {
         WindowCloseEvent e;
@@ -28,9 +28,14 @@ void Window::Update() {
         break;
       }
 
-      case SDL_WINDOWEVENT_RESIZED: {
-        WindowResizeEvent e({event.window.data1, event.window.data2});
-        event_callback(e);
+      case SDL_WINDOWEVENT: {
+        switch (event.window.event) {
+          case SDL_WINDOWEVENT_RESIZED: {
+            WindowResizeEvent e({event.window.data1, event.window.data2});
+            event_callback(e);
+            break;
+          }
+        }
         break;
       }
     }

@@ -10,6 +10,7 @@ class WindowCloseEvent : public Event {
   WindowCloseEvent() = default;
 
   [[nodiscard]] DescriptorType_t Type() const override { return descriptor; }
+  [[nodiscard]] static DescriptorType_t StaticType() { return descriptor; }
 
  private:
   static constexpr DescriptorType_t descriptor = "WindowCloseEvent";
@@ -22,6 +23,7 @@ class WindowResizeEvent : public Event {
   explicit WindowResizeEvent(Size_t size) : size(std::move(size)) {}
 
   [[nodiscard]] DescriptorType_t Type() const override { return descriptor; }
+  [[nodiscard]] static DescriptorType_t StaticType() { return descriptor; }
 
   [[nodiscard]] const Size_t& GetSize() const { return size; }
 

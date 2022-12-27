@@ -42,4 +42,12 @@ void Application::OnEvent(Event& e) {
     running = false;
     return true;
   });
+
+  if (e.Handled()) {
+    return;
+  }
+
+  for (const auto& l : layers) {
+    if (!e.Handled()) l->OnEvent(e);
+  }
 }

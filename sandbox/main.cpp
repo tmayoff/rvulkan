@@ -1,11 +1,14 @@
 #include <Application.hpp>
 #include <Core/Layer.hpp>
+#include <Core/Log.hpp>
 #include <memory>
 #include <scene/Entity.hpp>
 #include <scene/Scene.hpp>
 #include <utility>
 
 #include "VulkanContext.hpp"
+#include "events/event.hpp"
+#include "events/window_events.hpp"
 #include "scene/Components/Camera.hpp"
 #include "scene/Components/MeshRenderer.hpp"
 
@@ -15,11 +18,14 @@ class SandboxLayer : public Layer {
 
   void OnAttach() override;
   void OnUpdate() override;
+  void OnEvent(Event& e) override;
 
  private:
   VulkanContext context;
 
   std::shared_ptr<Scene> scene;
+
+  Entity camera;
 };
 
 int main() {
@@ -37,7 +43,7 @@ inline void SandboxLayer::OnAttach() {
   scene = std::make_shared<Scene>(context);
 
   // Add entities
-  auto camera = scene->CreateEntity("Main Camera");
+  camera = scene->CreateEntity("Main Camera");
 
   camera.AddComponent<Component::Camera>(Component::ProjectionType::Orthographic, 16.0F / 9.0F,
                                          Component::OrthographicData{});
@@ -47,3 +53,17 @@ inline void SandboxLayer::OnAttach() {
 }
 
 inline void SandboxLayer::OnUpdate() { scene->OnUpdate(); }
+
+inline void SandboxLayer::OnEvent(Event& e) {
+  Dispatcher dispatcher(e);
+  dispatcher.Dispatch<WindowResizeEvent>([this](WindowResizeEvent& e) {
+    logger::info("Window resized");
+
+    auto [width, height] = e.GetSize();
+
+    auto& cam = this->camera.GetComponent<Component::Camera>();
+    cam.SetAspectRatio(static_cast<float>(width) / static_cast<float>(height));
+
+    return false;
+  });
+}

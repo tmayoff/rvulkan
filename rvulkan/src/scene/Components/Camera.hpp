@@ -25,6 +25,16 @@ class Camera {
   Camera(ProjectionType projection_type, float aspect_ratio,
          std::variant<PerspectiveData, OrthographicData> data);
 
+  void SetAspectRatio(float aspect_ratio) {
+    this->aspect_ratio = aspect_ratio;
+    RecalculateProjection();
+  }
+
+  void SetData(const std::variant<PerspectiveData, OrthographicData>& data) {
+    projection_data = data;
+    RecalculateProjection();
+  }
+
   [[nodiscard]] bool IsPrimary() const { return is_primary; }
 
   [[nodiscard]] const glm::mat4& GetViewMatrix() const { return view_matrix; }

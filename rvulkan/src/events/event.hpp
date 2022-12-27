@@ -12,8 +12,10 @@ class Event {
  public:
   virtual ~Event() = default;
 
-  using DescriptorType_t = const char*;
+  using DescriptorType_t = std::string_view;
   [[nodiscard]] virtual DescriptorType_t Type() const = 0;
+
+  [[nodiscard]] bool Handled() const { return handled; }
 
  private:
   bool handled = false;
@@ -25,7 +27,7 @@ class Dispatcher {
 
   template <typename EventType>
   bool Dispatch(std::function<bool(EventType&)>&& fn) {
-    if (!event.handled) {
+    if (event.Type() == EventType::StaticType()) {
       event.handled = fn(static_cast<EventType&>(event));
       return true;
     }

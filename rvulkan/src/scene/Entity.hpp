@@ -10,10 +10,14 @@
 
 class Entity {
  public:
+  Entity() = default;
   Entity(Scene* scene, entt::entity handle) : scene(scene), handle(handle) {}
 
   template <typename T>
   [[nodiscard]] bool HasComponent() const;
+
+  template <typename T>
+  T& GetComponent() const;
 
   template <typename T, typename... Args>
   T& AddComponent(Args&&... args);
@@ -25,7 +29,12 @@ class Entity {
 
 template <typename T>
 inline bool Entity::HasComponent() const {
-  return scene->GetRegistry().all_of<T>(handle);
+  return scene->registry.all_of<T>(handle);
+}
+
+template <typename T>
+inline T& Entity::GetComponent() const {
+  return scene->registry.get<T>(handle);
 }
 
 template <typename T, typename... Args>
