@@ -4,6 +4,7 @@
 #include <Renderer.hpp>
 #include <entt/entt.hpp>
 
+#include "Core/types.hpp"
 #include "VulkanContext.hpp"
 #include "entt/entity/fwd.hpp"
 
@@ -13,9 +14,8 @@ class Scene {
   friend class Entity;
 
  public:
-  explicit Scene(const std::shared_ptr<VulkanContext>& vulkan_context) {
-    renderer = std::make_shared<Renderer>(vulkan_context);
-  }
+  explicit Scene(const std::shared_ptr<VulkanContext>& vulkan_context)
+      : renderer(std::make_shared<Renderer>(vulkan_context, resolution_t{1904, 971})) {}
 
   Entity CreateEntity(const std::string& tag);
 

@@ -4,7 +4,9 @@
 #include <utility>
 #include <vulkan/vulkan.hpp>
 #include <vulkan/vulkan_handles.hpp>
+#include <vulkan/vulkan_structs.hpp>
 
+#include "Core/types.hpp"
 #include "Shader.hpp"
 #include "VulkanContext.hpp"
 
@@ -110,16 +112,18 @@ class BufferLayout {
 };
 
 struct PipelineOptions {
+  vk::Extent2D surface_extent;
   Shader shader;
   BufferLayout bufferLayout;
   std::vector<BufferLayout> uniform_buffer_layouts;
 };
 
-class Pipeline {
+class Pipeline : public non_copyable, non_movable {
  public:
-  Pipeline() = default;
   Pipeline(const std::shared_ptr<VulkanContext>& context, const PipelineOptions& options,
            const vk::RenderPass& renderPass);
+
+  ~Pipeline();
 
   [[nodiscard]] const vk::Pipeline& GetHandle() const { return pipeline; }
   [[nodiscard]] const vk::PipelineLayout& GetLayout() const { return layout; }
@@ -130,6 +134,8 @@ class Pipeline {
  private:
   void CreateDescriptorSets(const std::shared_ptr<VulkanContext>& context,
                             const PipelineOptions& options);
+
+  std::shared_ptr<VulkanContext> context;
 
   vk::Pipeline pipeline;
   vk::PipelineLayout layout;

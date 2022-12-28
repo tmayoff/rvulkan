@@ -25,29 +25,15 @@ class VulkanContext {
   [[nodiscard]] const vk::Instance& GetInstance() const { return instance; }
   [[nodiscard]] const PhysicalDevice& GetPhysicalDevice() const { return physical_device; }
   [[nodiscard]] const LogicalDevice& GetLogicalDevice() const { return device; }
-  [[nodiscard]] vk::SwapchainKHR GetSwapchain() const { return swapchain; }
-  [[nodiscard]] const vk::Extent2D& GetSurfaceExtent() const { return surfaceExtent; }
+  [[nodiscard]] const Surface& GetSurface() const { return surface; }
   [[nodiscard]] const vk::SurfaceFormatKHR& GetSurfaceFormat() const { return surface.GetFormat(); }
-  [[nodiscard]] const vk::Semaphore& GetImageAvailableSemaphore() const {
-    return imageAvailableSemaphore;
-  }
-
-  [[nodiscard]] const vk::Semaphore& GetRenderingFinishedSemaphore() const {
-    return renderingFinishedSemaphore;
-  }
-  [[nodiscard]] const std::vector<vk::ImageView>& GetSwapchainImageViews() const {
-    return swapchainImageViews;
-  }
 
   [[nodiscard]] const vk::CommandPool& GetCommandPool() const { return commandPool; }
 
   [[nodiscard]] const VmaAllocator& GetAllocator() const { return allocator; }
 
-  void RecreateSwapchain(uint32_t surfaceWidth, uint32_t surfaceHeight);
-
  private:
   void CreateAllocator();
-  void CleanupSwapchain();
 
   vk::Instance instance;
 
@@ -56,17 +42,7 @@ class VulkanContext {
   PhysicalDevice physical_device;
   LogicalDevice device;
 
-  vk::Extent2D surfaceExtent;
-
   VmaAllocator allocator{};
-
-  vk::SwapchainKHR swapchain;
-  std::vector<vk::Image> swapchainImages;
-  std::vector<vk::ImageView> swapchainImageViews;
-  std::vector<vk::Framebuffer> framebuffers;
-
-  vk::Semaphore imageAvailableSemaphore;
-  vk::Semaphore renderingFinishedSemaphore;
 
   vk::CommandPool commandPool;
 };

@@ -1,38 +1,44 @@
 #ifndef RENDERER_HPP_
 #define RENDERER_HPP_
 
+#include <vulkan/vulkan_core.h>
+
+#include <Core/types.hpp>
 #include <glm/glm.hpp>
+#include <renderer/swapchain.hpp>
+#include <renderer/virtual_frame.hpp>
 #include <vulkan/vulkan.hpp>
+#include <vulkan/vulkan_handles.hpp>
+#include <vulkan/vulkan_structs.hpp>
 
 #include "Buffer.hpp"
 #include "RenderPass.hpp"
 #include "VulkanContext.hpp"
 #include "scene/Components/MeshRenderer.hpp"
 
-struct VirtualFrame {
-  vk::CommandBuffer Commands;
-  vk::Fence CommandQueueFence;
-};
-
 const int MAX_FRAMES_IN_FLIGHT = 2;
 
 class Renderer {
  public:
-  explicit Renderer(const std::shared_ptr<VulkanContext>& context);
+  explicit Renderer(const std::shared_ptr<VulkanContext>& context, const resolution_t& resolution);
 
   void StartFrame(const glm::mat4& view_projection);
   void EndFrame();
 
-  void ResizeViewport(std::pair<float, float> size);
+  void ResizeViewport(resolution_t size);
 
   void DrawMesh(const Component::MeshRenderer& mesh_renderer);
 
-  const VirtualFrame& GetCurrentFrame() { return virtualFrames[currentFrameIndex]; }
+  const std::shared_ptr<VirtualFrame>& GetCurrentFrame() {
+    return virtual_frames[current_frame_index];
+  }
 
  private:
-  std::shared_ptr<VulkanContext> context;
+  void CreateRenderPass();
+  void CreateVirtualFrames();
+  void CreateFramebuffers();
 
-  std::optional<std::pair<float, float>> view_resized;
+  std::shared_ptr<VulkanContext> context;
 
   struct UniformBufferData {
     glm::mat4 view_projection{1.0F};
@@ -40,16 +46,17 @@ class Renderer {
 
   std::shared_ptr<Buffer> uniform_buffer;
 
-  RenderPass renderPass;
+  Swapchain swapchain;
+  std::shared_ptr<RenderPass> renderPass;
 
-  uint32_t currentFrameIndex = 0;
-  uint32_t presentImageIndex = 0;
+  uint32_t current_frame_index = 0;
+  uint32_t present_image_index = 0;
 
-  std::shared_ptr<Buffer> vertex_buffer;
-  std::shared_ptr<Buffer> indexBuffer;
+  bool view_resized = false;
+  vk::Extent2D surface_extent;
 
   std::vector<vk::Framebuffer> framebuffers;
-  std::vector<VirtualFrame> virtualFrames;
+  std::vector<std::shared_ptr<VirtualFrame>> virtual_frames;
 };
 
 #endif  // RENDERER_HPP_
