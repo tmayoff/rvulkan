@@ -8,6 +8,7 @@ add_project_arguments('-DENABLE_ASSERTS', language: 'cpp')
 glm_proj = subproject('glm')
 glm = glm_proj.get_variable('glm_dep')
 
+tracy        = dependency('tracy')
 entt         = dependency('entt')
 vulkan       = dependency('vulkan')
 sdl2         = dependency('SDL2')

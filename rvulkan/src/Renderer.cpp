@@ -3,6 +3,7 @@
 #include <vulkan/vulkan_core.h>
 
 #include <Core/Log.hpp>
+#include <debug/profiler.hpp>
 #include <exception>
 #include <vulkan/vulkan.hpp>
 #include <vulkan/vulkan_enums.hpp>
@@ -30,9 +31,16 @@ Renderer::Renderer(const std::shared_ptr<VulkanContext>& context, const resoluti
 
   CreateCommandBuffers();
   CreateSyncObjects();
+
+  // TRACY PROFILER
+  tracy_context = TracyVkContext(
+      context->GetPhysicalDevice().GetHandle(), context->GetLogicalDevice().GetHandle(),
+      context->GetLogicalDevice().GetGraphicsQueue(), command_buffers[0]);
 }
 
 void Renderer::StartFrame(const glm::mat4& view_projection) {
+  ZoneScoped;
+
   uniform_buffer_data.view_projection = view_projection;
   uniform_buffer->SetData((void*)&uniform_buffer_data, sizeof(uniform_buffer_data));
 
@@ -75,6 +83,8 @@ void Renderer::StartFrame(const glm::mat4& view_projection) {
 }
 
 void Renderer::EndFrame() {
+  ZoneScoped;  // NOLINT
+
   const auto device = context->GetLogicalDevice();
 
   command_buffers[current_frame_index].endRenderPass();
@@ -86,14 +96,18 @@ void Renderer::EndFrame() {
   auto wait_semaphore = image_available_semaphores[current_frame_index];
   auto signal_semaphore = render_finished_semaphores[current_frame_index];
 
-  vk::SubmitInfo submit_info(wait_semaphore, wait_stages, command_buffers[current_frame_index],
-                             signal_semaphore);
+  {
+    ZoneScopedN("Queue Submit");  // NOLINT
+    vk::SubmitInfo submit_info(wait_semaphore, wait_stages, command_buffers[current_frame_index],
+                               signal_semaphore);
 
-  device.GetPresentQueue().submit(submit_info, in_flight_fences[current_frame_index]);
+    device.GetPresentQueue().submit(submit_info, in_flight_fences[current_frame_index]);
+  }
 
   vk::PresentInfoKHR present_info(signal_semaphore, swapchain.GetHandle(), swapchain_image_index);
 
   try {
+    ZoneScopedN("Queue Present");  // NOLINT
     auto res = device.GetPresentQueue().presentKHR(present_info);
     if (res == vk::Result::eSuboptimalKHR || view_resized)
       swapchain.RecreateSwapchain(surface_extent);
@@ -111,6 +125,8 @@ void Renderer::ResizeViewport(resolution_t size) {
 }
 
 void Renderer::DrawMesh(const Component::MeshRenderer& mesh_renderer) {
+  ZoneScoped;
+
   command_buffers[current_frame_index].bindVertexBuffers(
       0, mesh_renderer.GetMesh().GetVertexBuffer()->GetHandle(), {0});
   command_buffers[current_frame_index].bindIndexBuffer(

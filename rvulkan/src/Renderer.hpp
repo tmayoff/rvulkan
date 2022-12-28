@@ -4,6 +4,7 @@
 #include <vulkan/vulkan_core.h>
 
 #include <Core/types.hpp>
+#include <debug/profiler.hpp>
 #include <glm/glm.hpp>
 #include <renderer/swapchain.hpp>
 #include <vector>
@@ -55,6 +56,9 @@ class Renderer {
   std::vector<vk::Semaphore> image_available_semaphores;
   std::vector<vk::Semaphore> render_finished_semaphores;
   std::vector<vk::Fence> in_flight_fences;
+
+  // TRACY PROFILER
+  TracyVkCtx tracy_context;
 };
 
 #endif  // RENDERER_HPP_

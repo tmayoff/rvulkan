@@ -2,11 +2,12 @@
 
 #include <SDL2/SDL_vulkan.h>
 
+#include <Core/Log.hpp>
 #include <vulkan/vulkan_enums.hpp>
 
 Surface::Surface(const vk::Instance& instance, const PhysicalDevice& physical_device,
                  const std::shared_ptr<Window>& window)
-    : present_mode(vk::PresentModeKHR::eImmediate) {
+    : present_mode(vk::PresentModeKHR::eFifo) {
   VkSurfaceKHR surface = VK_NULL_HANDLE;
   SDL_Vulkan_CreateSurface(window->GetWindowHandle(), instance, &surface);
 
@@ -19,10 +20,11 @@ Surface::Surface(const vk::Instance& instance, const PhysicalDevice& physical_de
   // Get prefered present mode
   if (std::find(present_modes.begin(), present_modes.end(), vk::PresentModeKHR::eMailbox) !=
       present_modes.end()) {
+    logger::info("Using Prefered presentation mode: Mailbox");
     present_mode = vk::PresentModeKHR::eMailbox;
   }
 
-  present_image_count = surface_caps.minImageCount;
+  present_image_count = surface_caps.maxImageCount;
 
   format = surface_formats.front();
   for (const auto& format : surface_formats) {
