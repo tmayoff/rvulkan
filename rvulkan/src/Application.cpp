@@ -1,5 +1,7 @@
 #include "Application.hpp"
 
+#include <vulkan/vulkan_core.h>
+
 #include <events/event.hpp>
 #include <events/window_events.hpp>
 
@@ -18,6 +20,7 @@ Application::Application() {
   VulkanContextCreateOptions vulkan_options;
   vulkan_options.Layers = {"VK_LAYER_KHRONOS_validation"};
   vulkan_options.Extensions = window->GetRequiredExtension();
+  // vulkan_options.Extensions.push_back(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
   vulkan_context = std::make_shared<VulkanContext>(vulkan_options, window);
 }
 

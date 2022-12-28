@@ -6,7 +6,7 @@
 #include <Core/types.hpp>
 #include <glm/glm.hpp>
 #include <renderer/swapchain.hpp>
-#include <renderer/virtual_frame.hpp>
+#include <vector>
 #include <vulkan/vulkan.hpp>
 #include <vulkan/vulkan_handles.hpp>
 #include <vulkan/vulkan_structs.hpp>
@@ -29,13 +29,10 @@ class Renderer {
 
   void DrawMesh(const Component::MeshRenderer& mesh_renderer);
 
-  const std::shared_ptr<VirtualFrame>& GetCurrentFrame() {
-    return virtual_frames[current_frame_index];
-  }
-
  private:
   void CreateRenderPass();
-  void CreateVirtualFrames();
+  void CreateCommandBuffers();
+  void CreateSyncObjects();
   void CreateFramebuffers();
 
   std::shared_ptr<VulkanContext> context;
@@ -55,8 +52,12 @@ class Renderer {
   bool view_resized = false;
   vk::Extent2D surface_extent;
 
+  std::vector<vk::CommandBuffer> command_buffers;
+  std::vector<vk::Semaphore> image_available_semaphores;
+  std::vector<vk::Semaphore> render_finished_semaphores;
+  std::vector<vk::Fence> in_flight_fences;
+
   std::vector<vk::Framebuffer> framebuffers;
-  std::vector<std::shared_ptr<VirtualFrame>> virtual_frames;
 };
 
 #endif  // RENDERER_HPP_

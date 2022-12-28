@@ -25,7 +25,8 @@ Renderer::Renderer(const std::shared_ptr<VulkanContext>& context, const resoluti
 
   CreateRenderPass();
   CreateFramebuffers();
-  CreateVirtualFrames();
+  CreateCommandBuffers();
+  CreateSyncObjects();
 }
 
 void Renderer::StartFrame(const glm::mat4& view_projection) {
@@ -33,22 +34,23 @@ void Renderer::StartFrame(const glm::mat4& view_projection) {
   uniform_buffer->SetData((void*)&uniform_buffer_data, sizeof(uniform_buffer_data));
 
   const auto device = context->GetLogicalDevice().GetHandle();
-  const auto frame = GetCurrentFrame();
 
-  vk::Result wait_for_fence = device.waitForFences(frame->GetInFlight(), VK_FALSE, UINT64_MAX);
+  vk::Result wait_for_fence =
+      device.waitForFences(in_flight_fences[current_frame_index], VK_FALSE, UINT64_MAX);
   if (wait_for_fence != vk::Result::eSuccess) logger::fatal("Failed to wait for fence");
-  device.resetFences(frame->GetInFlight());
+  device.resetFences(in_flight_fences[current_frame_index]);
 
-  const auto acquired_image = context->GetLogicalDevice().GetHandle().acquireNextImageKHR(
-      swapchain.GetHandle(), UINT64_MAX, frame->GetImageAvailable());
-  if (acquired_image.result == vk::Result::eErrorOutOfDateKHR) {
+  const auto acquired_image_index = device.acquireNextImageKHR(
+      swapchain.GetHandle(), UINT64_MAX, image_available_semaphores[current_frame_index]);
+  if (acquired_image_index.result == vk::Result::eErrorOutOfDateKHR) {
     // swapchain.RecreateSwapchain(surface_extent);
-    // return;
+    return;
   }
 
-  present_image_index = acquired_image.value;
+  present_image_index = acquired_image_index.value;
 
-  frame->GetCommandBuffer().begin(
+  command_buffers[current_frame_index].reset();
+  command_buffers[current_frame_index].begin(
       vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
 
   auto clear_colours = vk::ClearValue(vk::ClearColorValue(std::array<float, 4>{0.1F, 0.1F, 0.1F}));
@@ -56,47 +58,47 @@ void Renderer::StartFrame(const glm::mat4& view_projection) {
                                            framebuffers.at(current_frame_index),
                                            vk::Rect2D({0, 0}, surface_extent), clear_colours);
 
-  frame->GetCommandBuffer().setScissor(0, vk::Rect2D({0, 0}, surface_extent));
-  frame->GetCommandBuffer().setViewport(
-      0, vk::Viewport(0, 0, surface_extent.width, surface_extent.height));
+  command_buffers[current_frame_index].beginRenderPass(render_pass_info,
+                                                       vk::SubpassContents::eInline);
+  command_buffers[current_frame_index].bindPipeline(vk::PipelineBindPoint::eGraphics,
+                                                    renderPass->GetPipeline()->GetHandle());
 
-  frame->GetCommandBuffer().beginRenderPass(render_pass_info, vk::SubpassContents::eInline);
-  frame->GetCommandBuffer().bindPipeline(vk::PipelineBindPoint::eGraphics,
-                                         renderPass->GetPipeline()->GetHandle());
-  frame->GetCommandBuffer().bindDescriptorSets(
+  command_buffers[current_frame_index].setViewport(
+      0, vk::Viewport(0, 0, surface_extent.width, surface_extent.height));
+  command_buffers[current_frame_index].setScissor(0, vk::Rect2D({0, 0}, surface_extent));
+
+  command_buffers[current_frame_index].bindDescriptorSets(
       vk::PipelineBindPoint::eGraphics, renderPass->GetPipeline()->GetLayout(), 0,
       renderPass->GetPipeline()->GetDescriptorSets(), nullptr);
 }
 
 void Renderer::EndFrame() {
-  auto frame = GetCurrentFrame();
+  const auto device = context->GetLogicalDevice();
 
-  frame->GetCommandBuffer().endRenderPass();
-  frame->GetCommandBuffer().end();
+  command_buffers[current_frame_index].endRenderPass();
+  command_buffers[current_frame_index].end();
 
-  std::array waitStages = {
+  std::array wait_stages = {
       vk::PipelineStageFlags(vk::PipelineStageFlagBits::eColorAttachmentOutput)};
 
-  vk::SubmitInfo submitInfo;
-  submitInfo.setWaitSemaphores(frame->GetImageAvailable())
-      .setWaitDstStageMask(waitStages)
-      .setSignalSemaphores(frame->GetRenderFinished())
-      .setCommandBuffers(frame->GetCommandBuffer());
+  auto wait_semaphore = image_available_semaphores[current_frame_index];
+  auto signal_semaphore = render_finished_semaphores[current_frame_index];
 
-  context->GetLogicalDevice().GetHandle().resetFences(frame->GetInFlight());
-  context->GetLogicalDevice().GetGraphicsQueue().submit(submitInfo, frame->GetInFlight());
+  vk::SubmitInfo submitInfo(wait_semaphore, wait_stages, command_buffers[current_frame_index],
+                            signal_semaphore);
 
-  vk::PresentInfoKHR presentInfo;
-  presentInfo.setWaitSemaphores(frame->GetRenderFinished())
-      .setSwapchains(swapchain.GetHandle())
-      .setImageIndices(present_image_index);
+  device.GetPresentQueue().submit(submitInfo, in_flight_fences[current_frame_index]);
 
-  auto present_result = context->GetLogicalDevice().GetPresentQueue().presentKHR(presentInfo);
+  vk::PresentInfoKHR presentInfo(signal_semaphore, swapchain.GetHandle(), present_image_index);
+
+  auto present_result = device.GetPresentQueue().presentKHR(presentInfo);
   if (present_result == vk::Result::eErrorOutOfDateKHR ||
       present_result == vk::Result::eSuboptimalKHR || view_resized) {
     view_resized = false;
     // swapchain.RecreateSwapchain(surface_extent);
   }
+
+  current_frame_index = (current_frame_index + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
 void Renderer::ResizeViewport(resolution_t size) {
@@ -105,13 +107,12 @@ void Renderer::ResizeViewport(resolution_t size) {
 }
 
 void Renderer::DrawMesh(const Component::MeshRenderer& mesh_renderer) {
-  const auto& frame = GetCurrentFrame();
-
-  frame->GetCommandBuffer().bindVertexBuffers(
+  command_buffers[current_frame_index].bindVertexBuffers(
       0, mesh_renderer.GetMesh().GetVertexBuffer()->GetHandle(), {0});
-  frame->GetCommandBuffer().bindIndexBuffer(mesh_renderer.GetMesh().GetIndexBuffer()->GetHandle(),
-                                            0, vk::IndexType::eUint32);
-  frame->GetCommandBuffer().drawIndexed(mesh_renderer.GetMesh().GetIndices().size(), 1, 0, 0, 0);
+  command_buffers[current_frame_index].bindIndexBuffer(
+      mesh_renderer.GetMesh().GetIndexBuffer()->GetHandle(), 0, vk::IndexType::eUint32);
+  command_buffers[current_frame_index].drawIndexed(mesh_renderer.GetMesh().GetIndices().size(), 1,
+                                                   0, 0, 0);
 }
 
 void Renderer::CreateRenderPass() {
@@ -132,15 +133,26 @@ void Renderer::CreateRenderPass() {
   context->GetLogicalDevice().GetHandle().updateDescriptorSets(write_descriptor_set, nullptr);
 }
 
-void Renderer::CreateVirtualFrames() {
-  vk::CommandBufferAllocateInfo buffer_alloc(context->GetCommandPool(),
-                                             vk::CommandBufferLevel::ePrimary, framebuffers.size());
+void Renderer::CreateCommandBuffers() {
+  command_buffers.reserve(MAX_FRAMES_IN_FLIGHT);
 
-  auto command_buffers =
-      context->GetLogicalDevice().GetHandle().allocateCommandBuffers(buffer_alloc);
+  vk::CommandBufferAllocateInfo alloc_info(context->GetCommandPool(),
+                                           vk::CommandBufferLevel::ePrimary, MAX_FRAMES_IN_FLIGHT);
+  command_buffers = context->GetLogicalDevice().GetHandle().allocateCommandBuffers(alloc_info);
+}
+
+void Renderer::CreateSyncObjects() {
+  auto device = context->GetLogicalDevice().GetHandle();
+
+  image_available_semaphores.resize(MAX_FRAMES_IN_FLIGHT);
+  render_finished_semaphores.resize(MAX_FRAMES_IN_FLIGHT);
+  in_flight_fences.resize(MAX_FRAMES_IN_FLIGHT);
 
   for (auto i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-    virtual_frames.push_back(std::make_shared<VirtualFrame>(context, command_buffers[i]));
+    image_available_semaphores[i] = device.createSemaphore(vk::SemaphoreCreateInfo());
+    render_finished_semaphores[i] = device.createSemaphore(vk::SemaphoreCreateInfo());
+    in_flight_fences[i] =
+        device.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
   }
 }
 
