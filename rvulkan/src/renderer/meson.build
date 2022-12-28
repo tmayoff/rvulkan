@@ -1,1 +1,1 @@
-sources += files('Mesh.cpp', 'swapchain.cpp', 'virtual_frame.cpp')
+sources += files('Mesh.cpp', 'swapchain.cpp')
