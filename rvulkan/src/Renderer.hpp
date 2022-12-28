@@ -16,7 +16,7 @@
 #include "VulkanContext.hpp"
 #include "scene/Components/MeshRenderer.hpp"
 
-const int MAX_FRAMES_IN_FLIGHT = 3;
+const int MAX_FRAMES_IN_FLIGHT = 2;
 
 class Renderer {
  public:
@@ -46,7 +46,7 @@ class Renderer {
   std::shared_ptr<RenderPass> renderPass;
 
   uint32_t current_frame_index = 0;
-  uint32_t present_image_index = 0;
+  uint32_t swapchain_image_index = 0;
 
   bool view_resized = false;
   vk::Extent2D surface_extent;

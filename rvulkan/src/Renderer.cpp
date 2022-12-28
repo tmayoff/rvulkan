@@ -3,6 +3,7 @@
 #include <vulkan/vulkan_core.h>
 
 #include <Core/Log.hpp>
+#include <exception>
 #include <vulkan/vulkan.hpp>
 #include <vulkan/vulkan_enums.hpp>
 #include <vulkan/vulkan_handles.hpp>
@@ -48,8 +49,7 @@ void Renderer::StartFrame(const glm::mat4& view_projection) {
     swapchain.RecreateSwapchain(surface_extent);
     return;
   }
-
-  present_image_index = acquired_image_index.value;
+  swapchain_image_index = acquired_image_index.value;
 
   command_buffers[current_frame_index].reset();
   command_buffers[current_frame_index].begin(
@@ -57,7 +57,7 @@ void Renderer::StartFrame(const glm::mat4& view_projection) {
 
   auto clear_colours = vk::ClearValue(vk::ClearColorValue(std::array<float, 4>{0.1F, 0.1F, 0.1F}));
   vk::RenderPassBeginInfo render_pass_info(renderPass->GetHandle(),
-                                           swapchain.GetFramebuffers().at(current_frame_index),
+                                           swapchain.GetFramebuffers().at(swapchain_image_index),
                                            vk::Rect2D({0, 0}, surface_extent), clear_colours);
 
   command_buffers[current_frame_index].beginRenderPass(render_pass_info,
@@ -91,11 +91,13 @@ void Renderer::EndFrame() {
 
   device.GetPresentQueue().submit(submit_info, in_flight_fences[current_frame_index]);
 
-  vk::PresentInfoKHR present_info(signal_semaphore, swapchain.GetHandle(), present_image_index);
+  vk::PresentInfoKHR present_info(signal_semaphore, swapchain.GetHandle(), swapchain_image_index);
 
-  auto present_result = device.GetPresentQueue().presentKHR(present_info);
-  if (present_result == vk::Result::eErrorOutOfDateKHR ||
-      present_result == vk::Result::eSuboptimalKHR || view_resized) {
+  try {
+    auto res = device.GetPresentQueue().presentKHR(present_info);
+    if (res == vk::Result::eSuboptimalKHR || view_resized)
+      swapchain.RecreateSwapchain(surface_extent);
+  } catch (vk::OutOfDateKHRError& e) {
     view_resized = false;
     swapchain.RecreateSwapchain(surface_extent);
   }
