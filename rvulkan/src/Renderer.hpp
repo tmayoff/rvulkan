@@ -16,7 +16,7 @@
 #include "VulkanContext.hpp"
 #include "scene/Components/MeshRenderer.hpp"
 
-const int MAX_FRAMES_IN_FLIGHT = 2;
+const int MAX_FRAMES_IN_FLIGHT = 3;
 
 class Renderer {
  public:
@@ -33,7 +33,6 @@ class Renderer {
   void CreateRenderPass();
   void CreateCommandBuffers();
   void CreateSyncObjects();
-  void CreateFramebuffers();
 
   std::shared_ptr<VulkanContext> context;
 
@@ -56,8 +55,6 @@ class Renderer {
   std::vector<vk::Semaphore> image_available_semaphores;
   std::vector<vk::Semaphore> render_finished_semaphores;
   std::vector<vk::Fence> in_flight_fences;
-
-  std::vector<vk::Framebuffer> framebuffers;
 };
 
 #endif  // RENDERER_HPP_

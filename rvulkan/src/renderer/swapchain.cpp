@@ -3,15 +3,26 @@
 #include <vulkan/vulkan_enums.hpp>
 #include <vulkan/vulkan_structs.hpp>
 
-Swapchain::Swapchain(std::shared_ptr<VulkanContext> context, const vk::Extent2D& surface_extent)
-    : context(std::move(context)), surface_extent(surface_extent) {
+Swapchain::Swapchain(std::shared_ptr<VulkanContext> context,
+                     std::shared_ptr<RenderPass> render_pass, const vk::Extent2D& surface_extent)
+    : context(std::move(context)),
+      render_pass(std::move(render_pass)),
+      surface_extent(surface_extent) {
   CreateSwapchain();
   CreateImageViews();
+  CreateFramebuffers();
 }
 
 void Swapchain::RecreateSwapchain(const vk::Extent2D& surface_extent_) {
   surface_extent = surface_extent_;
-  // TODO
+
+  context->GetLogicalDevice().GetHandle().waitIdle();
+
+  CleanupSwapchain();
+
+  CreateSwapchain();
+  CreateImageViews();
+  CreateFramebuffers();
 }
 
 vk::Extent2D Swapchain::GetSurfaceExtent(const vk::SurfaceCapabilitiesKHR& surface_caps) const {
@@ -21,6 +32,15 @@ vk::Extent2D Swapchain::GetSurfaceExtent(const vk::SurfaceCapabilitiesKHR& surfa
                            surface_caps.maxImageExtent.height);
 
   return {width, height};
+}
+
+void Swapchain::CleanupSwapchain() {
+  const auto device = context->GetLogicalDevice().GetHandle();
+
+  for (const auto& framebuffer : framebuffers) device.destroyFramebuffer(framebuffer);
+  for (const auto& image_view : image_views) device.destroyImageView(image_view);
+
+  device.destroySwapchainKHR(swapchain);
 }
 
 void Swapchain::CreateSwapchain() {
@@ -53,21 +73,33 @@ void Swapchain::CreateSwapchain() {
       vk::CompositeAlphaFlagBitsKHR::eOpaque, surface.GetPresentMode(), VK_TRUE);
 
   swapchain = device.createSwapchainKHR(create_info);
-  swapchain_images = device.getSwapchainImagesKHR(swapchain);
+  images = device.getSwapchainImagesKHR(swapchain);
+}
+
+void Swapchain::CreateFramebuffers() {
+  framebuffers.resize(image_views.size());
+
+  for (size_t i = 0; i < image_views.size(); i++) {
+    std::array attachments = {image_views.at(i)};
+
+    vk::FramebufferCreateInfo framebufferInfo({}, render_pass->GetHandle(), attachments,
+                                              surface_extent.width, surface_extent.height, 1);
+    framebuffers.at(i) = context->GetLogicalDevice().GetHandle().createFramebuffer(framebufferInfo);
+  }
 }
 
 void Swapchain::CreateImageViews() {
   const auto device = context->GetLogicalDevice().GetHandle();
 
-  swapchain_image_views.clear();
-  swapchain_image_views.reserve(swapchain_images.size());
+  image_views.clear();
+  image_views.reserve(images.size());
 
   vk::ImageViewCreateInfo create_info(
       {}, {}, vk::ImageViewType::e2D, context->GetSurfaceFormat().format, vk::ComponentMapping{},
       vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1));
 
-  for (const auto& image : swapchain_images) {
+  for (const auto& image : images) {
     create_info.setImage(image);
-    swapchain_image_views.push_back(device.createImageView(create_info));
+    image_views.push_back(device.createImageView(create_info));
   }
 }

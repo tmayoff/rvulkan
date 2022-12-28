@@ -15,7 +15,7 @@
 #include "renderer/swapchain.hpp"
 
 Renderer::Renderer(const std::shared_ptr<VulkanContext>& context, const resolution_t& resolution)
-    : context(context), swapchain(context, vk::Extent2D(resolution.first, resolution.second)) {
+    : context(context) {
   surface_extent = vk::Extent2D(resolution.first, resolution.second);
 
   // Uniform buffer
@@ -24,7 +24,9 @@ Renderer::Renderer(const std::shared_ptr<VulkanContext>& context, const resoluti
                                             vk::BufferUsageFlagBits::eUniformBuffer);
 
   CreateRenderPass();
-  CreateFramebuffers();
+
+  swapchain = Swapchain(context, renderPass, surface_extent);
+
   CreateCommandBuffers();
   CreateSyncObjects();
 }
@@ -43,7 +45,7 @@ void Renderer::StartFrame(const glm::mat4& view_projection) {
   const auto acquired_image_index = device.acquireNextImageKHR(
       swapchain.GetHandle(), UINT64_MAX, image_available_semaphores[current_frame_index]);
   if (acquired_image_index.result == vk::Result::eErrorOutOfDateKHR) {
-    // swapchain.RecreateSwapchain(surface_extent);
+    swapchain.RecreateSwapchain(surface_extent);
     return;
   }
 
@@ -55,7 +57,7 @@ void Renderer::StartFrame(const glm::mat4& view_projection) {
 
   auto clear_colours = vk::ClearValue(vk::ClearColorValue(std::array<float, 4>{0.1F, 0.1F, 0.1F}));
   vk::RenderPassBeginInfo render_pass_info(renderPass->GetHandle(),
-                                           framebuffers.at(current_frame_index),
+                                           swapchain.GetFramebuffers().at(current_frame_index),
                                            vk::Rect2D({0, 0}, surface_extent), clear_colours);
 
   command_buffers[current_frame_index].beginRenderPass(render_pass_info,
@@ -84,18 +86,18 @@ void Renderer::EndFrame() {
   auto wait_semaphore = image_available_semaphores[current_frame_index];
   auto signal_semaphore = render_finished_semaphores[current_frame_index];
 
-  vk::SubmitInfo submitInfo(wait_semaphore, wait_stages, command_buffers[current_frame_index],
-                            signal_semaphore);
+  vk::SubmitInfo submit_info(wait_semaphore, wait_stages, command_buffers[current_frame_index],
+                             signal_semaphore);
 
-  device.GetPresentQueue().submit(submitInfo, in_flight_fences[current_frame_index]);
+  device.GetPresentQueue().submit(submit_info, in_flight_fences[current_frame_index]);
 
-  vk::PresentInfoKHR presentInfo(signal_semaphore, swapchain.GetHandle(), present_image_index);
+  vk::PresentInfoKHR present_info(signal_semaphore, swapchain.GetHandle(), present_image_index);
 
-  auto present_result = device.GetPresentQueue().presentKHR(presentInfo);
+  auto present_result = device.GetPresentQueue().presentKHR(present_info);
   if (present_result == vk::Result::eErrorOutOfDateKHR ||
       present_result == vk::Result::eSuboptimalKHR || view_resized) {
     view_resized = false;
-    // swapchain.RecreateSwapchain(surface_extent);
+    swapchain.RecreateSwapchain(surface_extent);
   }
 
   current_frame_index = (current_frame_index + 1) % MAX_FRAMES_IN_FLIGHT;
@@ -116,14 +118,14 @@ void Renderer::DrawMesh(const Component::MeshRenderer& mesh_renderer) {
 }
 
 void Renderer::CreateRenderPass() {
-  PipelineOptions pipelineOptions{};
-  pipelineOptions.shader = Shader(context, Shader::ReadFile("rvulkan/assets/shaders/vert.spv"),
-                                  Shader::ReadFile("rvulkan/assets/shaders/frag.spv"));
-  pipelineOptions.surface_extent = surface_extent;
-  pipelineOptions.bufferLayout = Vertex::GetLayout();
-  pipelineOptions.uniform_buffer_layouts = {Vertex::GetUniformLayout()};
+  PipelineOptions pipeline_options{};
+  pipeline_options.shader = Shader(context, Shader::ReadFile("rvulkan/assets/shaders/vert.spv"),
+                                   Shader::ReadFile("rvulkan/assets/shaders/frag.spv"));
+  pipeline_options.surface_extent = surface_extent;
+  pipeline_options.bufferLayout = Vertex::GetLayout();
+  pipeline_options.uniform_buffer_layouts = {Vertex::GetUniformLayout()};
 
-  renderPass = std::make_shared<RenderPass>(context, pipelineOptions);
+  renderPass = std::make_shared<RenderPass>(context, pipeline_options);
 
   // Update Descriptor Sets
   vk::DescriptorBufferInfo buffer_info(uniform_buffer->GetHandle(), 0, sizeof(uniform_buffer_data));
@@ -153,17 +155,5 @@ void Renderer::CreateSyncObjects() {
     render_finished_semaphores[i] = device.createSemaphore(vk::SemaphoreCreateInfo());
     in_flight_fences[i] =
         device.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
-  }
-}
-
-void Renderer::CreateFramebuffers() {
-  framebuffers.resize(swapchain.GetImageViews().size());
-
-  for (size_t i = 0; i < swapchain.GetImageViews().size(); i++) {
-    std::array attachments = {swapchain.GetImageViews().at(i)};
-
-    vk::FramebufferCreateInfo framebufferInfo({}, renderPass->GetHandle(), attachments,
-                                              surface_extent.width, surface_extent.height, 1);
-    framebuffers.at(i) = context->GetLogicalDevice().GetHandle().createFramebuffer(framebufferInfo);
   }
 }
