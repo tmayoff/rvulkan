@@ -13,8 +13,8 @@
 class Swapchain {
  public:
   Swapchain() = default;
-  explicit Swapchain(std::shared_ptr<VulkanContext> context,
-                     std::shared_ptr<RenderPass> render_pass, const vk::Extent2D& surface_extent);
+  explicit Swapchain(std::shared_ptr<VulkanContext> vulkan_context_,
+                     std::shared_ptr<RenderPass> render_pass_, const vk::Extent2D& surface_extent);
 
   void RecreateSwapchain(const vk::Extent2D& surface_extent_);
 

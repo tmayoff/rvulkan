@@ -3,10 +3,10 @@
 #include <vulkan/vulkan_enums.hpp>
 #include <vulkan/vulkan_structs.hpp>
 
-Swapchain::Swapchain(std::shared_ptr<VulkanContext> context,
-                     std::shared_ptr<RenderPass> render_pass, const vk::Extent2D& surface_extent)
-    : context(std::move(context)),
-      render_pass(std::move(render_pass)),
+Swapchain::Swapchain(std::shared_ptr<VulkanContext> vulkan_context_,
+                     std::shared_ptr<RenderPass> render_pass_, const vk::Extent2D& surface_extent)
+    : context(std::move(vulkan_context_)),
+      render_pass(std::move(render_pass_)),
       surface_extent(surface_extent) {
   CreateSwapchain();
   CreateImageViews();
@@ -53,8 +53,7 @@ void Swapchain::CreateSwapchain() {
   auto surface_extent = GetSurfaceExtent(surface_caps);
 
   uint32_t image_count = surface_caps.minImageCount + 1;
-  if (surface_caps.maxImageCount > 0 && image_count > surface_caps.maxImageCount)
-    image_count = surface_caps.maxImageCount;
+  if (surface_caps.maxImageCount > 0) image_count = surface_caps.maxImageCount;
 
   auto indices = logical_device.GetIndices();
   std::vector<uint32_t> queue_family_indices = {indices.graphics_family.value(),
