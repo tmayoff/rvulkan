@@ -3,6 +3,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_vulkan.h>
 
+#include <debug/profiler.hpp>
 #include <events/window_events.hpp>
 #include <set>
 
@@ -18,6 +19,8 @@ Window::Window()
 }
 
 void Window::Update() {
+  ZoneScoped;  // NOLINT
+
   SDL_Event event;
 
   while (SDL_PollEvent(&event) == 1) {

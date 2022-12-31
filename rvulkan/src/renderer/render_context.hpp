@@ -8,7 +8,7 @@
 #include "Core/types.hpp"
 #include "swapchain.hpp"
 
-const int MAX_FRAMES_IN_FLIGHT = 2;
+const int MAX_FRAMES_IN_FLIGHT = 6;
 
 class RenderContext {
  public:

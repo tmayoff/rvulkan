@@ -5,14 +5,15 @@
 #include <Core/Log.hpp>
 #include <vulkan/vulkan_enums.hpp>
 
-Surface::Surface(const vk::Instance& instance, const PhysicalDevice& physical_device,
-                 const std::shared_ptr<Window>& window)
+Surface::Surface(const vk::Instance& instance, const std::shared_ptr<Window>& window)
     : present_mode(vk::PresentModeKHR::eFifo) {
   VkSurfaceKHR surface = VK_NULL_HANDLE;
   SDL_Vulkan_CreateSurface(window->GetWindowHandle(), instance, &surface);
 
   this->surface = surface;
+}
 
+void Surface::Init(const PhysicalDevice& physical_device) {
   auto present_modes = physical_device.GetHandle().getSurfacePresentModesKHR(surface);
   auto surface_caps = physical_device.GetHandle().getSurfaceCapabilitiesKHR(surface);
   auto surface_formats = physical_device.GetHandle().getSurfaceFormatsKHR(surface);

@@ -12,8 +12,9 @@
 class Surface {
  public:
   Surface() = default;
-  Surface(const vk::Instance& instance, const PhysicalDevice& physical_device,
-          const std::shared_ptr<Window>& window);
+  Surface(const vk::Instance& instance, const std::shared_ptr<Window>& window);
+
+  void Init(const PhysicalDevice& physical_device);
 
   [[nodiscard]] uint32_t GetPresentImageCount() const { return present_image_count; }
   [[nodiscard]] const vk::PresentModeKHR& GetPresentMode() const { return present_mode; }

@@ -7,15 +7,6 @@
 #include "PhysicalDevice.hpp"
 #include "Surface.hpp"
 
-struct QueueFamilyIndices {
-  [[nodiscard]] bool IsComplete() const {
-    return graphics_family.has_value() && present_family.has_value();
-  }
-
-  std::optional<uint32_t> graphics_family;
-  std::optional<uint32_t> present_family;
-};
-
 class LogicalDevice {
  public:
   LogicalDevice() = default;
@@ -29,9 +20,6 @@ class LogicalDevice {
   [[nodiscard]] const vk::Queue& GetPresentQueue() const { return present_queue; }
 
  private:
-  static QueueFamilyIndices FindQueueFamilies(const PhysicalDevice& physical_device,
-                                              const Surface& surface);
-
   QueueFamilyIndices family_indices;
 
   vk::Device device;

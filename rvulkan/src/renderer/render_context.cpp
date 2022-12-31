@@ -23,8 +23,8 @@ void RenderContext::BeginFrame() {
   vk::Result wait_for_fence =
       device.waitForFences(in_flight_fences[current_frame_index], VK_FALSE, UINT64_MAX);
   if (wait_for_fence != vk::Result::eSuccess) logger::fatal("Failed to wait for fence");
-  device.resetFences(in_flight_fences[current_frame_index]);
 
+  // Acquire Swapchain Image
   const auto acquired_image_index = device.acquireNextImageKHR(
       swapchain.GetHandle(), UINT64_MAX, image_available_semaphores[current_frame_index]);
   if (acquired_image_index.result == vk::Result::eErrorOutOfDateKHR) {
@@ -33,9 +33,11 @@ void RenderContext::BeginFrame() {
   }
   swapchain_image_index = acquired_image_index.value;
 
+  device.resetFences(in_flight_fences[current_frame_index]);
+
+  // Record Command Buffers
   command_buffers[current_frame_index].reset();
-  command_buffers[current_frame_index].begin(
-      vk::CommandBufferBeginInfo(vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
+  command_buffers[current_frame_index].begin(vk::CommandBufferBeginInfo());
 
   auto clear_colours = vk::ClearValue(vk::ClearColorValue(std::array<float, 4>{0.1F, 0.1F, 0.1F}));
   vk::RenderPassBeginInfo render_pass_info(render_pass->GetHandle(),
@@ -73,7 +75,7 @@ void RenderContext::EndFrame() {
     vk::SubmitInfo submit_info(wait_semaphore, wait_stages, command_buffers[current_frame_index],
                                signal_semaphore);
 
-    device.GetPresentQueue().submit(submit_info, in_flight_fences[current_frame_index]);
+    device.GetGraphicsQueue().submit(submit_info, in_flight_fences[current_frame_index]);
   }
 
   vk::PresentInfoKHR present_info(signal_semaphore, swapchain.GetHandle(), swapchain_image_index);
