@@ -2,15 +2,7 @@
 
 #include <stdexcept>
 
+#include "spdlog/common.h"
 #include "spdlog/spdlog.h"
 
-namespace logger {
-
-void info(const std::string& msg) { spdlog::info(msg); }
-
-void fatal(const std::string& msg) {
-  spdlog::error(msg);
-  throw std::runtime_error("");
-}
-
-}  // namespace logger
+void logger::Init() { spdlog::set_level(spdlog::level::debug); }
