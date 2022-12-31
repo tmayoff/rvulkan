@@ -1,13 +1,17 @@
 #include "swapchain.hpp"
 
+#include <mutex>
 #include <vulkan/vulkan_enums.hpp>
 #include <vulkan/vulkan_structs.hpp>
 
 Swapchain::Swapchain(std::shared_ptr<VulkanContext> vulkan_context_,
-                     std::shared_ptr<RenderPass> render_pass_, const vk::Extent2D& surface_extent)
-    : context(std::move(vulkan_context_)),
-      render_pass(std::move(render_pass_)),
-      surface_extent(surface_extent) {
+                     std::shared_ptr<RenderPass> render_pass_)
+    : vulkan_context(std::move(vulkan_context_)), render_pass(std::move(render_pass_)) {
+  auto surface_caps = vulkan_context->GetPhysicalDevice().GetHandle().getSurfaceCapabilitiesKHR(
+      vulkan_context->GetSurface().GetHandle());
+
+  surface_extent = ChooseSurfaceExtent(surface_caps);
+
   CreateSwapchain();
   CreateImageViews();
   CreateFramebuffers();
@@ -16,7 +20,11 @@ Swapchain::Swapchain(std::shared_ptr<VulkanContext> vulkan_context_,
 void Swapchain::RecreateSwapchain(const vk::Extent2D& surface_extent_) {
   surface_extent = surface_extent_;
 
-  context->GetLogicalDevice().GetHandle().waitIdle();
+  auto surface_caps = vulkan_context->GetPhysicalDevice().GetHandle().getSurfaceCapabilitiesKHR(
+      vulkan_context->GetSurface().GetHandle());
+  surface_extent = ChooseSurfaceExtent(surface_caps);
+
+  vulkan_context->GetLogicalDevice().GetHandle().waitIdle();
 
   CleanupSwapchain();
 
@@ -25,7 +33,7 @@ void Swapchain::RecreateSwapchain(const vk::Extent2D& surface_extent_) {
   CreateFramebuffers();
 }
 
-vk::Extent2D Swapchain::GetSurfaceExtent(const vk::SurfaceCapabilitiesKHR& surface_caps) const {
+vk::Extent2D Swapchain::ChooseSurfaceExtent(const vk::SurfaceCapabilitiesKHR& surface_caps) const {
   auto width = std::clamp(surface_extent.width, surface_caps.minImageExtent.width,
                           surface_caps.maxImageExtent.width);
   auto height = std::clamp(surface_extent.height, surface_caps.minImageExtent.height,
@@ -35,7 +43,7 @@ vk::Extent2D Swapchain::GetSurfaceExtent(const vk::SurfaceCapabilitiesKHR& surfa
 }
 
 void Swapchain::CleanupSwapchain() {
-  const auto device = context->GetLogicalDevice().GetHandle();
+  const auto device = vulkan_context->GetLogicalDevice().GetHandle();
 
   for (const auto& framebuffer : framebuffers) device.destroyFramebuffer(framebuffer);
   for (const auto& image_view : image_views) device.destroyImageView(image_view);
@@ -44,13 +52,13 @@ void Swapchain::CleanupSwapchain() {
 }
 
 void Swapchain::CreateSwapchain() {
-  const auto physical_device = context->GetPhysicalDevice().GetHandle();
-  const auto logical_device = context->GetLogicalDevice();
-  const auto device = context->GetLogicalDevice().GetHandle();
-  const auto surface = context->GetSurface();
+  const auto physical_device = vulkan_context->GetPhysicalDevice().GetHandle();
+  const auto logical_device = vulkan_context->GetLogicalDevice();
+  const auto device = vulkan_context->GetLogicalDevice().GetHandle();
+  const auto surface = vulkan_context->GetSurface();
 
   auto surface_caps = physical_device.getSurfaceCapabilitiesKHR(surface.GetHandle());
-  auto surface_extent = GetSurfaceExtent(surface_caps);
+  auto surface_extent = ChooseSurfaceExtent(surface_caps);
 
   uint32_t image_count = surface_caps.minImageCount + 1;
   if (surface_caps.maxImageCount > 0) image_count = surface_caps.maxImageCount;
@@ -81,20 +89,22 @@ void Swapchain::CreateFramebuffers() {
   for (size_t i = 0; i < image_views.size(); i++) {
     std::array attachments = {image_views.at(i)};
 
-    vk::FramebufferCreateInfo framebufferInfo({}, render_pass->GetHandle(), attachments,
-                                              surface_extent.width, surface_extent.height, 1);
-    framebuffers.at(i) = context->GetLogicalDevice().GetHandle().createFramebuffer(framebufferInfo);
+    vk::FramebufferCreateInfo framebuffer_info({}, render_pass->GetHandle(), attachments,
+                                               surface_extent.width, surface_extent.height, 1);
+    framebuffers.at(i) =
+        vulkan_context->GetLogicalDevice().GetHandle().createFramebuffer(framebuffer_info);
   }
 }
 
 void Swapchain::CreateImageViews() {
-  const auto device = context->GetLogicalDevice().GetHandle();
+  const auto device = vulkan_context->GetLogicalDevice().GetHandle();
 
   image_views.clear();
   image_views.reserve(images.size());
 
   vk::ImageViewCreateInfo create_info(
-      {}, {}, vk::ImageViewType::e2D, context->GetSurfaceFormat().format, vk::ComponentMapping{},
+      {}, {}, vk::ImageViewType::e2D, vulkan_context->GetSurfaceFormat().format,
+      vk::ComponentMapping{},
       vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1));
 
   for (const auto& image : images) {

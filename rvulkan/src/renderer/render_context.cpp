@@ -3,15 +3,15 @@
 #include <Core/Log.hpp>
 #include <debug/profiler.hpp>
 #include <vulkan/vulkan_enums.hpp>
+#include <vulkan/vulkan_structs.hpp>
 
 #include "Mesh.hpp"
 
-RenderContext::RenderContext(std::shared_ptr<VulkanContext> vulkan_context_,
-                             const vk::Extent2D& surface_extent_)
-    : vulkan_context(std::move(vulkan_context_)), surface_extent(surface_extent_) {
+RenderContext::RenderContext(const std::shared_ptr<VulkanContext>& vulkan_context_)
+    : vulkan_context(vulkan_context_) {
   CreateRenderPass();
 
-  swapchain = Swapchain(vulkan_context, render_pass, surface_extent);
+  swapchain = Swapchain(vulkan_context_, render_pass);
 
   CreateCommandBuffers();
   CreateSyncObjects();

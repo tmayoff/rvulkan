@@ -20,7 +20,7 @@
 
 class Renderer {
  public:
-  explicit Renderer(const std::shared_ptr<VulkanContext>& context, const resolution_t& resolution);
+  explicit Renderer(const std::shared_ptr<VulkanContext>& context);
 
   void BeginFrame(const glm::mat4& view_projection);
   void EndFrame();

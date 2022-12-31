@@ -3,18 +3,20 @@
 
 #include <RenderPass.hpp>
 #include <memory>
+#include <mutex>
 #include <utility>
 #include <vulkan/vulkan.hpp>
 #include <vulkan/vulkan_handles.hpp>
 #include <vulkan/vulkan_structs.hpp>
 
+#include "Core/types.hpp"
 #include "VulkanContext.hpp"
 
 class Swapchain {
  public:
   Swapchain() = default;
   explicit Swapchain(std::shared_ptr<VulkanContext> vulkan_context_,
-                     std::shared_ptr<RenderPass> render_pass_, const vk::Extent2D& surface_extent);
+                     std::shared_ptr<RenderPass> render_pass_);
 
   void RecreateSwapchain(const vk::Extent2D& surface_extent_);
 
@@ -22,17 +24,19 @@ class Swapchain {
   [[nodiscard]] const vk::SwapchainKHR& GetHandle() const { return swapchain; }
   [[nodiscard]] const std::vector<vk::ImageView>& GetImageViews() const { return image_views; }
 
+  [[nodiscard]] const vk::Extent2D& GetSurfaceExtent() const { return surface_extent; }
   [[nodiscard]] const std::vector<vk::Framebuffer>& GetFramebuffers() const { return framebuffers; }
 
  private:
-  [[nodiscard]] vk::Extent2D GetSurfaceExtent(const vk::SurfaceCapabilitiesKHR& surface_caps) const;
+  [[nodiscard]] vk::Extent2D ChooseSurfaceExtent(
+      const vk::SurfaceCapabilitiesKHR& surface_caps) const;
 
   void CleanupSwapchain();
   void CreateSwapchain();
   void CreateFramebuffers();
   void CreateImageViews();
 
-  std::shared_ptr<VulkanContext> context;
+  std::shared_ptr<VulkanContext> vulkan_context;
   std::shared_ptr<RenderPass> render_pass;
 
   vk::Extent2D surface_extent;

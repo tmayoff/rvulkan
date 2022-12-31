@@ -15,7 +15,7 @@ class Scene {
 
  public:
   explicit Scene(const std::shared_ptr<VulkanContext>& vulkan_context)
-      : renderer(std::make_shared<Renderer>(vulkan_context, resolution_t{1904, 971})) {}
+      : renderer(std::make_shared<Renderer>(vulkan_context)) {}
 
   Entity CreateEntity(const std::string& tag);
 

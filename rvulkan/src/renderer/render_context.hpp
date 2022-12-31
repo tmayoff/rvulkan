@@ -12,8 +12,7 @@ const int MAX_FRAMES_IN_FLIGHT = 6;
 
 class RenderContext {
  public:
-  explicit RenderContext(std::shared_ptr<VulkanContext> vulkan_context_,
-                         const vk::Extent2D& surface_extent_);
+  explicit RenderContext(const std::shared_ptr<VulkanContext>& vulkan_context_);
 
   void BeginFrame();
   void EndFrame();

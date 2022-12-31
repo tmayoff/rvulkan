@@ -17,8 +17,8 @@
 #include "renderer/render_context.hpp"
 #include "renderer/swapchain.hpp"
 
-Renderer::Renderer(const std::shared_ptr<VulkanContext>& context, const resolution_t& resolution)
-    : vulkan_context(context), render_context(context, {resolution.first, resolution.second}) {
+Renderer::Renderer(const std::shared_ptr<VulkanContext>& context)
+    : vulkan_context(context), render_context(context) {
   // Uniform buffer
   uniform_buffer = std::make_shared<Buffer>(context, sizeof(uniform_buffer_data),
                                             VmaMemoryUsage::VMA_MEMORY_USAGE_AUTO,
