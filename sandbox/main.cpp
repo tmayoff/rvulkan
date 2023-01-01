@@ -1,6 +1,6 @@
 #include <Application.hpp>
-#include <Core/Layer.hpp>
-#include <Core/Log.hpp>
+#include <core/layer.hpp>
+#include <core/log.hpp>
 #include <memory>
 #include <scene/Entity.hpp>
 #include <scene/Scene.hpp>

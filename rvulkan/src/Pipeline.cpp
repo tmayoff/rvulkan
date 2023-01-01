@@ -5,8 +5,8 @@
 #include <vulkan/vulkan_enums.hpp>
 #include <vulkan/vulkan_structs.hpp>
 
-#include "Core/Log.hpp"
 #include "VulkanContext.hpp"
+#include "core/log.hpp"
 
 static vk::Format ShaderDataTypeToVkFormat(ShaderDataType type) {
   switch (type) {

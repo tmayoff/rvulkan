@@ -3,7 +3,7 @@
 
 #include <vulkan/vulkan_core.h>
 
-#include <Core/types.hpp>
+#include <core/types.hpp>
 #include <debug/profiler.hpp>
 #include <glm/glm.hpp>
 #include <renderer/swapchain.hpp>

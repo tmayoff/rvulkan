@@ -3,10 +3,10 @@
 
 #include <vulkan/vulkan.hpp>
 
-#include "Core/types.hpp"
 #include "Pipeline.hpp"
 #include "Shader.hpp"
 #include "VulkanContext.hpp"
+#include "core/types.hpp"
 
 struct RenderPassState {
   vk::CommandBuffer Commands;

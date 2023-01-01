@@ -3,8 +3,8 @@
 #include <vulkan/vk_platform.h>
 #include <vulkan/vulkan_core.h>
 
-#include <Core/Log.hpp>
-#include <Core/Memory.hpp>
+#include <core/log.hpp>
+#include <core/memory.hpp>
 #include <iostream>
 #include <set>
 #include <stdexcept>

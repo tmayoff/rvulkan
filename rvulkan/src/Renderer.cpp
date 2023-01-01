@@ -2,7 +2,7 @@
 
 #include <vulkan/vulkan_core.h>
 
-#include <Core/Log.hpp>
+#include <core/log.hpp>
 #include <debug/profiler.hpp>
 #include <exception>
 #include <vulkan/vulkan.hpp>
@@ -11,8 +11,8 @@
 #include <vulkan/vulkan_structs.hpp>
 
 #include "Buffer.hpp"
-#include "Core/types.hpp"
 #include "Pipeline.hpp"
+#include "core/types.hpp"
 #include "renderer/Mesh.hpp"
 #include "renderer/render_context.hpp"
 #include "renderer/swapchain.hpp"

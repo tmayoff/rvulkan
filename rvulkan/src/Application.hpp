@@ -5,9 +5,9 @@
 
 #include <Renderer.hpp>
 
-#include "Core/Layer.hpp"
 #include "VulkanContext.hpp"
 #include "Window.hpp"
+#include "core/layer.hpp"
 
 class Application {
  public:

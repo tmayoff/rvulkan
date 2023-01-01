@@ -2,7 +2,7 @@
 
 #include <SDL2/SDL_vulkan.h>
 
-#include <Core/Log.hpp>
+#include <core/log.hpp>
 #include <vulkan/vulkan_enums.hpp>
 
 Surface::Surface(const vk::Instance& instance, const std::shared_ptr<Window>& window)

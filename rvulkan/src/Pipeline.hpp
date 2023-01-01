@@ -6,9 +6,9 @@
 #include <vulkan/vulkan_handles.hpp>
 #include <vulkan/vulkan_structs.hpp>
 
-#include "Core/types.hpp"
 #include "Shader.hpp"
 #include "VulkanContext.hpp"
+#include "core/types.hpp"
 
 enum class ShaderDataType {
   None = 0,

@@ -1,6 +1,6 @@
 #include "render_context.hpp"
 
-#include <Core/Log.hpp>
+#include <core/log.hpp>
 #include <debug/profiler.hpp>
 #include <vulkan/vulkan_enums.hpp>
 #include <vulkan/vulkan_structs.hpp>

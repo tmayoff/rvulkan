@@ -1,7 +1,7 @@
 #ifndef VULKANCONTEXT_HPP_
 #define VULKANCONTEXT_HPP_
 
-#include <Core/Memory.hpp>
+#include <core/memory.hpp>
 #include <optional>
 #include <vulkan/LogicalDevice.hpp>
 #include <vulkan/PhysicalDevice.hpp>

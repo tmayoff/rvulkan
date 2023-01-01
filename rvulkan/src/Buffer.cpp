@@ -1,6 +1,6 @@
 #include "Buffer.hpp"
 
-#include <Core/Memory.hpp>
+#include <core/memory.hpp>
 #include <vulkan/vulkan_structs.hpp>
 
 #include "VulkanContext.hpp"

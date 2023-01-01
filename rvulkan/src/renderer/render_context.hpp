@@ -5,7 +5,7 @@
 #include <VulkanContext.hpp>
 #include <vulkan/vulkan_structs.hpp>
 
-#include "Core/types.hpp"
+#include "core/types.hpp"
 #include "swapchain.hpp"
 
 const int MAX_FRAMES_IN_FLIGHT = 6;
