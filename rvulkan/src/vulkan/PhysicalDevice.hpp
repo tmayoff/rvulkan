@@ -37,7 +37,9 @@ class PhysicalDevice {
  private:
   static SwapchainSupportDetails QuerySwapchainSupportDetails(const vk::PhysicalDevice& device,
                                                               const Surface& surface);
-  static bool CheckDeviceExtensions(const vk::PhysicalDevice& device);
+  static bool CheckExtensionSupport(const vk::PhysicalDevice& device);
+
+  static bool IsDeviceSuitable(const vk::PhysicalDevice& device, const Surface& surface);
 
   vk::PhysicalDevice physical_device;
 };

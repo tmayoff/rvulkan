@@ -1,7 +1,9 @@
 #include "PhysicalDevice.hpp"
 
+#include <Core/Log.hpp>
 #include <set>
 #include <string>
+#include <vulkan/vulkan_enums.hpp>
 
 #include "Surface.hpp"
 
@@ -9,18 +11,7 @@ PhysicalDevice::PhysicalDevice(const vk::Instance& instance, const Surface& surf
   auto devices = instance.enumeratePhysicalDevices();
 
   for (const auto& device : devices) {
-    auto queue_families = FindQueueFamilies(device, surface);
-
-    bool extensions_supported = CheckDeviceExtensions(device);
-
-    bool swapchain_adequate = false;
-    if (extensions_supported) {
-      SwapchainSupportDetails swapchain_support = QuerySwapchainSupportDetails(device, surface);
-      swapchain_adequate =
-          !swapchain_support.formats.empty() && !swapchain_support.present_modes.empty();
-    }
-
-    if (queue_families.IsComplete() && extensions_supported && swapchain_adequate) {
+    if (IsDeviceSuitable(device, surface)) {
       physical_device = device;
       break;
     }
@@ -32,6 +23,7 @@ QueueFamilyIndices PhysicalDevice::FindQueueFamilies(const vk::PhysicalDevice& p
   QueueFamilyIndices indices;
 
   auto queue_families = physical_device.getQueueFamilyProperties();
+
   int i = 0;
   for (const auto& q : queue_families) {
     if (q.queueFlags & vk::QueueFlagBits::eGraphics) indices.graphics_family = i;
@@ -58,14 +50,26 @@ SwapchainSupportDetails PhysicalDevice::QuerySwapchainSupportDetails(
   return details;
 }
 
-bool PhysicalDevice::CheckDeviceExtensions(const vk::PhysicalDevice& device) {
+bool PhysicalDevice::CheckExtensionSupport(const vk::PhysicalDevice& device) {
   auto available_extensions = device.enumerateDeviceExtensionProperties();
 
-  std::set<std::string> required_extension = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+  std::set<std::string_view> required_extension = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
-  for (const auto& e : available_extensions) {
-    required_extension.erase(e.extensionName);
-  }
+  for (const auto& e : available_extensions) required_extension.erase(e.extensionName);
 
   return required_extension.empty();
+}
+
+bool PhysicalDevice::IsDeviceSuitable(const vk::PhysicalDevice& device, const Surface& surface) {
+  auto indices = FindQueueFamilies(device, surface);
+
+  bool extensions_supported = CheckExtensionSupport(device);
+
+  bool swapchain_adequate = false;
+  if (extensions_supported) {
+    auto details = QuerySwapchainSupportDetails(device, surface);
+    swapchain_adequate = !details.formats.empty() && !details.present_modes.empty();
+  }
+
+  return indices.IsComplete() && extensions_supported && swapchain_adequate;
 }

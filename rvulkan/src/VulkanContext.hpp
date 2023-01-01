@@ -36,6 +36,7 @@ class VulkanContext {
   void CreateAllocator();
 
   vk::Instance instance;
+  vk::DebugUtilsMessengerEXT debug_utils_messenger;
 
   Surface surface;
 

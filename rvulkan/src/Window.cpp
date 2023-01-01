@@ -48,10 +48,10 @@ void Window::Update() {
 std::vector<const char*> Window::GetRequiredExtension() {
   std::vector<const char*> extensions;
 
-  uint32_t extensionCount = 0;
-  SDL_Vulkan_GetInstanceExtensions(window, &extensionCount, nullptr);
-  extensions.resize(extensionCount);
-  SDL_Vulkan_GetInstanceExtensions(window, &extensionCount, extensions.data());
+  uint32_t extension_count = 0;
+  SDL_Vulkan_GetInstanceExtensions(window, &extension_count, nullptr);
+  extensions.resize(extension_count);
+  SDL_Vulkan_GetInstanceExtensions(window, &extension_count, extensions.data());
 
   return extensions;
 }

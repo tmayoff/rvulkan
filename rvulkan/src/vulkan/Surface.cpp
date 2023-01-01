@@ -25,12 +25,13 @@ void Surface::Init(const PhysicalDevice& physical_device) {
     present_mode = vk::PresentModeKHR::eMailbox;
   }
 
+  logger::debug("Present Mode {}", vk::to_string(present_mode));
+
   present_image_count = surface_caps.maxImageCount;
 
   format = surface_formats.front();
-  for (const auto& format : surface_formats) {
-    if (format.format == vk::Format::eB8G8R8A8Srgb &&
-        format.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear)
-      this->format = format;
+  for (const auto& f : surface_formats) {
+    if (f.format == vk::Format::eB8G8R8A8Srgb && f.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear)
+      format = f;
   }
 }

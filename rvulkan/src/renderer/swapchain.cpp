@@ -58,26 +58,30 @@ void Swapchain::CreateSwapchain() {
   const auto surface = vulkan_context->GetSurface();
 
   auto surface_caps = physical_device.getSurfaceCapabilitiesKHR(surface.GetHandle());
+
+  auto surface_format = surface.GetFormat();
+  auto present_mode = surface.GetPresentMode();
   auto surface_extent = ChooseSurfaceExtent(surface_caps);
 
   uint32_t image_count = surface_caps.minImageCount + 1;
-  if (surface_caps.maxImageCount > 0) image_count = surface_caps.maxImageCount;
+  if (surface_caps.maxImageCount > 0 && image_count > surface_caps.maxImageCount)
+    image_count = surface_caps.maxImageCount;
 
   auto indices = logical_device.GetIndices();
   std::vector<uint32_t> queue_family_indices = {indices.graphics_family.value(),
                                                 indices.present_family.value()};
 
-  vk::SharingMode sharing_mode = vk::SharingMode::eExclusive;
-  if (logical_device.GetGraphicsQueue() != logical_device.GetPresentQueue()) {
-    sharing_mode = vk::SharingMode::eConcurrent;
+  vk::SharingMode sharing_mode = vk::SharingMode::eConcurrent;
+  if (logical_device.GetGraphicsQueue() == logical_device.GetPresentQueue()) {
+    sharing_mode = vk::SharingMode::eExclusive;
     queue_family_indices.clear();
   }
 
   vk::SwapchainCreateInfoKHR create_info(
-      {}, surface.GetHandle(), image_count, surface.GetFormat().format,
-      surface.GetFormat().colorSpace, surface_extent, 1, vk::ImageUsageFlagBits::eColorAttachment,
-      sharing_mode, queue_family_indices, surface_caps.currentTransform,
-      vk::CompositeAlphaFlagBitsKHR::eOpaque, surface.GetPresentMode(), VK_TRUE);
+      {}, surface.GetHandle(), image_count, surface_format.format, surface_format.colorSpace,
+      surface_extent, 1, vk::ImageUsageFlagBits::eColorAttachment, sharing_mode,
+      queue_family_indices, surface_caps.currentTransform, vk::CompositeAlphaFlagBitsKHR::eOpaque,
+      present_mode, VK_TRUE);
 
   swapchain = device.createSwapchainKHR(create_info);
   images = device.getSwapchainImagesKHR(swapchain);

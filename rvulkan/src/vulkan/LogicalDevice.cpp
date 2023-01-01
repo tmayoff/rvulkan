@@ -23,8 +23,7 @@ LogicalDevice::LogicalDevice(const PhysicalDevice& physical_device, const Surfac
 
   std::vector<const char*> device_extensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
-  std::vector<const char*> device_layers = {"VK_LAYER_KHRONOS_validation"};
-  vk::DeviceCreateInfo create_info({}, queue_create_infos, device_layers, device_extensions, {});
+  vk::DeviceCreateInfo create_info({}, queue_create_infos, {}, device_extensions, {});
   device = physical_device.GetHandle().createDevice(create_info);
 
   graphics_queue = device.getQueue(family_indices.graphics_family.value(), 0);
