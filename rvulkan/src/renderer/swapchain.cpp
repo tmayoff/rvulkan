@@ -1,5 +1,6 @@
 #include "swapchain.hpp"
 
+#include <Core/Log.hpp>
 #include <mutex>
 #include <vulkan/vulkan_enums.hpp>
 #include <vulkan/vulkan_structs.hpp>

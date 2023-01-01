@@ -83,8 +83,10 @@ void RenderContext::EndFrame() {
   try {
     ZoneScopedN("Queue Present");  // NOLINT
     auto res = device.GetPresentQueue().presentKHR(present_info);
-    if (res == vk::Result::eSuboptimalKHR || view_resized)
+    if (res == vk::Result::eSuboptimalKHR || view_resized) {
+      view_resized = false;
       swapchain.RecreateSwapchain(surface_extent);
+    }
   } catch (vk::OutOfDateKHRError& e) {
     view_resized = false;
     swapchain.RecreateSwapchain(surface_extent);
