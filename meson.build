@@ -18,4 +18,5 @@ vma          = dependency('VulkanMemoryAllocator')
 sources = []
 
 subdir('rvulkan')
+subdir('editor')
 subdir('sandbox')
