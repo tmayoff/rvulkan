@@ -10,7 +10,8 @@
 class LogicalDevice {
  public:
   LogicalDevice() = default;
-  explicit LogicalDevice(const PhysicalDevice& physical_device, const Surface& surface);
+  explicit LogicalDevice(const std::shared_ptr<PhysicalDevice>& physical_device,
+                         const std::shared_ptr<Surface>& surface);
 
   [[nodiscard]] const vk::Device& GetHandle() const { return device; }
 

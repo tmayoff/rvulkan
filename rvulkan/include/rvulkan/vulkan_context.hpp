@@ -1,15 +1,14 @@
 #ifndef VULKANCONTEXT_HPP_
 #define VULKANCONTEXT_HPP_
 
-#include <core/memory.hpp>
 #include <optional>
-#include <vulkan/LogicalDevice.hpp>
-#include <vulkan/PhysicalDevice.hpp>
-#include <vulkan/Surface.hpp>
-#include <vulkan/vulkan.hpp>
-#include <vulkan/vulkan_handles.hpp>
 
-#include "Window.hpp"
+#include "core/memory.hpp"
+
+class PhysicalDevice;
+class LogicalDevice;
+class Surface;
+class Window;
 
 struct VulkanContextCreateOptions {
   std::vector<const char*> Extensions;
@@ -23,10 +22,12 @@ class VulkanContext {
                          const std::shared_ptr<Window>& window);
 
   [[nodiscard]] const vk::Instance& GetInstance() const { return instance; }
-  [[nodiscard]] const PhysicalDevice& GetPhysicalDevice() const { return physical_device; }
-  [[nodiscard]] const LogicalDevice& GetLogicalDevice() const { return device; }
-  [[nodiscard]] const Surface& GetSurface() const { return surface; }
-  [[nodiscard]] const vk::SurfaceFormatKHR& GetSurfaceFormat() const { return surface.GetFormat(); }
+  [[nodiscard]] const std::shared_ptr<PhysicalDevice>& GetPhysicalDevice() const {
+    return physical_device;
+  }
+  [[nodiscard]] const std::shared_ptr<LogicalDevice>& GetLogicalDevice() const { return device; }
+  [[nodiscard]] const std::shared_ptr<Surface>& GetSurface() const { return surface; }
+  [[nodiscard]] const vk::SurfaceFormatKHR& GetSurfaceFormat() const;
 
   [[nodiscard]] const vk::CommandPool& GetCommandPool() const { return commandPool; }
 
@@ -38,10 +39,10 @@ class VulkanContext {
   vk::Instance instance;
   vk::DebugUtilsMessengerEXT debug_utils_messenger;
 
-  Surface surface;
+  std::shared_ptr<Surface> surface;
 
-  PhysicalDevice physical_device;
-  LogicalDevice device;
+  std::shared_ptr<PhysicalDevice> physical_device;
+  std::shared_ptr<LogicalDevice> device;
 
   VmaAllocator allocator{};
 

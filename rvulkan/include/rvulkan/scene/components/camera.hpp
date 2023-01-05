@@ -4,7 +4,7 @@
 #include <glm/glm.hpp>
 #include <variant>
 
-#include "scene/Components/Base.hpp"
+#include "base.hpp"
 
 namespace Component {
 

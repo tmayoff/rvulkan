@@ -4,13 +4,12 @@
 #include <RenderPass.hpp>
 #include <memory>
 #include <mutex>
+#include <rvulkan/core/types.hpp>
+#include <rvulkan/vulkan_context.hpp>
 #include <utility>
 #include <vulkan/vulkan.hpp>
 #include <vulkan/vulkan_handles.hpp>
 #include <vulkan/vulkan_structs.hpp>
-
-#include "VulkanContext.hpp"
-#include "core/types.hpp"
 
 class Swapchain {
  public:

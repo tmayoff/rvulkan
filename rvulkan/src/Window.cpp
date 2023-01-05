@@ -4,10 +4,9 @@
 #include <SDL2/SDL_vulkan.h>
 
 #include <debug/profiler.hpp>
-#include <events/window_events.hpp>
+#include <rvulkan/events/window_events.hpp>
 #include <set>
 
-#include "Application.hpp"
 #include "SDL_video.h"
 
 Window::Window()

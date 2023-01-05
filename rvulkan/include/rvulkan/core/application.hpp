@@ -1,23 +1,19 @@
-#pragma once
+#ifndef APPLICATION_HPP
+#define APPLICATION_HPP
+
+#include <memory>
+#include <rvulkan/events/event.hpp>
 #include <vector>
-#ifndef APPLICATION_HPP_
-#define APPLICATION_HPP_
 
-#include <Renderer.hpp>
+#include "layer.hpp"
 
-#include "VulkanContext.hpp"
-#include "Window.hpp"
-#include "core/layer.hpp"
+class VulkanContext;
+class Window;
+class Renderer;
 
 class Application {
  public:
-  static Application* appInstance;
-  static Application* Get() { return appInstance; }
-
   Application();
-  ~Application() = default;
-  Application(const Application&) = delete;
-  Application& operator=(const Application&) = delete;
 
   const std::shared_ptr<Window>& GetWindow() { return window; }
 
@@ -42,4 +38,4 @@ class Application {
   std::shared_ptr<Window> window;
 };
 
-#endif  // APPLICATION_HPP_
+#endif  // APPLICATION_HPP

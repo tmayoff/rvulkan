@@ -1,13 +1,15 @@
-#include "VulkanContext.hpp"
-
 #include <vulkan/vk_platform.h>
 #include <vulkan/vulkan_core.h>
 
-#include <core/log.hpp>
-#include <core/memory.hpp>
 #include <iostream>
+#include <rvulkan/core/log.hpp>
+#include <rvulkan/core/memory.hpp>
+#include <rvulkan/vulkan_context.hpp>
 #include <set>
 #include <stdexcept>
+#include <vulkan/LogicalDevice.hpp>
+#include <vulkan/PhysicalDevice.hpp>
+#include <vulkan/Surface.hpp>
 #include <vulkan/vulkan_enums.hpp>
 #include <vulkan/vulkan_handles.hpp>
 #include <vulkan/vulkan_structs.hpp>
@@ -71,27 +73,29 @@ VulkanContext::VulkanContext(const VulkanContextCreateOptions& options,
           {}, severity_flags, message_type_flags, &DebugMessageFunc));
 
   // Init device
-  surface = Surface(instance, window);
-  physical_device = PhysicalDevice(instance, surface);
-  surface.Init(physical_device);
+  surface = std::make_shared<Surface>(instance, window);
+  physical_device = std::make_shared<PhysicalDevice>(instance, surface);
+  surface->Init(physical_device);
 
-  device = LogicalDevice(physical_device, surface);
+  device = std::make_shared<LogicalDevice>(physical_device, surface);
 
   CreateAllocator();
 
   vk::CommandPoolCreateInfo command_pool_info;
   command_pool_info
-      .setQueueFamilyIndex(device.GetIndices().graphics_family.value())  // NOLINT
+      .setQueueFamilyIndex(device->GetIndices().graphics_family.value())  // NOLINT
       .setFlags(vk::CommandPoolCreateFlagBits::eResetCommandBuffer |
                 vk::CommandPoolCreateFlagBits::eTransient);
-  commandPool = device.GetHandle().createCommandPool(command_pool_info);
+  commandPool = device->GetHandle().createCommandPool(command_pool_info);
 }
+
+const vk::SurfaceFormatKHR& VulkanContext::GetSurfaceFormat() const { return surface->GetFormat(); }
 
 void VulkanContext::CreateAllocator() {
   VmaAllocatorCreateInfo allocator_info{};
   allocator_info.vulkanApiVersion = VK_API_VERSION_1_2;  // NOLINT
   allocator_info.instance = instance;
-  allocator_info.physicalDevice = physical_device.GetHandle();
-  allocator_info.device = device.GetHandle();
+  allocator_info.physicalDevice = physical_device->GetHandle();
+  allocator_info.device = device->GetHandle();
   vmaCreateAllocator(&allocator_info, &allocator);
 }

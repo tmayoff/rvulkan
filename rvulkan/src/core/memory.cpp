@@ -1,4 +1,4 @@
-#include "memory.hpp"
+#include "rvulkan/core/memory.hpp"
 
 #define VMA_IMPLEMENTATION
 #include <vk_mem_alloc.h>

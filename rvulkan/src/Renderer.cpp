@@ -2,9 +2,12 @@
 
 #include <vulkan/vulkan_core.h>
 
-#include <core/log.hpp>
 #include <debug/profiler.hpp>
 #include <exception>
+#include <rvulkan/core/log.hpp>
+#include <rvulkan/core/types.hpp>
+#include <rvulkan/renderer/mesh.hpp>
+#include <rvulkan/scene/components/mesh_renderer.hpp>
 #include <vulkan/vulkan.hpp>
 #include <vulkan/vulkan_enums.hpp>
 #include <vulkan/vulkan_handles.hpp>
@@ -12,8 +15,6 @@
 
 #include "Buffer.hpp"
 #include "Pipeline.hpp"
-#include "core/types.hpp"
-#include "renderer/Mesh.hpp"
 #include "renderer/render_context.hpp"
 #include "renderer/swapchain.hpp"
 
@@ -29,7 +30,7 @@ Renderer::Renderer(const std::shared_ptr<VulkanContext>& context)
   // sizeof(uniform_buffer_data)); vk::WriteDescriptorSet write_descriptor_set(
   //     render_context.GetRenderPass()->GetPipeline()->GetDescriptorSets()[0], 0, 0, 1,
   //     vk::DescriptorType::eUniformBuffer, nullptr, &buffer_info);
-  // context->GetLogicalDevice().GetHandle().updateDescriptorSets(write_descriptor_set, nullptr);
+  // context->GetLogicalDevice()->GetHandle().updateDescriptorSets(write_descriptor_set, nullptr);
 }
 
 void Renderer::BeginFrame() {

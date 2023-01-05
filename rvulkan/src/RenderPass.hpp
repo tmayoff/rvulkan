@@ -1,12 +1,12 @@
 #ifndef RENDERPASS_HPP_
 #define RENDERPASS_HPP_
 
+#include <rvulkan/core/types.hpp>
+#include <rvulkan/vulkan_context.hpp>
 #include <vulkan/vulkan.hpp>
 
 #include "Pipeline.hpp"
 #include "Shader.hpp"
-#include "VulkanContext.hpp"
-#include "core/types.hpp"
 
 struct RenderPassState {
   vk::CommandBuffer Commands;

@@ -1,12 +1,14 @@
 #ifndef MESHRENDERER_HPP
 #define MESHRENDERER_HPP
 
-#include <renderer/Mesh.hpp>
+#include <rvulkan/renderer/mesh.hpp>
 #include <utility>
+
+#include "base.hpp"
 
 namespace Component {
 
-class MeshRenderer {
+class MeshRenderer : public Base {
  public:
   explicit MeshRenderer(Mesh mesh) : mesh(std::move(mesh)) {}
 

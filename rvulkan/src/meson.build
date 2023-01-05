@@ -1,4 +1,4 @@
-sources += files('Application.cpp', 'Buffer.cpp', 'Pipeline.cpp', 'Renderer.cpp', 'RenderPass.cpp', 'Shader.cpp', 'Window.cpp', 'VulkanContext.cpp')
+sources += files('Buffer.cpp', 'Pipeline.cpp', 'Renderer.cpp', 'RenderPass.cpp', 'Shader.cpp', 'Window.cpp', 'vulkan_context.cpp')
 subdir('core')
 subdir('vulkan')
 subdir('scene')

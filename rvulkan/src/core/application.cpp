@@ -1,23 +1,19 @@
-#include "Application.hpp"
+#include "rvulkan/core/application.hpp"
 
 #include <bits/chrono.h>
 #include <vulkan/vulkan_core.h>
 
+#include <Renderer.hpp>
+#include <Window.hpp>
 #include <chrono>
-#include <core/log.hpp>
 #include <debug/profiler.hpp>
-#include <events/event.hpp>
-#include <events/window_events.hpp>
-
-#include "VulkanContext.hpp"
-#include "tracy/Tracy.hpp"
-
-Application* Application::appInstance = nullptr;
+#include <rvulkan/core/log.hpp>
+#include <rvulkan/events/event.hpp>
+#include <rvulkan/events/window_events.hpp>
+#include <rvulkan/vulkan_context.hpp>
 
 Application::Application() {
   logger::Init();
-
-  if (appInstance == nullptr) appInstance = this;
 
   // Create Window
   window = std::make_shared<Window>();

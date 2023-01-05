@@ -2,9 +2,9 @@
 #define WINDOW_HPP_
 
 #include <array>
-#include <events/event.hpp>
 #include <functional>
 #include <optional>
+#include <rvulkan/events/event.hpp>
 #include <utility>
 #include <vulkan/vulkan.hpp>
 

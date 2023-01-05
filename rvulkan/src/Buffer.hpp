@@ -1,9 +1,8 @@
 #ifndef BUFFER_HPP_
 #define BUFFER_HPP_
 
+#include <rvulkan/vulkan_context.hpp>
 #include <vulkan/vulkan.hpp>
-
-#include "VulkanContext.hpp"
 
 class Buffer {
  public:

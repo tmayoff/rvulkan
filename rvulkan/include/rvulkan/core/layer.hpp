@@ -1,8 +1,9 @@
 #ifndef LAYER_HPP
 #define LAYER_HPP
 
-#include "events/event.hpp"
-#include "renderer/render_context.hpp"
+class RenderContext;
+
+#include <rvulkan/events/event.hpp>
 
 class Layer {
  public:

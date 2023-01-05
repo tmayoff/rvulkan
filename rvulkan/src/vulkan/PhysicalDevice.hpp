@@ -27,19 +27,20 @@ struct QueueFamilyIndices {
 class PhysicalDevice {
  public:
   PhysicalDevice() = default;
-  explicit PhysicalDevice(const vk::Instance& instance, const Surface& surface);
+  explicit PhysicalDevice(const vk::Instance& instance, const std::shared_ptr<Surface>& surface);
 
   [[nodiscard]] const vk::PhysicalDevice& GetHandle() const { return physical_device; }
 
   static QueueFamilyIndices FindQueueFamilies(const vk::PhysicalDevice& physical_device,
-                                              const Surface& surface);
+                                              const std::shared_ptr<Surface>& surface);
 
  private:
-  static SwapchainSupportDetails QuerySwapchainSupportDetails(const vk::PhysicalDevice& device,
-                                                              const Surface& surface);
+  static SwapchainSupportDetails QuerySwapchainSupportDetails(
+      const vk::PhysicalDevice& device, const std::shared_ptr<Surface>& surface);
   static bool CheckExtensionSupport(const vk::PhysicalDevice& device);
 
-  static bool IsDeviceSuitable(const vk::PhysicalDevice& device, const Surface& surface);
+  static bool IsDeviceSuitable(const vk::PhysicalDevice& device,
+                               const std::shared_ptr<Surface>& surface);
 
   vk::PhysicalDevice physical_device;
 };

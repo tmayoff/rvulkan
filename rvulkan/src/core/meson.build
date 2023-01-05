@@ -1,1 +1,1 @@
-sources += files('log.cpp', 'memory.cpp')
+sources += files('application.cpp', 'log.cpp', 'memory.cpp')

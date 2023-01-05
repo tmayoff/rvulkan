@@ -4,10 +4,10 @@
 #include <cassert>
 #include <type_traits>
 
-#include "Components/Base.hpp"
-#include "Scene.hpp"
+#include "components/base.hpp"
+#include "components/transform.hpp"
 #include "entt/entity/fwd.hpp"
-#include "scene/Components/transform.hpp"
+#include "scene.hpp"
 
 class Entity {
  public:

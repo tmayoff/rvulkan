@@ -2,10 +2,11 @@
 
 #include <vulkan/vulkan_core.h>
 
+#include <rvulkan/vulkan_context.hpp>
+#include <vulkan/LogicalDevice.hpp>
 #include <vulkan/vulkan_enums.hpp>
 
 #include "Pipeline.hpp"
-#include "VulkanContext.hpp"
 
 RenderPass::RenderPass(const std::shared_ptr<VulkanContext>& context,
                        const PipelineOptions& pipelineOptions)
@@ -25,13 +26,13 @@ RenderPass::RenderPass(const std::shared_ptr<VulkanContext>& context,
 
   vk::SubpassDescription subpass({}, vk::PipelineBindPoint::eGraphics, {}, colour_ref);
 
-  vk::RenderPassCreateInfo renderPassInfo({}, color_attachment, subpass, dependency);
+  vk::RenderPassCreateInfo render_pass_info({}, color_attachment, subpass, dependency);
 
-  renderPass = context->GetLogicalDevice().GetHandle().createRenderPass(renderPassInfo);
+  renderPass = context->GetLogicalDevice()->GetHandle().createRenderPass(render_pass_info);
   pipeline = std::make_shared<Pipeline>(context, pipelineOptions, renderPass);
 }
 
 RenderPass::~RenderPass() {
   pipeline.reset();
-  context->GetLogicalDevice().GetHandle().destroyRenderPass(renderPass);
+  context->GetLogicalDevice()->GetHandle().destroyRenderPass(renderPass);
 }

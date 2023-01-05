@@ -7,10 +7,11 @@
 #include <vulkan/vulkan_enums.hpp>
 #include <vulkan/vulkan_structs.hpp>
 
-#include "vulkan/PhysicalDevice.hpp"
+#include "PhysicalDevice.hpp"
 
-LogicalDevice::LogicalDevice(const PhysicalDevice& physical_device, const Surface& surface)
-    : family_indices(PhysicalDevice::FindQueueFamilies(physical_device.GetHandle(), surface)) {
+LogicalDevice::LogicalDevice(const std::shared_ptr<PhysicalDevice>& physical_device,
+                             const std::shared_ptr<Surface>& surface)
+    : family_indices(PhysicalDevice::FindQueueFamilies(physical_device->GetHandle(), surface)) {
   std::vector<vk::DeviceQueueCreateInfo> queue_create_infos;
   std::set<uint32_t> unique_queue_families = {family_indices.graphics_family.value(),
                                               family_indices.present_family.value()};
@@ -24,7 +25,7 @@ LogicalDevice::LogicalDevice(const PhysicalDevice& physical_device, const Surfac
   std::vector<const char*> device_extensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
   vk::DeviceCreateInfo create_info({}, queue_create_infos, {}, device_extensions, {});
-  device = physical_device.GetHandle().createDevice(create_info);
+  device = physical_device->GetHandle().createDevice(create_info);
 
   graphics_queue = device.getQueue(family_indices.graphics_family.value(), 0);
   present_queue = device.getQueue(family_indices.present_family.value(), 0);
