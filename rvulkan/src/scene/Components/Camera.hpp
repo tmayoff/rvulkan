@@ -4,6 +4,8 @@
 #include <glm/glm.hpp>
 #include <variant>
 
+#include "scene/Components/Base.hpp"
+
 namespace Component {
 
 enum class ProjectionType { Orthographic, Projection };
@@ -20,7 +22,7 @@ struct OrthographicData {
   float far = 1.0F;
 };
 
-class Camera {
+class Camera : public Base {
  public:
   Camera(ProjectionType projection_type, float aspect_ratio,
          std::variant<PerspectiveData, OrthographicData> data);

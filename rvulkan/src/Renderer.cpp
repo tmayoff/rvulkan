@@ -47,9 +47,20 @@ void Renderer::EndFrame() {
   render_context.EndFrame();
 }
 
-void Renderer::DrawMesh(const Component::MeshRenderer& mesh_renderer) {
+void Renderer::DrawMesh(const Component::MeshRenderer& mesh_renderer, const glm::mat4& transform) {
   ZoneScoped;  // NOLINT
 
+  const auto& mesh = mesh_renderer.GetMesh();
+  std::vector<Vertex> vertices = mesh.GetVertices();
+  for (size_t i = 0; i < vertices.size(); i++) {
+    vertices[i].Position = transform * mesh.GetVertices()[i].Position;
+    vertices[i].Color = mesh.GetVertices()[i].Color;
+    vertices[i].Normal = mesh.GetVertices()[i].Normal;
+    vertices[i].TexCoord = mesh.GetVertices()[i].TexCoord;
+  }
+
+  mesh_renderer.GetMesh().GetVertexBuffer()->SetData(vertices.data(),
+                                                     vertices.size() * sizeof(Vertex));
   render_context.BindVertexBuffer(0, mesh_renderer.GetMesh().GetVertexBuffer()->GetHandle(), {0});
   render_context.BindIndexBuffer(mesh_renderer.GetMesh().GetIndexBuffer()->GetHandle());
   render_context.DrawIndexed(mesh_renderer.GetMesh().GetIndices().size());

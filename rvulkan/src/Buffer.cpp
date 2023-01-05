@@ -15,11 +15,11 @@ Buffer::Buffer(const std::shared_ptr<VulkanContext>& context, size_t byte_size,
 
   buffer = context->GetLogicalDevice().GetHandle().createBuffer(bufferInfo);
 
-  VmaAllocationCreateInfo allocInfo = {};
-  allocInfo.usage = memory_usage;
-  allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT |
-                    VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT;
-  vmaCreateBuffer(allocator, reinterpret_cast<VkBufferCreateInfo*>(&bufferInfo), &allocInfo,
+  VmaAllocationCreateInfo alloc_info = {};
+  alloc_info.usage = memory_usage;
+  alloc_info.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT |
+                     VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT;
+  vmaCreateBuffer(allocator, reinterpret_cast<VkBufferCreateInfo*>(&bufferInfo), &alloc_info,
                   reinterpret_cast<VkBuffer*>(&buffer), &allocation, nullptr);
 }
 

@@ -1,1 +1,1 @@
-sources += files('Camera.cpp')
+sources += files('Camera.cpp', 'transform.cpp')

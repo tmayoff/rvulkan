@@ -7,11 +7,16 @@
 #include "Components/Base.hpp"
 #include "Scene.hpp"
 #include "entt/entity/fwd.hpp"
+#include "scene/Components/transform.hpp"
 
 class Entity {
  public:
   Entity() = default;
   Entity(Scene* scene, entt::entity handle) : scene(scene), handle(handle) {}
+
+  [[nodiscard]] Component::Transform& GetTransform() const {
+    return GetComponent<Component::Transform>();
+  }
 
   template <typename T>
   [[nodiscard]] bool HasComponent() const;

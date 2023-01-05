@@ -6,6 +6,7 @@
 #include <core/types.hpp>
 #include <debug/profiler.hpp>
 #include <glm/glm.hpp>
+#include <memory>
 #include <renderer/swapchain.hpp>
 #include <vector>
 #include <vulkan/vulkan.hpp>
@@ -27,7 +28,7 @@ class Renderer {
 
   void ResizeViewport(resolution_t size);
 
-  void DrawMesh(const Component::MeshRenderer& mesh_renderer);
+  void DrawMesh(const Component::MeshRenderer& mesh_renderer, const glm::mat4& transform);
 
  private:
   std::shared_ptr<VulkanContext> vulkan_context;
@@ -38,6 +39,11 @@ class Renderer {
   } uniform_buffer_data;
 
   std::shared_ptr<Buffer> uniform_buffer;
+
+  struct VertexUniformBufferData {
+    glm::mat4 object_to_world;
+  };
+  std::shared_ptr<Buffer> object_to_world_uniform_buffer;
 };
 
 inline void Renderer::ResizeViewport(resolution_t size) { render_context.Resize(size); }

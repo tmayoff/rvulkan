@@ -11,6 +11,7 @@
 #include "events/window_events.hpp"
 #include "scene/Components/Camera.hpp"
 #include "scene/Components/MeshRenderer.hpp"
+#include "scene/Components/transform.hpp"
 
 class SandboxLayer : public Layer {
  public:
