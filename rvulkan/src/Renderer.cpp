@@ -20,26 +20,30 @@
 Renderer::Renderer(const std::shared_ptr<VulkanContext>& context)
     : vulkan_context(context), render_context(context) {
   // Uniform buffer
-  uniform_buffer = std::make_shared<Buffer>(context, sizeof(uniform_buffer_data),
-                                            VmaMemoryUsage::VMA_MEMORY_USAGE_AUTO,
-                                            vk::BufferUsageFlagBits::eUniformBuffer);
+  // uniform_buffer = std::make_shared<Buffer>(context, sizeof(uniform_buffer_data),
+  //                                           VmaMemoryUsage::VMA_MEMORY_USAGE_AUTO,
+  //                                           vk::BufferUsageFlagBits::eUniformBuffer);
 
   // Update Descriptor Sets
-  vk::DescriptorBufferInfo buffer_info(uniform_buffer->GetHandle(), 0, sizeof(uniform_buffer_data));
-  vk::WriteDescriptorSet write_descriptor_set(
-      render_context.GetRenderPass()->GetPipeline()->GetDescriptorSets()[0], 0, 0, 1,
-      vk::DescriptorType::eUniformBuffer, nullptr, &buffer_info);
-  context->GetLogicalDevice().GetHandle().updateDescriptorSets(write_descriptor_set, nullptr);
+  // vk::DescriptorBufferInfo buffer_info(uniform_buffer->GetHandle(), 0,
+  // sizeof(uniform_buffer_data)); vk::WriteDescriptorSet write_descriptor_set(
+  //     render_context.GetRenderPass()->GetPipeline()->GetDescriptorSets()[0], 0, 0, 1,
+  //     vk::DescriptorType::eUniformBuffer, nullptr, &buffer_info);
+  // context->GetLogicalDevice().GetHandle().updateDescriptorSets(write_descriptor_set, nullptr);
 }
 
-void Renderer::BeginFrame(const glm::mat4& view_projection) {
+void Renderer::BeginFrame() {
   ZoneScoped;  // NOLINT
-
-  uniform_buffer_data.view_projection = view_projection;
-  uniform_buffer->SetData((void*)&uniform_buffer_data, sizeof(uniform_buffer_data));
 
   render_context.BeginFrame();
 }
+
+void Renderer::BeginScene(const glm::mat4& view_projection) {
+  // uniform_buffer_data.view_projection = view_projection;
+  // uniform_buffer->SetData((void*)&uniform_buffer_data, sizeof(uniform_buffer_data));
+}
+
+void Renderer::EndScene() {}
 
 void Renderer::EndFrame() {
   ZoneScoped;  // NOLINT
@@ -47,7 +51,8 @@ void Renderer::EndFrame() {
   render_context.EndFrame();
 }
 
-void Renderer::DrawMesh(const Component::MeshRenderer& mesh_renderer, const glm::mat4& transform) {
+void Renderer::DrawMesh(const RenderContext& render_context,
+                        const Component::MeshRenderer& mesh_renderer, const glm::mat4& transform) {
   ZoneScoped;  // NOLINT
 
   const auto& mesh = mesh_renderer.GetMesh();

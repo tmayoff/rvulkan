@@ -37,8 +37,9 @@ class Application {
   std::vector<std::shared_ptr<Layer>> layers;
 
   std::shared_ptr<VulkanContext> vulkan_context;
-  std::shared_ptr<Window> window;
   std::shared_ptr<Renderer> renderer;
+
+  std::shared_ptr<Window> window;
 };
 
 #endif  // APPLICATION_HPP_

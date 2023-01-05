@@ -23,27 +23,32 @@ class Renderer {
  public:
   explicit Renderer(const std::shared_ptr<VulkanContext>& context);
 
-  void BeginFrame(const glm::mat4& view_projection);
+  [[nodiscard]] const RenderContext& GetRenderContext() const { return render_context; }
+
+  void BeginFrame();
+  void BeginScene(const glm::mat4& view_projection);
+  void EndScene();
   void EndFrame();
 
   void ResizeViewport(resolution_t size);
 
-  void DrawMesh(const Component::MeshRenderer& mesh_renderer, const glm::mat4& transform);
+  static void DrawMesh(const RenderContext& render_context,
+                       const Component::MeshRenderer& mesh_renderer, const glm::mat4& transform);
 
  private:
   std::shared_ptr<VulkanContext> vulkan_context;
   RenderContext render_context;
 
-  struct UniformBufferData {
-    glm::mat4 view_projection{1.0F};
-  } uniform_buffer_data;
+  // struct UniformBufferData {
+  //   glm::mat4 view_projection{1.0F};
+  // } uniform_buffer_data;
 
-  std::shared_ptr<Buffer> uniform_buffer;
+  // std::shared_ptr<Buffer> uniform_buffer;
 
-  struct VertexUniformBufferData {
-    glm::mat4 object_to_world;
-  };
-  std::shared_ptr<Buffer> object_to_world_uniform_buffer;
+  // struct VertexUniformBufferData {
+  //   glm::mat4 object_to_world;
+  // };
+  // std::shared_ptr<Buffer> object_to_world_uniform_buffer;
 };
 
 inline void Renderer::ResizeViewport(resolution_t size) { render_context.Resize(size); }

@@ -3,6 +3,7 @@
 
 #include <utility>
 
+#include "core/types.hpp"
 #include "event.hpp"
 
 class WindowCloseEvent : public Event {
@@ -18,19 +19,17 @@ class WindowCloseEvent : public Event {
 
 class WindowResizeEvent : public Event {
  public:
-  using Size_t = std::pair<uint32_t, uint32_t>;
-
-  explicit WindowResizeEvent(Size_t size) : size(std::move(size)) {}
+  explicit WindowResizeEvent(resolution_t size) : size(std::move(size)) {}
 
   [[nodiscard]] DescriptorType_t Type() const override { return descriptor; }
   [[nodiscard]] static DescriptorType_t StaticType() { return descriptor; }
 
-  [[nodiscard]] const Size_t& GetSize() const { return size; }
+  [[nodiscard]] const resolution_t& GetSize() const { return size; }
 
  private:
   static constexpr DescriptorType_t descriptor = "WindowResizeEvent";
 
-  Size_t size;
+  resolution_t size;
 };
 
 #endif  // WINDOW_EVENTS_HPP

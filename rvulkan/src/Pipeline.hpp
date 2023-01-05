@@ -127,9 +127,9 @@ class Pipeline : public non_copyable, non_movable {
 
   [[nodiscard]] const vk::Pipeline& GetHandle() const { return pipeline; }
   [[nodiscard]] const vk::PipelineLayout& GetLayout() const { return layout; }
-  [[nodiscard]] const std::vector<vk::DescriptorSet>& GetDescriptorSets() const {
-    return descriptor_sets;
-  }
+  // [[nodiscard]] const std::vector<vk::DescriptorSet>& GetDescriptorSets() const {
+  //   return descriptor_sets;
+  // }
 
  private:
   void CreateDescriptorSets(const std::shared_ptr<VulkanContext>& context,
@@ -139,9 +139,9 @@ class Pipeline : public non_copyable, non_movable {
 
   vk::Pipeline pipeline;
   vk::PipelineLayout layout;
-  vk::DescriptorSetLayout descriptorset_layout;
-  vk::DescriptorPool descriptor_pool;
-  std::vector<vk::DescriptorSet> descriptor_sets;
+  // vk::DescriptorSetLayout descriptorset_layout;
+  // vk::DescriptorPool descriptor_pool;
+  // std::vector<vk::DescriptorSet> descriptor_sets;
 };
 
 #endif  // PIPELINE_HPP_

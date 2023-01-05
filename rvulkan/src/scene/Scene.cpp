@@ -9,6 +9,7 @@
 #include "Components/Tag.hpp"
 #include "Entity.hpp"
 #include "entt/entity/fwd.hpp"
+#include "renderer/Mesh.hpp"
 #include "scene/Components/transform.hpp"
 
 Entity Scene::CreateEntity(const std::string& tag) {
@@ -18,7 +19,7 @@ Entity Scene::CreateEntity(const std::string& tag) {
   return entity;
 }
 
-void Scene::OnUpdate() {
+void Scene::OnUpdate(const RenderContext& render_context) {
   std::optional<Entity> main_camera = std::nullopt;
   auto cameras = registry.view<Component::Camera>();
   for (const auto& cam_entity : cameras) {
@@ -32,15 +33,16 @@ void Scene::OnUpdate() {
 
   if (!main_camera) return;
 
-  renderer->BeginFrame(glm::inverse(main_camera->GetTransform().GetObjectToWorld()) *
-                       main_camera->GetComponent<Component::Camera>().GetViewMatrix());
+  auto camera_matrix = glm::inverse(main_camera->GetTransform().GetObjectToWorld()) *
+                       main_camera->GetComponent<Component::Camera>().GetViewMatrix();
+  PushConstants push_constant{camera_matrix};
+  render_context.PushConstants(&push_constant, sizeof(PushConstants));
 
   registry.view<Component::MeshRenderer, Component::Transform>().each(
-      [this](const Component::MeshRenderer& mesh_renderer, const Component::Transform& transform) {
-        renderer->DrawMesh(mesh_renderer, transform.GetObjectToWorld());
+      [render_context](const Component::MeshRenderer& mesh_renderer,
+                       const Component::Transform& transform) {
+        Renderer::DrawMesh(render_context, mesh_renderer, transform.GetObjectToWorld());
       });
-
-  renderer->EndFrame();
 }
 
-void Scene::OnWindowResize(std::pair<float, float> size) { renderer->ResizeViewport(size); }
+void Scene::OnWindowResize(std::pair<float, float> /*size*/) {}

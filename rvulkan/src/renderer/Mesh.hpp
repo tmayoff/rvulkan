@@ -30,6 +30,10 @@ struct Vertex {
   }
 };
 
+struct PushConstants {
+  glm::mat4 render_matrix;
+};
+
 class Mesh {
  public:
   static Mesh CreateQuadMesh(const std::shared_ptr<VulkanContext>& context);

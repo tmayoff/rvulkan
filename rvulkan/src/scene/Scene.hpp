@@ -14,12 +14,9 @@ class Scene {
   friend class Entity;
 
  public:
-  explicit Scene(const std::shared_ptr<VulkanContext>& vulkan_context)
-      : renderer(std::make_shared<Renderer>(vulkan_context)) {}
-
   Entity CreateEntity(const std::string& tag);
 
-  void OnUpdate();
+  void OnUpdate(const RenderContext& render_context);
 
   void OnWindowResize(std::pair<float, float> size);
 
@@ -27,7 +24,6 @@ class Scene {
 
  private:
   entt::registry registry;
-  std::shared_ptr<Renderer> renderer;
 };
 
 #endif  // SCENE_HPP

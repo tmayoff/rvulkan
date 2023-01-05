@@ -17,10 +17,11 @@ class RenderContext {
   void BeginFrame();
   void EndFrame();
 
+  void PushConstants(void* data, size_t size) const;
   void BindVertexBuffer(uint32_t first_binding, const vk::Buffer& buffer,
-                        const std::vector<uint64_t>& offsets);
-  void BindIndexBuffer(const vk::Buffer& buffer);
-  void DrawIndexed(uint32_t index_count);
+                        const std::vector<uint64_t>& offsets) const;
+  void BindIndexBuffer(const vk::Buffer& buffer) const;
+  void DrawIndexed(uint32_t index_count) const;
 
   void Resize(const resolution_t& size) {
     surface_extent = vk::Extent2D(size.first, size.second);

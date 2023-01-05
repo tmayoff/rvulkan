@@ -28,6 +28,8 @@ Application::Application() {
   vulkan_options.Layers = {"VK_LAYER_KHRONOS_validation"};
   vulkan_options.Extensions = window->GetRequiredExtension();
   vulkan_context = std::make_shared<VulkanContext>(vulkan_options, window);
+
+  renderer = std::make_shared<Renderer>(vulkan_context);
 }
 
 void Application::Run() {
@@ -41,8 +43,10 @@ void Application::Run() {
 
     if (window != nullptr) window->Update();
 
+    renderer->BeginFrame();
+
     for (const auto& l : layers) {
-      if (l != nullptr) l->OnUpdate();
+      if (l != nullptr) l->OnUpdate(renderer->GetRenderContext());
     }
 
     auto now = std::chrono::steady_clock::now();
@@ -52,6 +56,8 @@ void Application::Run() {
       logger::debug("Frame time: {}ms ({} fps)", duration.count(), fps);
     }
     last_loop = now;
+
+    renderer->EndFrame();
   }
 }
 
@@ -65,6 +71,11 @@ void Application::OnEvent(Event& e) {
   dispatcher.Dispatch<WindowCloseEvent>([this](WindowCloseEvent&) {
     running = false;
     return true;
+  });
+
+  dispatcher.Dispatch<WindowResizeEvent>([this](WindowResizeEvent& e) {
+    renderer->ResizeViewport(e.GetSize());
+    return false;
   });
 
   if (e.Handled()) {

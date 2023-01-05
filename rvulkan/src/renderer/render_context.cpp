@@ -52,10 +52,6 @@ void RenderContext::BeginFrame() {
   command_buffers[current_frame_index].setViewport(
       0, vk::Viewport(0, 0, surface_extent.width, surface_extent.height));
   command_buffers[current_frame_index].setScissor(0, vk::Rect2D({0, 0}, surface_extent));
-
-  command_buffers[current_frame_index].bindDescriptorSets(
-      vk::PipelineBindPoint::eGraphics, render_pass->GetPipeline()->GetLayout(), 0,
-      render_pass->GetPipeline()->GetDescriptorSets(), nullptr);
 }
 
 void RenderContext::EndFrame() {
@@ -95,16 +91,27 @@ void RenderContext::EndFrame() {
   current_frame_index = (current_frame_index + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
+void RenderContext::PushConstants(void* data, size_t size) const {
+  command_buffers[current_frame_index].pushConstants(
+      render_pass->GetPipeline()->GetLayout(), vk::ShaderStageFlagBits::eVertex, 0, size, data);
+}
+
+// void RenderContext::BindDescriptorSet() {
+//   command_buffers[current_frame_index].bindDescriptorSets(
+//       vk::PipelineBindPoint::eGraphics, render_pass->GetPipeline()->GetLayout(), 0,
+//       render_pass->GetPipeline()->GetDescriptorSets(), nullptr);
+// }
+
 void RenderContext::BindVertexBuffer(uint32_t first_binding, const vk::Buffer& buffer,
-                                     const std::vector<uint64_t>& offsets) {
+                                     const std::vector<uint64_t>& offsets) const {
   command_buffers[current_frame_index].bindVertexBuffers(first_binding, buffer, offsets);
 }
 
-void RenderContext::BindIndexBuffer(const vk::Buffer& buffer) {
+void RenderContext::BindIndexBuffer(const vk::Buffer& buffer) const {
   command_buffers[current_frame_index].bindIndexBuffer(buffer, 0, vk::IndexType::eUint32);
 }
 
-void RenderContext::DrawIndexed(uint32_t index_count) {
+void RenderContext::DrawIndexed(uint32_t index_count) const {
   command_buffers[current_frame_index].drawIndexed(index_count, 1, 0, 0, 0);
 }
 
