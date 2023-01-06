@@ -1,6 +1,5 @@
 #include "rvulkan/core/application.hpp"
 
-#include <bits/chrono.h>
 #include <vulkan/vulkan_core.h>
 
 #include <Renderer.hpp>
