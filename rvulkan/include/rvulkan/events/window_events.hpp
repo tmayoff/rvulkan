@@ -1,9 +1,9 @@
 #ifndef WINDOW_EVENTS_HPP
 #define WINDOW_EVENTS_HPP
 
+#include <rvulkan/core/types.hpp>
 #include <utility>
 
-#include "core/types.hpp"
 #include "event.hpp"
 
 class WindowCloseEvent : public Event {

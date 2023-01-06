@@ -2,12 +2,12 @@
 
 #include <vulkan/vulkan_core.h>
 
+#include <rvulkan/core/log.hpp>
+#include <rvulkan/renderer/mesh.hpp>
+#include <rvulkan/vulkan_context.hpp>
+#include <vulkan/LogicalDevice.hpp>
 #include <vulkan/vulkan_enums.hpp>
 #include <vulkan/vulkan_structs.hpp>
-
-#include "VulkanContext.hpp"
-#include "core/log.hpp"
-#include "renderer/Mesh.hpp"
 
 static vk::Format ShaderDataTypeToVkFormat(ShaderDataType type) {
   switch (type) {
@@ -83,7 +83,7 @@ Pipeline::Pipeline(const std::shared_ptr<VulkanContext>& context, const Pipeline
   vk::PipelineLayoutCreateInfo pipeline_layout_create(vk::PipelineLayoutCreateFlags{});
   pipeline_layout_create.setPushConstantRanges(push_constant);
 
-  layout = context->GetLogicalDevice().GetHandle().createPipelineLayout(pipeline_layout_create);
+  layout = context->GetLogicalDevice()->GetHandle().createPipelineLayout(pipeline_layout_create);
 
   std::array dynamic_states = {vk::DynamicState::eViewport, vk::DynamicState::eScissor};
   vk::PipelineDynamicStateCreateInfo dynamic_state({}, dynamic_states);
@@ -93,7 +93,7 @@ Pipeline::Pipeline(const std::shared_ptr<VulkanContext>& context, const Pipeline
       &rasterizer, &multisample, nullptr, &colour_blend_state, &dynamic_state, layout, renderPass);
 
   auto [result, value] =
-      context->GetLogicalDevice().GetHandle().createGraphicsPipeline({}, pipeline_create_info);
+      context->GetLogicalDevice()->GetHandle().createGraphicsPipeline({}, pipeline_create_info);
   if (result != vk::Result::eSuccess) {
     logger::fatal("Failed to create vuklan pipeline");
   }
@@ -102,8 +102,8 @@ Pipeline::Pipeline(const std::shared_ptr<VulkanContext>& context, const Pipeline
 }
 
 Pipeline::~Pipeline() {
-  context->GetLogicalDevice().GetHandle().destroyPipelineLayout(layout);
-  context->GetLogicalDevice().GetHandle().destroyPipeline(pipeline);
+  context->GetLogicalDevice()->GetHandle().destroyPipelineLayout(layout);
+  context->GetLogicalDevice()->GetHandle().destroyPipeline(pipeline);
 }
 
 void Pipeline::CreateDescriptorSets(const std::shared_ptr<VulkanContext>& context,
@@ -122,12 +122,12 @@ void Pipeline::CreateDescriptorSets(const std::shared_ptr<VulkanContext>& contex
   //                                                      descriptor_bindings);
 
   // descriptorset_layout =
-  //     context->GetLogicalDevice().GetHandle().createDescriptorSetLayout(layout_create_info);
+  //     context->GetLogicalDevice()->GetHandle().createDescriptorSetLayout(layout_create_info);
 
   // vk::DescriptorPoolSize pool_size(vk::DescriptorType::eUniformBuffer, 1);
   // vk::DescriptorPoolCreateInfo pool_create(vk::DescriptorPoolCreateFlags(), 1, 1, &pool_size);
-  // descriptor_pool = context->GetLogicalDevice().GetHandle().createDescriptorPool(pool_create);
+  // descriptor_pool = context->GetLogicalDevice()->GetHandle().createDescriptorPool(pool_create);
 
   // vk::DescriptorSetAllocateInfo alloc_info(descriptor_pool, descriptorset_layout);
-  // descriptor_sets = context->GetLogicalDevice().GetHandle().allocateDescriptorSets(alloc_info);
+  // descriptor_sets = context->GetLogicalDevice()->GetHandle().allocateDescriptorSets(alloc_info);
 }

@@ -1,11 +1,11 @@
 #include "render_context.hpp"
 
-#include <core/log.hpp>
 #include <debug/profiler.hpp>
+#include <rvulkan/core/log.hpp>
+#include <rvulkan/renderer/mesh.hpp>
+#include <vulkan/LogicalDevice.hpp>
 #include <vulkan/vulkan_enums.hpp>
 #include <vulkan/vulkan_structs.hpp>
-
-#include "Mesh.hpp"
 
 RenderContext::RenderContext(const std::shared_ptr<VulkanContext>& vulkan_context_)
     : vulkan_context(vulkan_context_) {
@@ -18,7 +18,7 @@ RenderContext::RenderContext(const std::shared_ptr<VulkanContext>& vulkan_contex
 }
 
 void RenderContext::BeginFrame() {
-  const auto device = vulkan_context->GetLogicalDevice().GetHandle();
+  const auto device = vulkan_context->GetLogicalDevice()->GetHandle();
 
   vk::Result wait_for_fence =
       device.waitForFences(in_flight_fences[current_frame_index], VK_FALSE, UINT64_MAX);
@@ -71,14 +71,14 @@ void RenderContext::EndFrame() {
     vk::SubmitInfo submit_info(wait_semaphore, wait_stages, command_buffers[current_frame_index],
                                signal_semaphore);
 
-    device.GetGraphicsQueue().submit(submit_info, in_flight_fences[current_frame_index]);
+    device->GetGraphicsQueue().submit(submit_info, in_flight_fences[current_frame_index]);
   }
 
   vk::PresentInfoKHR present_info(signal_semaphore, swapchain.GetHandle(), swapchain_image_index);
 
   try {
     ZoneScopedN("Queue Present");  // NOLINT
-    auto res = device.GetPresentQueue().presentKHR(present_info);
+    auto res = device->GetPresentQueue().presentKHR(present_info);
     if (res == vk::Result::eSuboptimalKHR || view_resized) {
       view_resized = false;
       swapchain.RecreateSwapchain(surface_extent);
@@ -133,11 +133,11 @@ void RenderContext::CreateCommandBuffers() {
   vk::CommandBufferAllocateInfo alloc_info(vulkan_context->GetCommandPool(),
                                            vk::CommandBufferLevel::ePrimary, MAX_FRAMES_IN_FLIGHT);
   command_buffers =
-      vulkan_context->GetLogicalDevice().GetHandle().allocateCommandBuffers(alloc_info);
+      vulkan_context->GetLogicalDevice()->GetHandle().allocateCommandBuffers(alloc_info);
 }
 
 void RenderContext::CreateSyncObjects() {
-  auto device = vulkan_context->GetLogicalDevice().GetHandle();
+  auto device = vulkan_context->GetLogicalDevice()->GetHandle();
 
   image_available_semaphores.resize(MAX_FRAMES_IN_FLIGHT);
   render_finished_semaphores.resize(MAX_FRAMES_IN_FLIGHT);

@@ -1,9 +1,9 @@
-#pragma once
-#include "VulkanContext.hpp"
 #ifndef SHADER_HPP_
 #define SHADER_HPP_
 
 #include <vulkan/vulkan.hpp>
+
+class VulkanContext;
 
 class Shader {
  public:

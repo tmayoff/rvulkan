@@ -1,2 +1,2 @@
-sources += files('Scene.cpp')
-subdir('Components')
+sources += files('scene.cpp')
+subdir('components')

@@ -1,5 +1,4 @@
-#include "log.hpp"
-
+#include <rvulkan/core/log.hpp>
 #include <stdexcept>
 
 #include "spdlog/common.h"

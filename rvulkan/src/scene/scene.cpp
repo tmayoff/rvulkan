@@ -1,16 +1,18 @@
-#include "Scene.hpp"
+#include "rvulkan/scene/scene.hpp"
 
+#include <Renderer.hpp>
 #include <optional>
+#include <renderer/render_context.hpp>
+#include <rvulkan/renderer/mesh.hpp>
+#include <rvulkan/scene/components/camera.hpp>
+#include <rvulkan/scene/components/mesh_renderer.hpp>
+#include <rvulkan/scene/components/tag.hpp>
+#include <rvulkan/scene/components/transform.hpp>
+#include <rvulkan/scene/entity.hpp>
 #include <string>
 #include <type_traits>
 
-#include "Components/Camera.hpp"
-#include "Components/MeshRenderer.hpp"
-#include "Components/Tag.hpp"
-#include "Entity.hpp"
 #include "entt/entity/fwd.hpp"
-#include "renderer/Mesh.hpp"
-#include "scene/Components/transform.hpp"
 
 Entity Scene::CreateEntity(const std::string& tag) {
   Entity entity{this, registry.create()};

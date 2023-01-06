@@ -1,19 +1,15 @@
-#include <Application.hpp>
-#include <core/layer.hpp>
-#include <core/log.hpp>
 #include <memory>
-#include <scene/Entity.hpp>
-#include <scene/Scene.hpp>
+#include <rvulkan/core/application.hpp>
+#include <rvulkan/core/layer.hpp>
+#include <rvulkan/core/log.hpp>
+#include <rvulkan/events/window_events.hpp>
+#include <rvulkan/renderer/mesh.hpp>
+#include <rvulkan/scene/components/camera.hpp>
+#include <rvulkan/scene/components/mesh_renderer.hpp>
+#include <rvulkan/scene/entity.hpp>
+#include <rvulkan/scene/scene.hpp>
+#include <rvulkan/vulkan_context.hpp>
 #include <utility>
-
-#include "Renderer.hpp"
-#include "VulkanContext.hpp"
-#include "events/event.hpp"
-#include "events/window_events.hpp"
-#include "renderer/render_context.hpp"
-#include "scene/Components/Camera.hpp"
-#include "scene/Components/MeshRenderer.hpp"
-#include "scene/Components/transform.hpp"
 
 class SandboxLayer : public Layer {
  public:
@@ -33,10 +29,8 @@ class SandboxLayer : public Layer {
 
 int main() {
   auto app = std::make_shared<Application>();
+  auto layer = std::make_shared<SandboxLayer>(app->GetVulkanContext());
 
-  const auto& context = app->GetVulkanContext();
-
-  auto layer = std::make_shared<SandboxLayer>(context);
   app->PushLayer(layer);
 
   app->Run();

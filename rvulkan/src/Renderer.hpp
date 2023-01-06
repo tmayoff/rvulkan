@@ -3,11 +3,12 @@
 
 #include <vulkan/vulkan_core.h>
 
-#include <core/types.hpp>
 #include <debug/profiler.hpp>
 #include <glm/glm.hpp>
 #include <memory>
 #include <renderer/swapchain.hpp>
+#include <rvulkan/core/types.hpp>
+#include <rvulkan/vulkan_context.hpp>
 #include <vector>
 #include <vulkan/vulkan.hpp>
 #include <vulkan/vulkan_handles.hpp>
@@ -15,9 +16,11 @@
 
 #include "Buffer.hpp"
 #include "RenderPass.hpp"
-#include "VulkanContext.hpp"
 #include "renderer/render_context.hpp"
-#include "scene/Components/MeshRenderer.hpp"
+
+namespace Component {
+class MeshRenderer;
+}
 
 class Renderer {
  public:
@@ -38,17 +41,6 @@ class Renderer {
  private:
   std::shared_ptr<VulkanContext> vulkan_context;
   RenderContext render_context;
-
-  // struct UniformBufferData {
-  //   glm::mat4 view_projection{1.0F};
-  // } uniform_buffer_data;
-
-  // std::shared_ptr<Buffer> uniform_buffer;
-
-  // struct VertexUniformBufferData {
-  //   glm::mat4 object_to_world;
-  // };
-  // std::shared_ptr<Buffer> object_to_world_uniform_buffer;
 };
 
 inline void Renderer::ResizeViewport(resolution_t size) { render_context.Resize(size); }

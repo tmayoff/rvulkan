@@ -1,13 +1,11 @@
 #ifndef SCENE_HPP
 #define SCENE_HPP
 
-#include <Renderer.hpp>
 #include <entt/entt.hpp>
 
-#include "VulkanContext.hpp"
-#include "core/types.hpp"
 #include "entt/entity/fwd.hpp"
 
+class RenderContext;
 class Entity;
 
 class Scene {

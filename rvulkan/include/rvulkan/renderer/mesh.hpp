@@ -1,12 +1,14 @@
 #ifndef MESH_HPP
 #define MESH_HPP
 
-#include <Buffer.hpp>
 #include <cstdint>
 #include <glm/glm.hpp>
 #include <vector>
 
-#include "Pipeline.hpp"
+#include "../vulkan_context.hpp"
+#include "PipelineLayout.hpp"
+
+class Buffer;
 
 struct Vertex {
   glm::vec4 Position;

@@ -2,7 +2,7 @@
 
 #include <SDL2/SDL_vulkan.h>
 
-#include <core/log.hpp>
+#include <rvulkan/core/log.hpp>
 #include <vulkan/vulkan_enums.hpp>
 
 Surface::Surface(const vk::Instance& instance, const std::shared_ptr<Window>& window)
@@ -13,10 +13,10 @@ Surface::Surface(const vk::Instance& instance, const std::shared_ptr<Window>& wi
   this->surface = surface;
 }
 
-void Surface::Init(const PhysicalDevice& physical_device) {
-  auto present_modes = physical_device.GetHandle().getSurfacePresentModesKHR(surface);
-  auto surface_caps = physical_device.GetHandle().getSurfaceCapabilitiesKHR(surface);
-  auto surface_formats = physical_device.GetHandle().getSurfaceFormatsKHR(surface);
+void Surface::Init(const std::shared_ptr<PhysicalDevice>& physical_device) {
+  auto present_modes = physical_device->GetHandle().getSurfacePresentModesKHR(surface);
+  auto surface_caps = physical_device->GetHandle().getSurfaceCapabilitiesKHR(surface);
+  auto surface_formats = physical_device->GetHandle().getSurfaceFormatsKHR(surface);
 
   // Get prefered present mode
   if (std::find(present_modes.begin(), present_modes.end(), vk::PresentModeKHR::eMailbox) !=

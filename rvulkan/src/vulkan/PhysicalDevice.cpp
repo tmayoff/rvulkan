@@ -1,13 +1,14 @@
 #include "PhysicalDevice.hpp"
 
-#include <core/log.hpp>
+#include <rvulkan/core/log.hpp>
 #include <set>
 #include <string>
 #include <vulkan/vulkan_enums.hpp>
 
 #include "Surface.hpp"
 
-PhysicalDevice::PhysicalDevice(const vk::Instance& instance, const Surface& surface) {
+PhysicalDevice::PhysicalDevice(const vk::Instance& instance,
+                               const std::shared_ptr<Surface>& surface) {
   auto devices = instance.enumeratePhysicalDevices();
 
   for (const auto& device : devices) {
@@ -19,7 +20,7 @@ PhysicalDevice::PhysicalDevice(const vk::Instance& instance, const Surface& surf
 }
 
 QueueFamilyIndices PhysicalDevice::FindQueueFamilies(const vk::PhysicalDevice& physical_device,
-                                                     const Surface& surface) {
+                                                     const std::shared_ptr<Surface>& surface) {
   QueueFamilyIndices indices;
 
   auto queue_families = physical_device.getQueueFamilyProperties();
@@ -28,7 +29,7 @@ QueueFamilyIndices PhysicalDevice::FindQueueFamilies(const vk::PhysicalDevice& p
   for (const auto& q : queue_families) {
     if (q.queueFlags & vk::QueueFlagBits::eGraphics) indices.graphics_family = i;
 
-    auto present_support = physical_device.getSurfaceSupportKHR(i, surface.GetHandle());
+    auto present_support = physical_device.getSurfaceSupportKHR(i, surface->GetHandle());
     if (present_support == VK_TRUE) indices.present_family = i;
 
     if (indices.IsComplete()) break;
@@ -40,12 +41,12 @@ QueueFamilyIndices PhysicalDevice::FindQueueFamilies(const vk::PhysicalDevice& p
 }
 
 SwapchainSupportDetails PhysicalDevice::QuerySwapchainSupportDetails(
-    const vk::PhysicalDevice& device, const Surface& surface) {
+    const vk::PhysicalDevice& device, const std::shared_ptr<Surface>& surface) {
   SwapchainSupportDetails details;
 
-  details.capabilities = device.getSurfaceCapabilitiesKHR(surface.GetHandle());
-  details.formats = device.getSurfaceFormatsKHR(surface.GetHandle());
-  details.present_modes = device.getSurfacePresentModesKHR(surface.GetHandle());
+  details.capabilities = device.getSurfaceCapabilitiesKHR(surface->GetHandle());
+  details.formats = device.getSurfaceFormatsKHR(surface->GetHandle());
+  details.present_modes = device.getSurfacePresentModesKHR(surface->GetHandle());
 
   return details;
 }
@@ -60,7 +61,8 @@ bool PhysicalDevice::CheckExtensionSupport(const vk::PhysicalDevice& device) {
   return required_extension.empty();
 }
 
-bool PhysicalDevice::IsDeviceSuitable(const vk::PhysicalDevice& device, const Surface& surface) {
+bool PhysicalDevice::IsDeviceSuitable(const vk::PhysicalDevice& device,
+                                      const std::shared_ptr<Surface>& surface) {
   auto indices = FindQueueFamilies(device, surface);
 
   bool extensions_supported = CheckExtensionSupport(device);
