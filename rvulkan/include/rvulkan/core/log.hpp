@@ -6,8 +6,6 @@
 #include <string_view>
 #include <utility>
 
-#include "spdlog/fmt/bundled/core.h"
-
 class logger {
  public:
   static void Init();

@@ -11,6 +11,11 @@
 #include <rvulkan/events/window_events.hpp>
 #include <rvulkan/vulkan_context.hpp>
 
+#include "imgui.h"
+#include "imgui_impl_sdl.h"
+#include "imgui_impl_vulkan.h"
+#include "rvulkan/core/imgui_layer.hpp"
+
 Application::Application() {
   logger::Init();
 
@@ -25,6 +30,8 @@ Application::Application() {
   vulkan_context = std::make_shared<VulkanContext>(vulkan_options, window);
 
   renderer = std::make_shared<Renderer>(vulkan_context);
+
+  imgui_layer = std::make_shared<ImGuiLayer>(window, vulkan_context, renderer);
 }
 
 void Application::Run() {
@@ -51,6 +58,15 @@ void Application::Run() {
       logger::debug("Frame time: {}ms ({} fps)", duration.count(), fps);
     }
     last_loop = now;
+
+    ImGui_ImplVulkan_NewFrame();
+    ImGui_ImplSDL2_NewFrame();
+
+    ImGui::NewFrame();
+
+    ImGui::ShowDemoWindow();
+
+    ImGui::Render();
 
     renderer->EndFrame();
   }

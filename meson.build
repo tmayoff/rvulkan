@@ -14,6 +14,7 @@ vulkan       = dependency('vulkan')
 sdl2         = dependency('SDL2')
 spdlog       = dependency('spdlog')
 vma          = dependency('VulkanMemoryAllocator')
+imgui        = dependency('imgui')
 
 sources = []
 

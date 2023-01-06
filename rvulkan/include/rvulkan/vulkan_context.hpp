@@ -2,6 +2,8 @@
 #define VULKANCONTEXT_HPP_
 
 #include <optional>
+#include <vulkan/vulkan.hpp>
+#include <vulkan/vulkan_handles.hpp>
 
 #include "core/memory.hpp"
 
@@ -29,12 +31,14 @@ class VulkanContext {
   [[nodiscard]] const std::shared_ptr<Surface>& GetSurface() const { return surface; }
   [[nodiscard]] const vk::SurfaceFormatKHR& GetSurfaceFormat() const;
 
-  [[nodiscard]] const vk::CommandPool& GetCommandPool() const { return commandPool; }
+  [[nodiscard]] const vk::DescriptorPool& GetDescriptorPool() const { return descriptor_pool; }
+  [[nodiscard]] const vk::CommandPool& GetCommandPool() const { return command_pool; }
 
   [[nodiscard]] const VmaAllocator& GetAllocator() const { return allocator; }
 
  private:
   void CreateAllocator();
+  void CreateDescriptorPool();
 
   vk::Instance instance;
   vk::DebugUtilsMessengerEXT debug_utils_messenger;
@@ -46,7 +50,8 @@ class VulkanContext {
 
   VmaAllocator allocator{};
 
-  vk::CommandPool commandPool;
+  vk::DescriptorPool descriptor_pool;
+  vk::CommandPool command_pool;
 };
 
 #endif  // VULKANCONTEXT_HPP_

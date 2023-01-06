@@ -4,6 +4,7 @@
 #include <RenderPass.hpp>
 #include <rvulkan/core/types.hpp>
 #include <rvulkan/vulkan_context.hpp>
+#include <vulkan/vulkan_handles.hpp>
 #include <vulkan/vulkan_structs.hpp>
 
 #include "swapchain.hpp"
@@ -28,7 +29,12 @@ class RenderContext {
     view_resized = true;
   }
 
+  [[nodiscard]] const Swapchain& GetSwapchain() const { return swapchain; }
   [[nodiscard]] const std::shared_ptr<RenderPass>& GetRenderPass() const { return render_pass; }
+
+  [[nodiscard]] const std::vector<vk::CommandBuffer>& GetCommandBuffers() const {
+    return command_buffers;
+  }
 
  private:
   void CreateRenderPass();

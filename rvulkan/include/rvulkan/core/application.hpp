@@ -5,6 +5,7 @@
 #include <rvulkan/events/event.hpp>
 #include <vector>
 
+#include "imgui_layer.hpp"
 #include "layer.hpp"
 
 class VulkanContext;
@@ -29,6 +30,8 @@ class Application {
   void OnEvent(Event& e);
 
   bool running = true;
+
+  std::shared_ptr<ImGuiLayer> imgui_layer;
 
   std::vector<std::shared_ptr<Layer>> layers;
 

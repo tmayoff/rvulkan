@@ -80,13 +80,14 @@ VulkanContext::VulkanContext(const VulkanContextCreateOptions& options,
   device = std::make_shared<LogicalDevice>(physical_device, surface);
 
   CreateAllocator();
+  CreateDescriptorPool();
 
   vk::CommandPoolCreateInfo command_pool_info;
   command_pool_info
       .setQueueFamilyIndex(device->GetIndices().graphics_family.value())  // NOLINT
       .setFlags(vk::CommandPoolCreateFlagBits::eResetCommandBuffer |
                 vk::CommandPoolCreateFlagBits::eTransient);
-  commandPool = device->GetHandle().createCommandPool(command_pool_info);
+  command_pool = device->GetHandle().createCommandPool(command_pool_info);
 }
 
 const vk::SurfaceFormatKHR& VulkanContext::GetSurfaceFormat() const { return surface->GetFormat(); }
@@ -98,4 +99,25 @@ void VulkanContext::CreateAllocator() {
   allocator_info.physicalDevice = physical_device->GetHandle();
   allocator_info.device = device->GetHandle();
   vmaCreateAllocator(&allocator_info, &allocator);
+}
+
+void VulkanContext::CreateDescriptorPool() {
+  std::array pool_sizes = {
+      vk::DescriptorPoolSize{vk::DescriptorType::eSampler, 1000},
+      vk::DescriptorPoolSize{vk::DescriptorType::eCombinedImageSampler, 1000},
+      vk::DescriptorPoolSize{vk::DescriptorType::eSampledImage, 1000},
+      vk::DescriptorPoolSize{vk::DescriptorType::eStorageImage, 1000},
+      vk::DescriptorPoolSize{vk::DescriptorType::eUniformTexelBuffer, 1000},
+      vk::DescriptorPoolSize{vk::DescriptorType::eStorageTexelBuffer, 1000},
+      vk::DescriptorPoolSize{vk::DescriptorType::eUniformBuffer, 1000},
+      vk::DescriptorPoolSize{vk::DescriptorType::eStorageBuffer, 1000},
+      vk::DescriptorPoolSize{vk::DescriptorType::eUniformBufferDynamic, 1000},
+      vk::DescriptorPoolSize{vk::DescriptorType::eStorageBufferDynamic, 1000},
+      vk::DescriptorPoolSize{vk::DescriptorType::eInputAttachment, 1000},
+  };
+
+  vk::DescriptorPoolCreateInfo create_info(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet,
+                                           1000 * pool_sizes.size(), pool_sizes);
+
+  descriptor_pool = device->GetHandle().createDescriptorPool(create_info);
 }

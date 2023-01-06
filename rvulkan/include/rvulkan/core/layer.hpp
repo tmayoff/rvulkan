@@ -9,9 +9,10 @@ class Layer {
  public:
   virtual ~Layer() = default;
 
-  virtual void OnAttach() = 0;
-  virtual void OnUpdate(const RenderContext& render_context) = 0;
-  virtual void OnEvent(Event&) = 0;
+  virtual void OnAttach() {}
+  virtual void OnUpdate(const RenderContext& /*unused*/) {}
+  virtual void OnImGuiUpdate() {}
+  virtual void OnEvent(Event& /*unused*/) {}
 };
 
 #endif  // LAYER_HPP
