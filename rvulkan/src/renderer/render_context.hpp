@@ -32,8 +32,8 @@ class RenderContext {
   [[nodiscard]] const Swapchain& GetSwapchain() const { return swapchain; }
   [[nodiscard]] const std::shared_ptr<RenderPass>& GetRenderPass() const { return render_pass; }
 
-  [[nodiscard]] const std::vector<vk::CommandBuffer>& GetCommandBuffers() const {
-    return command_buffers;
+  [[nodiscard]] const vk::CommandBuffer& GetCurrentCommandBuffer() const {
+    return command_buffers[current_frame_index];
   }
 
  private:

@@ -40,7 +40,24 @@ ImGuiLayer::ImGuiLayer(const std::shared_ptr<Window>& window,
   CreateFontAtlas(vulkan_context, renderer);
 }
 
-void ImGuiLayer::OnAttach() {}
+void ImGuiLayer::Begin() {
+  // Do ImGui First to get the drawn elements
+  ImGui_ImplVulkan_NewFrame();
+  ImGui_ImplSDL2_NewFrame();
+
+  ImGui::NewFrame();
+
+  ImGui::ShowDemoWindow();
+}
+
+void ImGuiLayer::End() {
+  ImGui::Render();
+  draw_data = ImGui::GetDrawData();
+}
+
+void ImGuiLayer::OnUpdate(const RenderContext& render_context) {
+  ImGui_ImplVulkan_RenderDrawData(draw_data, render_context.GetCurrentCommandBuffer());
+}
 
 void ImGuiLayer::OnEvent(Event& /*unused*/) {}
 
@@ -48,7 +65,7 @@ void ImGuiLayer::CreateFontAtlas(std::shared_ptr<VulkanContext>& vulkan_context,
                                  const std::shared_ptr<Renderer>& renderer) {
   // TODO Clean this up, manually setting this all is a bit weird
 
-  auto cmd_buffer = renderer->GetRenderContext().GetCommandBuffers().front();
+  auto cmd_buffer = renderer->GetRenderContext().GetCurrentCommandBuffer();
 
   vk::CommandBufferBeginInfo begin_info(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
   cmd_buffer.begin(begin_info);

@@ -32,6 +32,7 @@ Application::Application() {
   renderer = std::make_shared<Renderer>(vulkan_context);
 
   imgui_layer = std::make_shared<ImGuiLayer>(window, vulkan_context, renderer);
+  layers.push_back(imgui_layer);
 }
 
 void Application::Run() {
@@ -44,6 +45,11 @@ void Application::Run() {
     ZoneScopedN("Main Loop");  // NOLINT
 
     if (window != nullptr) window->Update();
+
+    imgui_layer->Begin();
+    for (const auto& l : layers)
+      if (l != nullptr) l->OnImGuiUpdate();
+    imgui_layer->End();
 
     renderer->BeginFrame();
 
@@ -58,15 +64,6 @@ void Application::Run() {
       logger::debug("Frame time: {}ms ({} fps)", duration.count(), fps);
     }
     last_loop = now;
-
-    ImGui_ImplVulkan_NewFrame();
-    ImGui_ImplSDL2_NewFrame();
-
-    ImGui::NewFrame();
-
-    ImGui::ShowDemoWindow();
-
-    ImGui::Render();
 
     renderer->EndFrame();
   }
