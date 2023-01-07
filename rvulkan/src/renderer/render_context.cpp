@@ -11,10 +11,23 @@ RenderContext::RenderContext(const std::shared_ptr<VulkanContext>& vulkan_contex
     : vulkan_context(vulkan_context_) {
   CreateRenderPass();
 
-  swapchain = Swapchain(vulkan_context_, render_pass);
+  swapchain = std::make_unique<Swapchain>(vulkan_context_, render_pass);
 
   CreateCommandBuffers();
   CreateSyncObjects();
+}
+
+RenderContext::~RenderContext() {
+  swapchain.reset();
+
+  const auto& device = vulkan_context->GetLogicalDevice()->GetHandle();
+
+  device.freeCommandBuffers(vulkan_context->GetCommandPool(), command_buffers);
+  for (const auto& semaphore : image_available_semaphores) device.destroySemaphore(semaphore);
+  for (const auto& semaphore : render_finished_semaphores) device.destroySemaphore(semaphore);
+  for (const auto& fence : in_flight_fences) device.destroyFence(fence);
+
+  render_pass.reset();
 }
 
 void RenderContext::BeginFrame() {
@@ -26,9 +39,9 @@ void RenderContext::BeginFrame() {
 
   // Acquire Swapchain Image
   const auto acquired_image_index = device.acquireNextImageKHR(
-      swapchain.GetHandle(), UINT64_MAX, image_available_semaphores[current_frame_index]);
+      swapchain->GetHandle(), UINT64_MAX, image_available_semaphores[current_frame_index]);
   if (acquired_image_index.result == vk::Result::eErrorOutOfDateKHR) {
-    swapchain.RecreateSwapchain(surface_extent);
+    swapchain->RecreateSwapchain(surface_extent);
     return;
   }
   swapchain_image_index = acquired_image_index.value;
@@ -41,7 +54,7 @@ void RenderContext::BeginFrame() {
 
   auto clear_colours = vk::ClearValue(vk::ClearColorValue(std::array<float, 4>{0.1F, 0.1F, 0.1F}));
   vk::RenderPassBeginInfo render_pass_info(render_pass->GetHandle(),
-                                           swapchain.GetFramebuffers().at(swapchain_image_index),
+                                           swapchain->GetFramebuffers().at(swapchain_image_index),
                                            vk::Rect2D({0, 0}, surface_extent), clear_colours);
 
   command_buffers[current_frame_index].beginRenderPass(render_pass_info,
@@ -74,18 +87,18 @@ void RenderContext::EndFrame() {
     device->GetGraphicsQueue().submit(submit_info, in_flight_fences[current_frame_index]);
   }
 
-  vk::PresentInfoKHR present_info(signal_semaphore, swapchain.GetHandle(), swapchain_image_index);
+  vk::PresentInfoKHR present_info(signal_semaphore, swapchain->GetHandle(), swapchain_image_index);
 
   try {
     ZoneScopedN("Queue Present");  // NOLINT
     auto res = device->GetPresentQueue().presentKHR(present_info);
     if (res == vk::Result::eSuboptimalKHR || view_resized) {
       view_resized = false;
-      swapchain.RecreateSwapchain(surface_extent);
+      swapchain->RecreateSwapchain(surface_extent);
     }
   } catch (vk::OutOfDateKHRError& e) {
     view_resized = false;
-    swapchain.RecreateSwapchain(surface_extent);
+    swapchain->RecreateSwapchain(surface_extent);
   }
 
   current_frame_index = (current_frame_index + 1) % MAX_FRAMES_IN_FLIGHT;

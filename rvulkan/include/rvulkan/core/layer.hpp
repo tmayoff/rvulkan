@@ -13,6 +13,7 @@ class Layer {
   virtual ~Layer() = default;
 
   virtual void OnAttach() {}
+  virtual void OnDetach() {}
   virtual void OnUpdate(const RenderContext& /*unused*/) {}
   virtual void OnImGuiUpdate() {}
   virtual void OnEvent(Event& /*unused*/) {}

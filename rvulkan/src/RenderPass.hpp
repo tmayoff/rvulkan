@@ -8,11 +8,7 @@
 #include "Pipeline.hpp"
 #include "Shader.hpp"
 
-struct RenderPassState {
-  vk::CommandBuffer Commands;
-};
-
-class RenderPass : public non_copyable, public non_movable {  // NOLINT
+class RenderPass : public non_copyable, public non_movable {
  public:
   RenderPass(const std::shared_ptr<VulkanContext> &context, const PipelineOptions &pipelineOptions);
   ~RenderPass();

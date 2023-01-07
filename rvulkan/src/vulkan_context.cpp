@@ -90,6 +90,15 @@ VulkanContext::VulkanContext(const VulkanContextCreateOptions& options,
   command_pool = device->GetHandle().createCommandPool(command_pool_info);
 }
 
+VulkanContext::~VulkanContext() {
+  device->GetHandle().destroyCommandPool(command_pool);
+  device->GetHandle().destroyDescriptorPool(descriptor_pool);
+  vmaDestroyAllocator(allocator);
+
+  instance.destroySurfaceKHR(surface->GetHandle());
+  device->GetHandle().destroy();
+}
+
 const vk::SurfaceFormatKHR& VulkanContext::GetSurfaceFormat() const { return surface->GetFormat(); }
 
 void VulkanContext::CreateAllocator() {

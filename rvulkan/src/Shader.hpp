@@ -13,8 +13,8 @@ class Shader {
   Shader(const std::shared_ptr<VulkanContext>& context, const std::vector<uint32_t>& vertCode,
          const std::vector<uint32_t>& fragCode);
 
-  const vk::ShaderModule& GetVertexModule() const { return vertexShader; }
-  const vk::ShaderModule& GetFragmentModule() const { return fragmentShader; }
+  [[nodiscard]] const vk::ShaderModule& GetVertexModule() const { return vertexShader; }
+  [[nodiscard]] const vk::ShaderModule& GetFragmentModule() const { return fragmentShader; }
 
  private:
   vk::ShaderModule vertexShader;

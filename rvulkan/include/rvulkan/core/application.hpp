@@ -15,6 +15,9 @@ class Renderer;
 class Application {
  public:
   Application();
+  ~Application() {
+    if (!closed) Close();
+  }
 
   const std::shared_ptr<Window>& GetWindow() { return window; }
 
@@ -27,8 +30,10 @@ class Application {
   void PushLayer(const std::shared_ptr<Layer>& layer);
 
  private:
+  void Close();
   void OnEvent(Event& e);
 
+  bool closed = false;
   bool running = true;
 
   std::shared_ptr<ImGuiLayer> imgui_layer;

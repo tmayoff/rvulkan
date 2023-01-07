@@ -21,6 +21,11 @@ Swapchain::Swapchain(std::shared_ptr<VulkanContext> vulkan_context_,
   CreateFramebuffers();
 }
 
+Swapchain::~Swapchain() {
+  vulkan_context->GetLogicalDevice()->GetHandle().waitIdle();
+  CleanupSwapchain();
+}
+
 void Swapchain::RecreateSwapchain(const vk::Extent2D& surface_extent_) {
   surface_extent = surface_extent_;
 

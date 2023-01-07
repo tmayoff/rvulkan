@@ -6,6 +6,7 @@
 #include <Window.hpp>
 #include <chrono>
 #include <debug/profiler.hpp>
+#include <memory>
 #include <rvulkan/core/log.hpp>
 #include <rvulkan/events/event.hpp>
 #include <rvulkan/events/window_events.hpp>
@@ -31,8 +32,8 @@ Application::Application() {
 
   renderer = std::make_shared<Renderer>(vulkan_context);
 
-  imgui_layer = std::make_shared<ImGuiLayer>(window, vulkan_context, renderer);
-  layers.push_back(imgui_layer);
+  // imgui_layer = std::make_shared<ImGuiLayer>(window, vulkan_context, renderer);
+  // layers.push_back(imgui_layer);
 }
 
 void Application::Run() {
@@ -67,6 +68,8 @@ void Application::Run() {
 
     renderer->EndFrame();
   }
+
+  Close();
 }
 
 void Application::PushLayer(const std::shared_ptr<Layer>& layer) {
@@ -74,10 +77,24 @@ void Application::PushLayer(const std::shared_ptr<Layer>& layer) {
   layer->OnAttach();
 }
 
+void Application::Close() {
+  closed = true;
+
+  // Remove layers
+  for (auto it = layers.begin(); it != layers.end();) {
+    (*it)->OnDetach();
+    layers.erase(it);
+  }
+
+  renderer.reset();
+  vulkan_context.reset();
+}
+
 void Application::OnEvent(Event& e) {
   Dispatcher dispatcher(e);
   dispatcher.Dispatch<WindowCloseEvent>([this](WindowCloseEvent&) {
     running = false;
+
     return true;
   });
 

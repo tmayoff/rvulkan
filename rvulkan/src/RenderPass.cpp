@@ -34,5 +34,9 @@ RenderPass::RenderPass(const std::shared_ptr<VulkanContext>& context,
 
 RenderPass::~RenderPass() {
   pipeline.reset();
-  context->GetLogicalDevice()->GetHandle().destroyRenderPass(renderPass);
+
+  auto device = context->GetLogicalDevice()->GetHandle();
+  device.destroyShaderModule(shader.GetFragmentModule());
+  device.destroyShaderModule(shader.GetVertexModule());
+  device.destroyRenderPass(renderPass);
 }

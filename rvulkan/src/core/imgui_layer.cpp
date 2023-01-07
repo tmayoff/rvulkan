@@ -32,7 +32,7 @@ ImGuiLayer::ImGuiLayer(const std::shared_ptr<Window>& window,
   init_info.Queue = vulkan_context->GetLogicalDevice()->GetGraphicsQueue();
   init_info.DescriptorPool = vulkan_context->GetDescriptorPool();
   init_info.MinImageCount = 2;
-  init_info.ImageCount = renderer->GetRenderContext().GetSwapchain().GetImageViews().size();
+  init_info.ImageCount = renderer->GetRenderContext().GetSwapchain()->GetImageViews().size();
   init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
 
   bool inited =
@@ -65,24 +65,18 @@ void ImGuiLayer::OnEvent(Event& event) {
 
   Dispatcher dispatcher(event);
   dispatcher.Dispatch<MouseButtonPressedEvent>([&io](MouseButtonPressedEvent& e) {
-    if (e.GetMouseButton() == MouseButton::ButtonLeft) {
-      io.MouseDown[0] = true;
-    } else if (e.GetMouseButton() == MouseButton::ButtonMiddle) {
-      io.MouseDown[2] = true;
-    } else if (e.GetMouseButton() == MouseButton::ButtonRight) {
-      io.MouseDown[1] = true;
+    if (io.WantCaptureMouse) {
+      io.AddMouseButtonEvent(static_cast<int>(e.GetMouseButton()), true);
+      return true;
     }
 
     return false;
   });
 
   dispatcher.Dispatch<MouseButtonReleasedEvent>([&io](MouseButtonReleasedEvent& e) {
-    if (e.GetMouseButton() == MouseButton::ButtonLeft) {
-      io.MouseDown[0] = false;
-    } else if (e.GetMouseButton() == MouseButton::ButtonMiddle) {
-      io.MouseDown[2] = false;
-    } else if (e.GetMouseButton() == MouseButton::ButtonRight) {
-      io.MouseDown[1] = false;
+    if (io.WantCaptureMouse) {
+      io.AddMouseButtonEvent(static_cast<int>(e.GetMouseButton()), false);
+      return true;
     }
 
     return false;

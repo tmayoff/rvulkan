@@ -23,6 +23,8 @@ class VulkanContext {
   explicit VulkanContext(const VulkanContextCreateOptions& options,
                          const std::shared_ptr<Window>& window);
 
+  ~VulkanContext();
+
   [[nodiscard]] const vk::Instance& GetInstance() const { return instance; }
   [[nodiscard]] const std::shared_ptr<PhysicalDevice>& GetPhysicalDevice() const {
     return physical_device;
