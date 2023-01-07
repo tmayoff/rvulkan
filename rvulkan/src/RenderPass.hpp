@@ -17,7 +17,7 @@ class RenderPass : public non_copyable, public non_movable {
   [[nodiscard]] const std::shared_ptr<Pipeline> &GetPipeline() const { return pipeline; }
 
  private:
-  std::shared_ptr<VulkanContext> context;
+  vk::Device device;
 
   std::shared_ptr<Pipeline> pipeline;
 

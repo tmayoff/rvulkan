@@ -130,9 +130,9 @@ void RenderContext::DrawIndexed(uint32_t index_count) const {
 
 void RenderContext::CreateRenderPass() {
   PipelineOptions pipeline_options{};
-  pipeline_options.shader =
-      Shader(vulkan_context, Shader::ReadFile("rvulkan/assets/shaders/vert.spv"),
-             Shader::ReadFile("rvulkan/assets/shaders/frag.spv"));
+  pipeline_options.shader = Shader(vulkan_context->GetLogicalDevice()->GetHandle(),
+                                   {Shader::ReadFile("rvulkan/assets/shaders/vert.spv"),
+                                    Shader::ReadFile("rvulkan/assets/shaders/frag.spv")});
   pipeline_options.surface_extent = surface_extent;
   pipeline_options.bufferLayout = Vertex::GetLayout();
   pipeline_options.uniform_buffer_layouts = {Vertex::GetUniformLayout()};

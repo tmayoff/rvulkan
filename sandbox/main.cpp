@@ -50,7 +50,7 @@ inline void SandboxLayer::OnAttach() {
 }
 
 inline void SandboxLayer::OnUpdate(const RenderContext& render_context) {
-  // scene->OnUpdate(render_context);
+  scene->OnUpdate(render_context);
 }
 
 inline void SandboxLayer::OnEvent(Event& e) {

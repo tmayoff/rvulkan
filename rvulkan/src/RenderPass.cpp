@@ -10,7 +10,7 @@
 
 RenderPass::RenderPass(const std::shared_ptr<VulkanContext>& context,
                        const PipelineOptions& pipelineOptions)
-    : context(context) {
+    : device(context->GetLogicalDevice()->GetHandle()) {
   vk::AttachmentDescription color_attachment(
       {}, context->GetSurfaceFormat().format, vk::SampleCountFlagBits::e1,
       vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore, vk::AttachmentLoadOp::eDontCare,
@@ -35,7 +35,6 @@ RenderPass::RenderPass(const std::shared_ptr<VulkanContext>& context,
 RenderPass::~RenderPass() {
   pipeline.reset();
 
-  auto device = context->GetLogicalDevice()->GetHandle();
   device.destroyShaderModule(shader.GetFragmentModule());
   device.destroyShaderModule(shader.GetVertexModule());
   device.destroyRenderPass(renderPass);

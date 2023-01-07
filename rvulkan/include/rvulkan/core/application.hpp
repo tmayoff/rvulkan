@@ -12,6 +12,8 @@ class VulkanContext;
 class Window;
 class Renderer;
 
+const bool USE_IMGUI = false;
+
 class Application {
  public:
   Application();

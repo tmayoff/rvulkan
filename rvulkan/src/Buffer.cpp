@@ -1,5 +1,7 @@
 #include "Buffer.hpp"
 
+#include <vulkan/vulkan_core.h>
+
 #include <rvulkan/core/memory.hpp>
 #include <rvulkan/vulkan_context.hpp>
 #include <vulkan/LogicalDevice.hpp>
@@ -23,15 +25,13 @@ Buffer::Buffer(const std::shared_ptr<VulkanContext>& context, size_t byte_size,
                   reinterpret_cast<VkBuffer*>(&buffer), &allocation, nullptr);
 }
 
-Buffer::~Buffer() {
-  //
-  vmaDestroyBuffer(allocator, buffer, allocation);
-}
+Buffer::~Buffer() { vmaDestroyBuffer(allocator, buffer, allocation); }
 
 void Buffer::SetData(void* data, uint32_t size) {
   void* mem = nullptr;
   vmaMapMemory(allocator, allocation, &mem);
   std::memcpy(mem, data, size);
   vmaUnmapMemory(allocator, allocation);
+  vmaFlushAllocation(allocator, allocation, 0, VK_WHOLE_SIZE);
   memory = static_cast<uint8_t*>(mem);
 }

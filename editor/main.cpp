@@ -21,7 +21,7 @@ int main() {
   auto app = Application();
   app.PushLayer(std::make_shared<EditorLayer>());
 
-  // app.Run();
+  app.Run();
 
   return EXIT_SUCCESS;
 }

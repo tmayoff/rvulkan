@@ -32,8 +32,10 @@ Application::Application() {
 
   renderer = std::make_shared<Renderer>(vulkan_context);
 
-  // imgui_layer = std::make_shared<ImGuiLayer>(window, vulkan_context, renderer);
-  // layers.push_back(imgui_layer);
+  if (USE_IMGUI) {
+    imgui_layer = std::make_shared<ImGuiLayer>(window, vulkan_context, renderer);
+    layers.push_back(imgui_layer);
+  }
 }
 
 void Application::Run() {
@@ -47,10 +49,12 @@ void Application::Run() {
 
     if (window != nullptr) window->Update();
 
-    imgui_layer->Begin();
-    for (const auto& l : layers)
-      if (l != nullptr) l->OnImGuiUpdate();
-    imgui_layer->End();
+    if (USE_IMGUI) {
+      imgui_layer->Begin();
+      for (const auto& l : layers)
+        if (l != nullptr) l->OnImGuiUpdate();
+      imgui_layer->End();
+    }
 
     renderer->BeginFrame();
 
