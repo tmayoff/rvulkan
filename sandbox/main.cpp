@@ -14,7 +14,7 @@
 class SandboxLayer : public Layer {
  public:
   explicit SandboxLayer(std::shared_ptr<VulkanContext> vulkan_context)
-      : vulkan_context(std::move(vulkan_context)) {}
+      : Layer("SandboxLayer"), vulkan_context(std::move(vulkan_context)) {}
 
   void OnAttach() override;
   void OnUpdate(const RenderContext& render_context) override;

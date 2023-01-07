@@ -2,7 +2,7 @@
 #define KEY_EVENTS_HPP
 
 #include "event.hpp"
-#include "keycodes.hpp"
+#include "key_codes.hpp"
 
 class KeyEvent : public Event {
  public:
@@ -12,6 +12,15 @@ class KeyEvent : public Event {
 
  private:
   Key keycode;
+};
+
+class KeyPressedEvent : public KeyEvent {
+ public:
+  explicit KeyPressedEvent(Key key) : KeyEvent(key) {}
+};
+
+class KeyReleasedEvent : public KeyEvent {
+  explicit KeyReleasedEvent(Key key) : KeyEvent(key) {}
 };
 
 #endif  // KEY_EVENTS_HPP

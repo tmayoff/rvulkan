@@ -13,10 +13,13 @@
 #include "imgui.h"
 #include "imgui_impl_sdl.h"
 #include "imgui_impl_vulkan.h"
+#include "rvulkan/events/mouse_codes.hpp"
+#include "rvulkan/events/mouse_events.hpp"
 
 ImGuiLayer::ImGuiLayer(const std::shared_ptr<Window>& window,
                        std::shared_ptr<VulkanContext>& vulkan_context,
-                       const std::shared_ptr<Renderer>& renderer) {
+                       const std::shared_ptr<Renderer>& renderer)
+    : Layer("ImGuiLayer") {
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
 
@@ -46,8 +49,6 @@ void ImGuiLayer::Begin() {
   ImGui_ImplSDL2_NewFrame();
 
   ImGui::NewFrame();
-
-  ImGui::ShowDemoWindow();
 }
 
 void ImGuiLayer::End() {
@@ -59,7 +60,34 @@ void ImGuiLayer::OnUpdate(const RenderContext& render_context) {
   ImGui_ImplVulkan_RenderDrawData(draw_data, render_context.GetCurrentCommandBuffer());
 }
 
-void ImGuiLayer::OnEvent(Event& /*unused*/) {}
+void ImGuiLayer::OnEvent(Event& event) {
+  ImGuiIO& io = ImGui::GetIO();
+
+  Dispatcher dispatcher(event);
+  dispatcher.Dispatch<MouseButtonPressedEvent>([&io](MouseButtonPressedEvent& e) {
+    if (e.GetMouseButton() == MouseButton::ButtonLeft) {
+      io.MouseDown[0] = true;
+    } else if (e.GetMouseButton() == MouseButton::ButtonMiddle) {
+      io.MouseDown[2] = true;
+    } else if (e.GetMouseButton() == MouseButton::ButtonRight) {
+      io.MouseDown[1] = true;
+    }
+
+    return false;
+  });
+
+  dispatcher.Dispatch<MouseButtonReleasedEvent>([&io](MouseButtonReleasedEvent& e) {
+    if (e.GetMouseButton() == MouseButton::ButtonLeft) {
+      io.MouseDown[0] = false;
+    } else if (e.GetMouseButton() == MouseButton::ButtonMiddle) {
+      io.MouseDown[2] = false;
+    } else if (e.GetMouseButton() == MouseButton::ButtonRight) {
+      io.MouseDown[1] = false;
+    }
+
+    return false;
+  });
+}
 
 void ImGuiLayer::CreateFontAtlas(std::shared_ptr<VulkanContext>& vulkan_context,
                                  const std::shared_ptr<Renderer>& renderer) {
