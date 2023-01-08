@@ -5,6 +5,10 @@
 #include <Renderer.hpp>
 #include <Window.hpp>
 #include <rvulkan/core/log.hpp>
+#include <rvulkan/events/key_codes.hpp>
+#include <rvulkan/events/key_events.hpp>
+#include <rvulkan/events/mouse_codes.hpp>
+#include <rvulkan/events/mouse_events.hpp>
 #include <vulkan/LogicalDevice.hpp>
 #include <vulkan/PhysicalDevice.hpp>
 #include <vulkan/vulkan_enums.hpp>
@@ -13,8 +17,6 @@
 #include "imgui.h"
 #include "imgui_impl_sdl.h"
 #include "imgui_impl_vulkan.h"
-#include "rvulkan/events/mouse_codes.hpp"
-#include "rvulkan/events/mouse_events.hpp"
 
 ImGuiLayer::ImGuiLayer(const std::shared_ptr<Window>& window,
                        std::shared_ptr<VulkanContext>& vulkan_context,
@@ -86,6 +88,31 @@ void ImGuiLayer::OnEvent(Event& event) {
       return true;
     }
 
+    return false;
+  });
+
+  dispatcher.Dispatch<KeyTypedEvent>([&io](KeyTypedEvent& e) {
+    if (io.WantTextInput) {
+      io.AddInputCharactersUTF8(e.GetText().c_str());
+      return true;
+    }
+
+    return false;
+  });
+
+  dispatcher.Dispatch<KeyPressedEvent>([&io](KeyPressedEvent& e) {
+    if (io.WantCaptureKeyboard) {
+      io.AddKeyEvent(KeyCodeKeycodeToImGuiKey(e.GetKeycode()), true);
+      return true;
+    }
+    return false;
+  });
+
+  dispatcher.Dispatch<KeyReleasedEvent>([&io](KeyReleasedEvent& e) {
+    if (io.WantCaptureKeyboard) {
+      io.AddKeyEvent(KeyCodeKeycodeToImGuiKey(e.GetKeycode()), false);
+      return true;
+    }
     return false;
   });
 }

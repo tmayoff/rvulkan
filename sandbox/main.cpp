@@ -28,7 +28,7 @@ class SandboxLayer : public Layer {
 };
 
 int main() {
-  auto app = std::make_shared<Application>();
+  auto app = std::make_shared<Application>(AppSettings{false});
   app->PushLayer(std::make_unique<SandboxLayer>(app->GetVulkanContext()));
   app->Run();
 }

@@ -1,22 +1,33 @@
+#include <imgui.h>
+
 #include <cstdlib>
 #include <memory>
 #include <rvulkan/core/application.hpp>
 #include <rvulkan/core/layer.hpp>
+#include <rvulkan/scene/components/mesh_renderer.hpp>
+#include <rvulkan/scene/entity.hpp>
 #include <rvulkan/scene/scene.hpp>
 
-#include "imgui.h"
 #include "panels/inspector.hpp"
 #include "panels/scene_hierarchy.hpp"
 
 class EditorLayer : public Layer {
  public:
-  EditorLayer()
+  explicit EditorLayer(std::shared_ptr<VulkanContext> vulkan_context)
       : Layer("EditorLayer"),
+        vulkan_context(std::move(vulkan_context)),
         scene(std::make_shared<Scene>()),
         scene_hierarchy(scene),
         inspector(scene) {}
 
+  void OnAttach() override {
+    auto quad = scene->CreateEntity("Quad");
+    quad.AddComponent<Component::MeshRenderer>(Mesh::CreateQuadMesh(vulkan_context));
+  }
+
   void OnImGuiUpdate() override {
+    ImGui::ShowDemoWindow();
+
     BeginMainWindow();
 
     scene_hierarchy.OnUpdate();
@@ -30,6 +41,8 @@ class EditorLayer : public Layer {
   static void BeginMainWindow();
   static void EndMainWindow();
 
+  std::shared_ptr<VulkanContext> vulkan_context;
+
   std::shared_ptr<Scene> scene;
   SceneHierarchy scene_hierarchy;
   Inspector inspector;
@@ -37,7 +50,7 @@ class EditorLayer : public Layer {
 
 int main() {
   auto app = Application();
-  app.PushLayer(std::make_unique<EditorLayer>());
+  app.PushLayer(std::make_unique<EditorLayer>(app.GetVulkanContext()));
 
   app.Run();
 
@@ -47,8 +60,8 @@ int main() {
 inline void EditorLayer::BeginMainWindow() {
   // Setup Docking window
 
-  static bool fullscreen = true;
-  static bool padding = false;
+  static const bool fullscreen = true;
+  static const bool padding = false;
   static uint32_t dockspace_flags = ImGuiDockNodeFlags_None;
 
   static uint32_t window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;

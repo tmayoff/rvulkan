@@ -18,8 +18,8 @@
 #include "imgui_impl_vulkan.h"
 #include "rvulkan/core/imgui_layer.hpp"
 
-Application::Application() {
-  logger::Init();
+Application::Application(const AppSettings& app_settings) : app_settings(app_settings) {
+  logger::Init(spdlog::level::debug);
 
   // Create Window
   window = std::make_shared<Window>();
@@ -33,12 +33,13 @@ Application::Application() {
 
   renderer = std::make_shared<Renderer>(vulkan_context);
 
-  if (USE_IMGUI) PushLayer(std::make_unique<ImGuiLayer>(window, vulkan_context, renderer));
+  if (app_settings.use_imgui)
+    PushLayer(std::make_unique<ImGuiLayer>(window, vulkan_context, renderer));
 }
 
 void Application::Run() {
   std::chrono::steady_clock::time_point last_loop;
-  const auto target_frame_time = std::chrono::milliseconds(16);
+  const auto target_frame_time = std::chrono::milliseconds(8);
 
   while (running) {
     FrameMark;
@@ -47,7 +48,7 @@ void Application::Run() {
 
     if (window != nullptr) window->Update();
 
-    if (USE_IMGUI) {
+    if (app_settings.use_imgui) {
       reinterpret_cast<ImGuiLayer*>(layers.at("ImGuiLayer").get())->Begin();
       for (const auto& l : layers)
         if (l.second != nullptr) l.second->OnImGuiUpdate();

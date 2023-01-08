@@ -1,5 +1,6 @@
 #include "inspector.hpp"
 
+#include <rvulkan/imgui/components/components.hpp>
 #include <rvulkan/imgui/imgui_utils.hpp>
 #include <rvulkan/scene/components/tag.hpp>
 #include <rvulkan/scene/entity.hpp>
@@ -9,10 +10,13 @@ void Inspector::OnUpdate() {
     if (selected_entity) {
       Entity entity{scene.get(), selected_entity.value()};
 
-      auto& tag = entity.GetComponent<Component::Tag>();
-      std::string tag_name = tag.GetTag();
-      LabeledInputText("Tag", tag_name);
-      tag.SetTag(tag_name);
+      DrawTagComponent(entity.GetComponent<Component::Tag>());
+
+      ImGui::Separator();
+
+      DrawTransformComponent(entity.GetTransform());
+
+      ImGui::Separator();
     }
 
     ImGui::End();

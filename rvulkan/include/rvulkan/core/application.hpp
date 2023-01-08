@@ -12,11 +12,13 @@ class VulkanContext;
 class Window;
 class Renderer;
 
-const bool USE_IMGUI = true;
+struct AppSettings {
+  bool use_imgui = true;
+};
 
 class Application {
  public:
-  Application();
+  explicit Application(const AppSettings& app_settings = {});
   ~Application() { running = false; }
 
   const std::shared_ptr<Window>& GetWindow() { return window; }
@@ -34,6 +36,8 @@ class Application {
   void OnEvent(Event& e);
 
   bool running = true;
+
+  AppSettings app_settings;
 
   std::map<std::string, std::unique_ptr<Layer>> layers;
 

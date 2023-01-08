@@ -1,6 +1,8 @@
 #ifndef KEYCODES_HPP
 #define KEYCODES_HPP
 
+#include <imgui.h>
+
 enum class Key {
   A = 4,
   B = 5,
@@ -51,7 +53,6 @@ enum class Key {
   LEFTBRACKET = 47,
   RIGHTBRACKET = 48,
   BACKSLASH = 49,
-  NONUSHASH = 50,
   SEMICOLON = 51,
   APOSTROPHE = 52,
   GRAVE = 53,
@@ -108,57 +109,126 @@ enum class Key {
   KP_0 = 98,
   KP_PERIOD = 99,
 
-  NONUSBACKSLASH = 100, /**< This is the additional key that ISO
-                         *   keyboards have over ANSI ones,
-                         *   located between left shift and Y.
-                         *   Produces GRAVE ACCENT and TILDE in a
-                         *   US or UK Mac layout, REVERSE SOLIDUS
-                         *   (backslash) and VERTICAL LINE in a
-                         *   US or UK Windows layout, and
-                         *   LESS-THAN SIGN and GREATER-THAN SIGN
-                         *   in a Swiss German, German, or French
-                         *   layout. */
-  APPLICATION = 101,    /**< windows contextual menu, compose */
-  POWER = 102,          /**< The USB document says this is a status flag,
-                         *   not a physical key - but some Mac keyboards
-                         *   do have a power key. */
   KP_EQUALS = 103,
-  F13 = 104,
-  F14 = 105,
-  F15 = 106,
-  F16 = 107,
-  F17 = 108,
-  F18 = 109,
-  F19 = 110,
-  F20 = 111,
-  F21 = 112,
-  F22 = 113,
-  F23 = 114,
-  F24 = 115,
-  EXECUTE = 116,
-  HELP = 117,
+
   MENU = 118,
-  SELECT = 119,
-  STOP = 120,
-  AGAIN = 121, /**< redo */
-  UNDO = 122,
-  CUT = 123,
-  COPY = 124,
-  PASTE = 125,
-  FIND = 126,
-  MUTE = 127,
-  VOLUMEUP = 128,
-  VOLUMEDOWN = 129,
 
   LCTRL = 224,
   LSHIFT = 225,
   LALT = 226, /**< alt, option */
-  LGUI = 227, /**< windows, command (apple), meta */
   RCTRL = 228,
   RSHIFT = 229,
   RALT = 230, /**< alt gr, option */
-  RGUI = 231, /**< windows, command (apple), meta */
 
 };
+
+inline static ImGuiKey KeyCodeKeycodeToImGuiKey(Key keycode) {
+  switch (keycode) {
+    case Key::TAB: return ImGuiKey_Tab;
+    case Key::A: return ImGuiKey_A;
+    case Key::B: return ImGuiKey_B;
+    case Key::C: return ImGuiKey_C;
+    case Key::D: return ImGuiKey_D;
+    case Key::E: return ImGuiKey_E;
+    case Key::F: return ImGuiKey_F;
+    case Key::G: return ImGuiKey_G;
+    case Key::H: return ImGuiKey_H;
+    case Key::I: return ImGuiKey_I;
+    case Key::J: return ImGuiKey_J;
+    case Key::K: return ImGuiKey_K;
+    case Key::L: return ImGuiKey_L;
+    case Key::M: return ImGuiKey_M;
+    case Key::N: return ImGuiKey_N;
+    case Key::O: return ImGuiKey_O;
+    case Key::P: return ImGuiKey_P;
+    case Key::Q: return ImGuiKey_Q;
+    case Key::R: return ImGuiKey_R;
+    case Key::S: return ImGuiKey_S;
+    case Key::T: return ImGuiKey_T;
+    case Key::U: return ImGuiKey_U;
+    case Key::V: return ImGuiKey_V;
+    case Key::W: return ImGuiKey_W;
+    case Key::X: return ImGuiKey_X;
+    case Key::Y: return ImGuiKey_Y;
+    case Key::Z: return ImGuiKey_Z;
+    case Key::D1: return ImGuiKey_1;
+    case Key::D2: return ImGuiKey_2;
+    case Key::D3: return ImGuiKey_3;
+    case Key::D4: return ImGuiKey_4;
+    case Key::D5: return ImGuiKey_5;
+    case Key::D6: return ImGuiKey_6;
+    case Key::D7: return ImGuiKey_7;
+    case Key::D8: return ImGuiKey_8;
+    case Key::D9: return ImGuiKey_9;
+    case Key::D0: return ImGuiKey_0;
+    case Key::RETURN: return ImGuiKey_Enter;
+    case Key::ESCAPE: return ImGuiKey_Escape;
+    case Key::BACKSPACE: return ImGuiKey_Backspace;
+    case Key::SPACE: return ImGuiKey_Space;
+    case Key::MINUS: return ImGuiKey_Minus;
+    case Key::EQUALS: return ImGuiKey_Equal;
+    case Key::LEFTBRACKET: return ImGuiKey_LeftBracket;
+    case Key::RIGHTBRACKET: return ImGuiKey_RightBracket;
+    case Key::BACKSLASH: return ImGuiKey_Backslash;
+    case Key::SEMICOLON: return ImGuiKey_Semicolon;
+    case Key::APOSTROPHE: return ImGuiKey_Apostrophe;
+    case Key::GRAVE: return ImGuiKey_GraveAccent;
+    case Key::COMMA: return ImGuiKey_Comma;
+    case Key::PERIOD: return ImGuiKey_Period;
+    case Key::SLASH: return ImGuiKey_Slash;
+    case Key::CAPSLOCK: return ImGuiKey_CapsLock;
+    case Key::F1: return ImGuiKey_F1;
+    case Key::F2: return ImGuiKey_F2;
+    case Key::F3: return ImGuiKey_F3;
+    case Key::F4: return ImGuiKey_F4;
+    case Key::F5: return ImGuiKey_F5;
+    case Key::F6: return ImGuiKey_F6;
+    case Key::F7: return ImGuiKey_F7;
+    case Key::F8: return ImGuiKey_F8;
+    case Key::F9: return ImGuiKey_F9;
+    case Key::F10: return ImGuiKey_F10;
+    case Key::F11: return ImGuiKey_F11;
+    case Key::F12: return ImGuiKey_F12;
+    case Key::PRINTSCREEN: return ImGuiKey_PrintScreen;
+    case Key::SCROLLLOCK: return ImGuiKey_ScrollLock;
+    case Key::PAUSE: return ImGuiKey_Pause;
+    case Key::INSERT: return ImGuiKey_Insert;
+    case Key::HOME: return ImGuiKey_Home;
+    case Key::PAGEUP: return ImGuiKey_PageUp;
+    case Key::DELETE: return ImGuiKey_Delete;
+    case Key::END: return ImGuiKey_End;
+    case Key::PAGEDOWN: return ImGuiKey_PageDown;
+    case Key::RIGHT: return ImGuiKey_RightArrow;
+    case Key::LEFT: return ImGuiKey_LeftArrow;
+    case Key::DOWN: return ImGuiKey_DownArrow;
+    case Key::UP: return ImGuiKey_UpArrow;
+    case Key::NUMLOCKCLEAR: return ImGuiKey_NumLock;
+    case Key::KP_DIVIDE: return ImGuiKey_KeypadDivide;
+    case Key::KP_MULTIPLY: return ImGuiKey_KeypadMultiply;
+    case Key::KP_MINUS: return ImGuiKey_KeypadSubtract;
+    case Key::KP_PLUS: return ImGuiKey_KeypadAdd;
+    case Key::KP_ENTER: return ImGuiKey_KeypadEnter;
+    case Key::KP_1: return ImGuiKey_1;
+    case Key::KP_2: return ImGuiKey_2;
+    case Key::KP_3: return ImGuiKey_3;
+    case Key::KP_4: return ImGuiKey_4;
+    case Key::KP_5: return ImGuiKey_5;
+    case Key::KP_6: return ImGuiKey_6;
+    case Key::KP_7: return ImGuiKey_7;
+    case Key::KP_8: return ImGuiKey_8;
+    case Key::KP_9: return ImGuiKey_9;
+    case Key::KP_0: return ImGuiKey_0;
+    case Key::KP_PERIOD: return ImGuiKey_KeypadDecimal;
+    case Key::KP_EQUALS: return ImGuiKey_KeypadEqual;
+    case Key::MENU: return ImGuiKey_Menu;
+    case Key::LCTRL: return ImGuiKey_LeftCtrl;
+    case Key::LSHIFT: return ImGuiKey_LeftShift;
+    case Key::LALT: return ImGuiKey_LeftAlt;
+    case Key::RCTRL: return ImGuiKey_RightCtrl;
+    case Key::RSHIFT: return ImGuiKey_RightShift;
+    case Key::RALT: return ImGuiKey_RightAlt;
+  }
+  return ImGuiKey_None;
+}
 
 #endif  // KEYCODES_HPP
