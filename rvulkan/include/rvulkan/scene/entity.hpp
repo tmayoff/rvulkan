@@ -27,6 +27,8 @@ class Entity {
   template <typename T, typename... Args>
   T& AddComponent(Args&&... args);
 
+  [[nodiscard]] const entt::entity& GetHandle() const { return handle; }
+
  private:
   Scene* scene;
   entt::entity handle;

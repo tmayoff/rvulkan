@@ -12,7 +12,7 @@ class Tag : public Base {
  public:
   explicit Tag(std::string tag) : tag(std::move(tag)) {}
 
-  std::string GetTag() { return tag; }
+  [[nodiscard]] const std::string& GetTag() const { return tag; }
   void SetTag(std::string tag) { this->tag = std::move(tag); }
 
  private:

@@ -1,21 +1,30 @@
 #include <cstdlib>
+#include <memory>
 #include <rvulkan/core/application.hpp>
 #include <rvulkan/core/layer.hpp>
+#include <rvulkan/scene/scene.hpp>
 
 #include "imgui.h"
+#include "panels/scene_panel.hpp"
 
 class EditorLayer : public Layer {
  public:
-  EditorLayer() : Layer("EditorLayer") {}
+   EditorLayer() : Layer("EditorLayer"), scene(std::make_shared<Scene>()), scene_panel(scene) { }
 
   void OnImGuiUpdate() override {
     BeginMainWindow();
+
+    scene_panel.OnUpdate();
+
     EndMainWindow();
   }
 
  private:
   static void BeginMainWindow();
   static void EndMainWindow();
+
+  std::shared_ptr<Scene> scene;
+  ScenePanel scene_panel;
 };
 
 int main() {
