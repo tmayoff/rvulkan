@@ -23,6 +23,9 @@ ImGuiLayer::ImGuiLayer(const std::shared_ptr<Window>& window,
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
 
+  ImGuiIO& io = ImGui::GetIO();
+  io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+
   ImGui_ImplSDL2_InitForVulkan(window->GetWindowHandle());
   ImGui_ImplVulkan_InitInfo init_info = {};
   init_info.Instance = vulkan_context->GetInstance();
