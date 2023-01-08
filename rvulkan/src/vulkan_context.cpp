@@ -35,7 +35,23 @@ VkBool32 DebugMessageFunc(VkDebugUtilsMessageSeverityFlagBitsEXT msg_severity,
       vk::to_string(static_cast<vk::DebugUtilsMessageSeverityFlagBitsEXT>(msg_severity));
   auto type = vk::to_string(static_cast<vk::DebugUtilsMessageTypeFlagBitsEXT>(msg_types));
 
-  logger::debug("{} {} {}", severity, type, p_callback_data->pMessage);
+  switch (msg_severity) {
+    case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
+      logger::trace("{} {}", type, p_callback_data->pMessage);
+      break;
+    case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
+      logger::info("{} {}", type, p_callback_data->pMessage);
+      break;
+    case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
+      logger::warning("{} {}", type, p_callback_data->pMessage);
+      break;
+    case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
+      logger::error("{} {}", type, p_callback_data->pMessage);
+      break;
+    case VK_DEBUG_UTILS_MESSAGE_SEVERITY_FLAG_BITS_MAX_ENUM_EXT:
+      logger::fatal("{} {}", type, p_callback_data->pMessage);
+      break;
+  }
 
   return VK_FALSE;
 }
