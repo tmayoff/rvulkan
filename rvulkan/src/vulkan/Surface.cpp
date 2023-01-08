@@ -21,11 +21,17 @@ void Surface::Init(const std::shared_ptr<PhysicalDevice>& physical_device) {
   // Get prefered present mode
   if (std::find(present_modes.begin(), present_modes.end(), vk::PresentModeKHR::eMailbox) !=
       present_modes.end()) {
-    logger::info("Using Prefered presentation mode: Mailbox");
+    logger::debug("Using Prefered presentation mode: Mailbox");
     present_mode = vk::PresentModeKHR::eMailbox;
   }
 
-  logger::debug("Present Mode {}", vk::to_string(present_mode));
+  if (std::find(present_modes.begin(), present_modes.end(), vk::PresentModeKHR::eImmediate) !=
+      present_modes.end()) {
+    logger::debug("Using Prefered Fallback mode: Immediate");
+    present_mode = vk::PresentModeKHR::eImmediate;
+  }
+
+  logger::info("Present Mode: {}", vk::to_string(present_mode));
 
   present_image_count = surface_caps.maxImageCount;
 
