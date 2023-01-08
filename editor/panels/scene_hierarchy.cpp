@@ -1,4 +1,4 @@
-#include "scene_panel.hpp"
+#include "scene_hierarchy.hpp"
 
 #include <rvulkan/core/log.hpp>
 #include <rvulkan/scene/components/tag.hpp>
@@ -6,7 +6,7 @@
 
 #include "imgui.h"
 
-void ScenePanel::OnUpdate() {
+void SceneHierarchy::OnUpdate() {
   ImGui::Begin("Scene");
 
   // Populate scene hirearchy
@@ -25,7 +25,7 @@ void ScenePanel::OnUpdate() {
   ImGui::End();
 }
 
-void ScenePanel::DrawEntity(const Entity& entity) {
+void SceneHierarchy::DrawEntity(const Entity& entity) {
   const auto& tag = entity.GetComponent<Component::Tag>();
 
   ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;

@@ -6,9 +6,9 @@
 #include <rvulkan/scene/scene.hpp>
 #include <utility>
 
-class ScenePanel {
+class SceneHierarchy {
  public:
-  explicit ScenePanel(std::shared_ptr<Scene> scene) : scene(std::move(scene)) {}
+  explicit SceneHierarchy(std::shared_ptr<Scene> scene) : scene(std::move(scene)) {}
 
   void OnUpdate();
 

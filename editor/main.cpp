@@ -5,16 +5,23 @@
 #include <rvulkan/scene/scene.hpp>
 
 #include "imgui.h"
-#include "panels/scene_panel.hpp"
+#include "panels/inspector.hpp"
+#include "panels/scene_hierarchy.hpp"
 
 class EditorLayer : public Layer {
  public:
-   EditorLayer() : Layer("EditorLayer"), scene(std::make_shared<Scene>()), scene_panel(scene) { }
+  EditorLayer()
+      : Layer("EditorLayer"),
+        scene(std::make_shared<Scene>()),
+        scene_hierarchy(scene),
+        inspector(scene) {}
 
   void OnImGuiUpdate() override {
     BeginMainWindow();
 
-    scene_panel.OnUpdate();
+    scene_hierarchy.OnUpdate();
+    inspector.SetSelectedEntity(scene_hierarchy.GetSelectedContext());
+    inspector.OnUpdate();
 
     EndMainWindow();
   }
@@ -24,7 +31,8 @@ class EditorLayer : public Layer {
   static void EndMainWindow();
 
   std::shared_ptr<Scene> scene;
-  ScenePanel scene_panel;
+  SceneHierarchy scene_hierarchy;
+  Inspector inspector;
 };
 
 int main() {

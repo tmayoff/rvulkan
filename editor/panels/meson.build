@@ -1,1 +1,1 @@
-sources += files('scene_panel.cpp')
+sources += files('inspector.cpp', 'scene_hierarchy.cpp')
