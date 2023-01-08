@@ -8,18 +8,12 @@ class EditorLayer : public Layer {
  public:
   EditorLayer() : Layer("EditorLayer") {}
 
-  void OnImGuiUpdate() override {
-    // ImGui::Begin("Editor");
-
-    // ImGui::Button("Button");
-
-    // ImGui::End();
-  }
+  void OnImGuiUpdate() override { ImGui::ShowDemoWindow(); }
 };
 
 int main() {
   auto app = Application();
-  app.PushLayer(std::make_shared<EditorLayer>());
+  app.PushLayer(std::make_unique<EditorLayer>());
 
   app.Run();
 

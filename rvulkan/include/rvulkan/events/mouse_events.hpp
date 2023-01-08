@@ -35,11 +35,17 @@ class MouseButtonEvent : public Event {
 class MouseButtonPressedEvent : public MouseButtonEvent {
  public:
   explicit MouseButtonPressedEvent(MouseButton button) : MouseButtonEvent(button) {}
+
+  static DescriptorType_t StaticType() { return "MouseButtonPressedEvent"; }
+  [[nodiscard]] DescriptorType_t Type() const override { return "MouseButtonPressedEvent"; }
 };
 
 class MouseButtonReleasedEvent : public MouseButtonEvent {
  public:
   explicit MouseButtonReleasedEvent(MouseButton button) : MouseButtonEvent(button) {}
+
+  static DescriptorType_t StaticType() { return "MouseButtonReleasedEvent"; }
+  [[nodiscard]] DescriptorType_t Type() const override { return "MouseButtonReleasedEvent"; }
 };
 
 #endif  // MOUSE_EVENTS_HPP

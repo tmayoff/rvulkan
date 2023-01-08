@@ -11,6 +11,7 @@
 #include <rvulkan/events/event.hpp>
 #include <rvulkan/events/window_events.hpp>
 #include <rvulkan/vulkan_context.hpp>
+#include <vulkan/LogicalDevice.hpp>
 
 #include "imgui.h"
 #include "imgui_impl_sdl.h"
@@ -32,10 +33,7 @@ Application::Application() {
 
   renderer = std::make_shared<Renderer>(vulkan_context);
 
-  if (USE_IMGUI) {
-    imgui_layer = std::make_shared<ImGuiLayer>(window, vulkan_context, renderer);
-    layers.push_back(imgui_layer);
-  }
+  if (USE_IMGUI) PushLayer(std::make_unique<ImGuiLayer>(window, vulkan_context, renderer));
 }
 
 void Application::Run() {
@@ -50,16 +48,16 @@ void Application::Run() {
     if (window != nullptr) window->Update();
 
     if (USE_IMGUI) {
-      imgui_layer->Begin();
+      reinterpret_cast<ImGuiLayer*>(layers.at("ImGuiLayer").get())->Begin();
       for (const auto& l : layers)
-        if (l != nullptr) l->OnImGuiUpdate();
-      imgui_layer->End();
+        if (l.second != nullptr) l.second->OnImGuiUpdate();
+      reinterpret_cast<ImGuiLayer*>(layers.at("ImGuiLayer").get())->End();
     }
 
     renderer->BeginFrame();
 
     for (const auto& l : layers) {
-      if (l != nullptr) l->OnUpdate(renderer->GetRenderContext());
+      if (l.second != nullptr) l.second->OnUpdate(renderer->GetRenderContext());
     }
 
     auto now = std::chrono::steady_clock::now();
@@ -76,18 +74,22 @@ void Application::Run() {
   Close();
 }
 
-void Application::PushLayer(const std::shared_ptr<Layer>& layer) {
-  layers.push_back(layer);
+void Application::PushLayer(std::unique_ptr<Layer>&& layer) {
   layer->OnAttach();
+  auto name = layer->GetLayerName();
+  layers.emplace(name, std::move(layer));
 }
 
 void Application::Close() {
-  closed = true;
+  ZoneScoped;  // NOLINT
+
+  vulkan_context->GetLogicalDevice()->GetHandle().waitIdle();
 
   // Remove layers
-  for (auto it = layers.begin(); it != layers.end();) {
-    (*it)->OnDetach();
-    layers.erase(it);
+  auto it = layers.begin();
+  for (; it != layers.end();) {
+    (*it).second->OnDetach();
+    it = layers.erase(it);
   }
 
   renderer.reset();
@@ -112,6 +114,6 @@ void Application::OnEvent(Event& e) {
   }
 
   for (const auto& l : layers) {
-    if (!e.Handled()) l->OnEvent(e);
+    if (!e.Handled()) l.second->OnEvent(e);
   }
 }

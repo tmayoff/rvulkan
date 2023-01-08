@@ -17,12 +17,17 @@ std::vector<uint32_t> Shader::ReadFile(const std::string& filepath) {
   return byte_code;
 }
 
-Shader::Shader(const vk::Device& device, const ShaderCode& code) {
+Shader::Shader(const vk::Device& device, const ShaderCode& code) : device_context(device) {
   vk::ShaderModuleCreateInfo vert_shader_info;
   vert_shader_info.setCode(code.vertex_code);
-  vertexShader = device.createShaderModule(vert_shader_info);
+  vertex_module = device.createShaderModule(vert_shader_info);
 
   vk::ShaderModuleCreateInfo frag_shader_info;
   frag_shader_info.setCode(code.fragment_code);
-  fragmentShader = device.createShaderModule(frag_shader_info);
+  fragment_module = device.createShaderModule(frag_shader_info);
+}
+
+Shader::~Shader() {
+  device_context.destroyShaderModule(vertex_module);
+  device_context.destroyShaderModule(fragment_module);
 }

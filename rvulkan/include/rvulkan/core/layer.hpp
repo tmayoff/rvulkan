@@ -18,6 +18,8 @@ class Layer {
   virtual void OnImGuiUpdate() {}
   virtual void OnEvent(Event& /*unused*/) {}
 
+  [[nodiscard]] const std::string& GetLayerName() const { return layer_name; }
+
  private:
   std::string layer_name;
 };

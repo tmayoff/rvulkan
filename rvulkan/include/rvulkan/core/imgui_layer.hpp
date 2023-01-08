@@ -19,6 +19,7 @@ class ImGuiLayer : public Layer {
   void Begin();
   void End();
 
+  void OnDetach() override;
   void OnUpdate(const RenderContext& render_context) override;
   void OnEvent(Event& event) override;
 

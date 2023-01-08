@@ -4,6 +4,7 @@
 #include <SDL2/SDL_vulkan.h>
 
 #include <debug/profiler.hpp>
+#include <rvulkan/core/log.hpp>
 #include <rvulkan/events/mouse_events.hpp>
 #include <rvulkan/events/window_events.hpp>
 #include <set>

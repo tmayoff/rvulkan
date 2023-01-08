@@ -10,7 +10,8 @@
 
 class RenderPass : public non_copyable, public non_movable {
  public:
-  RenderPass(const std::shared_ptr<VulkanContext> &context, const PipelineOptions &pipelineOptions);
+  RenderPass(const std::shared_ptr<VulkanContext> &context, std::unique_ptr<Shader> &&,
+             const PipelineOptions &pipelineOptions);
   ~RenderPass();
 
   [[nodiscard]] const vk::RenderPass &GetHandle() const { return renderPass; }
@@ -24,7 +25,7 @@ class RenderPass : public non_copyable, public non_movable {
   vk::RenderPass renderPass;
   vk::PipelineLayout layout;
 
-  Shader shader;
+  std::unique_ptr<Shader> shader;
 };
 
 #endif  // RENDERPASS_HPP_

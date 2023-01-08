@@ -8,8 +8,8 @@
 
 #include "Pipeline.hpp"
 
-RenderPass::RenderPass(const std::shared_ptr<VulkanContext>& context,
-                       const PipelineOptions& pipelineOptions)
+RenderPass::RenderPass(const std::shared_ptr<VulkanContext> &context,
+                       std::unique_ptr<Shader> &&shader, const PipelineOptions &pipelineOptions)
     : device(context->GetLogicalDevice()->GetHandle()) {
   vk::AttachmentDescription color_attachment(
       {}, context->GetSurfaceFormat().format, vk::SampleCountFlagBits::e1,
@@ -29,13 +29,10 @@ RenderPass::RenderPass(const std::shared_ptr<VulkanContext>& context,
   vk::RenderPassCreateInfo render_pass_info({}, color_attachment, subpass, dependency);
 
   renderPass = context->GetLogicalDevice()->GetHandle().createRenderPass(render_pass_info);
-  pipeline = std::make_shared<Pipeline>(context, pipelineOptions, renderPass);
+  pipeline = std::make_shared<Pipeline>(context, std::move(shader), pipelineOptions, renderPass);
 }
 
 RenderPass::~RenderPass() {
   pipeline.reset();
-
-  device.destroyShaderModule(shader.GetFragmentModule());
-  device.destroyShaderModule(shader.GetVertexModule());
   device.destroyRenderPass(renderPass);
 }

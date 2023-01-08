@@ -24,14 +24,14 @@ static vk::Format ShaderDataTypeToVkFormat(ShaderDataType type) {
   }
 }
 
-Pipeline::Pipeline(const std::shared_ptr<VulkanContext>& context, const PipelineOptions& options,
-                   const vk::RenderPass& renderPass)
-    : context(context) {
+Pipeline::Pipeline(const std::shared_ptr<VulkanContext>& context, std::unique_ptr<Shader>&& shader,
+                   const PipelineOptions& options, const vk::RenderPass& renderPass)
+    : context(context), shader(std::move(shader)) {
   const std::array shader_stage_info = {
       vk::PipelineShaderStageCreateInfo({}, vk::ShaderStageFlagBits::eVertex,
-                                        options.shader.GetVertexModule(), "main"),
+                                        this->shader->GetVertexModule(), "main"),
       vk::PipelineShaderStageCreateInfo({}, vk::ShaderStageFlagBits::eFragment,
-                                        options.shader.GetFragmentModule(), "main")};
+                                        this->shader->GetFragmentModule(), "main")};
 
   std::vector<vk::VertexInputAttributeDescription> vertex_attribute_descriptions;
   const std::vector<vk::VertexInputBindingDescription> vertex_binding_descriptions = {

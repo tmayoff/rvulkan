@@ -44,7 +44,6 @@ ImGuiLayer::ImGuiLayer(const std::shared_ptr<Window>& window,
 }
 
 void ImGuiLayer::Begin() {
-  // Do ImGui First to get the drawn elements
   ImGui_ImplVulkan_NewFrame();
   ImGui_ImplSDL2_NewFrame();
 
@@ -54,6 +53,11 @@ void ImGuiLayer::Begin() {
 void ImGuiLayer::End() {
   ImGui::Render();
   draw_data = ImGui::GetDrawData();
+}
+
+void ImGuiLayer::OnDetach() {
+  ImGui_ImplVulkan_Shutdown();
+  ImGui::DestroyContext();
 }
 
 void ImGuiLayer::OnUpdate(const RenderContext& render_context) {

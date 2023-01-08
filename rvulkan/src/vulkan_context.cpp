@@ -1,5 +1,3 @@
-#include <vulkan/vk_platform.h>
-#include <vulkan/vulkan_core.h>
 
 #include <iostream>
 #include <rvulkan/core/log.hpp>
@@ -14,12 +12,19 @@
 #include <vulkan/vulkan_handles.hpp>
 #include <vulkan/vulkan_structs.hpp>
 
-PFN_vkCreateDebugUtilsMessengerEXT pfnVkCreateDebugUtilsMessengerEXT;  // NOLINT
+PFN_vkCreateDebugUtilsMessengerEXT pfnVkCreateDebugUtilsMessengerEXT;    // NOLINT
+PFN_vkDestroyDebugUtilsMessengerEXT pfnVkDestroyDebugUtilsMessengerEXT;  // NOLINT
 
 VKAPI_ATTR VkResult VKAPI_CALL vkCreateDebugUtilsMessengerEXT(
     VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
     const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pMessenger) {
   return pfnVkCreateDebugUtilsMessengerEXT(instance, pCreateInfo, pAllocator, pMessenger);
+}
+
+VKAPI_ATTR void VKAPI_CALL
+vkDestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT messenger,
+                                const VkAllocationCallbacks* pAllocator) {
+  return pfnVkDestroyDebugUtilsMessengerEXT(instance, messenger, pAllocator);
 }
 
 VkBool32 DebugMessageFunc(VkDebugUtilsMessageSeverityFlagBitsEXT msg_severity,
@@ -55,8 +60,13 @@ VulkanContext::VulkanContext(const VulkanContextCreateOptions& options,
   pfnVkCreateDebugUtilsMessengerEXT = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(
       instance.getProcAddr("vkCreateDebugUtilsMessengerEXT"));
   if (pfnVkCreateDebugUtilsMessengerEXT == nullptr) {
-    logger::fatal("GetInstanceProcAddr: Unable top find pfnVkCreateDebugUtilsMessengerEXT");
+    logger::fatal("GetInstanceProcAddr: Unable top find vkCreateDebugUtilsMessengerEXT");
   }
+
+  pfnVkDestroyDebugUtilsMessengerEXT = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(
+      instance.getProcAddr("vkDestroyDebugUtilsMessengerEXT"));
+  if (pfnVkDestroyDebugUtilsMessengerEXT == nullptr)
+    logger::fatal("GetInstanceProcAddr: Unable top find vkDestroyDebugUtilsMessengerEXT");
 
   vk::DebugUtilsMessageSeverityFlagsEXT severity_flags(
       vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo |
@@ -97,6 +107,9 @@ VulkanContext::~VulkanContext() {
 
   instance.destroySurfaceKHR(surface->GetHandle());
   device->GetHandle().destroy();
+
+  instance.destroyDebugUtilsMessengerEXT(debug_utils_messenger);
+  instance.destroy();
 }
 
 const vk::SurfaceFormatKHR& VulkanContext::GetSurfaceFormat() const { return surface->GetFormat(); }
