@@ -32,43 +32,56 @@ RenderContext::~RenderContext() {
 }
 
 void RenderContext::BeginFrame() {
+  ZoneScoped;  // NOLINT
+
   const auto device = vulkan_context->GetLogicalDevice()->GetHandle();
-
-  vk::Result wait_for_fence =
-      device.waitForFences(in_flight_fences[current_frame_index], VK_FALSE, UINT64_MAX);
-  if (wait_for_fence != vk::Result::eSuccess) logger::fatal("Failed to wait for fence");
-
-  // Acquire Swapchain Image
-  const auto acquired_image_index = device.acquireNextImageKHR(
-      swapchain->GetHandle(), UINT64_MAX, image_available_semaphores[current_frame_index]);
-  if (acquired_image_index.result == vk::Result::eErrorOutOfDateKHR) {
-    swapchain->RecreateSwapchain(surface_extent);
-    return;
+  {
+    ZoneScopedN("Wait for Fence");  // NOLINT
+    vk::Result wait_for_fence =
+        device.waitForFences(in_flight_fences[current_frame_index], VK_FALSE, UINT64_MAX);
+    if (wait_for_fence != vk::Result::eSuccess) logger::fatal("Failed to wait for fence");
   }
-  swapchain_image_index = acquired_image_index.value;
+
+  {
+    ZoneScopedN("Acquire Swapchain Image");  // NOLINT
+
+    // Acquire Swapchain Image
+    const auto acquired_image_index = device.acquireNextImageKHR(
+        swapchain->GetHandle(), UINT64_MAX, image_available_semaphores[current_frame_index]);
+    if (acquired_image_index.result == vk::Result::eErrorOutOfDateKHR) {
+      swapchain->RecreateSwapchain(surface_extent);
+      return;
+    }
+    swapchain_image_index = acquired_image_index.value;
+  }
 
   device.resetFences(in_flight_fences[current_frame_index]);
+  {
+    // Record Command Buffers
+    ZoneScopedN("Record Command Buffers");  // NOLINT
+    command_buffers[current_frame_index].reset();
+    command_buffers[current_frame_index].begin(vk::CommandBufferBeginInfo());
 
-  // Record Command Buffers
-  command_buffers[current_frame_index].reset();
-  command_buffers[current_frame_index].begin(vk::CommandBufferBeginInfo());
+    auto clear_colours =
+        vk::ClearValue(vk::ClearColorValue(std::array<float, 4>{0.1F, 0.1F, 0.1F}));
+    vk::RenderPassBeginInfo render_pass_info(render_pass->GetHandle(),
+                                             swapchain->GetFramebuffers().at(swapchain_image_index),
+                                             vk::Rect2D({0, 0}, surface_extent), clear_colours);
 
-  auto clear_colours = vk::ClearValue(vk::ClearColorValue(std::array<float, 4>{0.1F, 0.1F, 0.1F}));
-  vk::RenderPassBeginInfo render_pass_info(render_pass->GetHandle(),
-                                           swapchain->GetFramebuffers().at(swapchain_image_index),
-                                           vk::Rect2D({0, 0}, surface_extent), clear_colours);
+    command_buffers[current_frame_index].beginRenderPass(render_pass_info,
+                                                         vk::SubpassContents::eInline);
+    command_buffers[current_frame_index].bindPipeline(vk::PipelineBindPoint::eGraphics,
+                                                      render_pass->GetPipeline()->GetHandle());
 
-  command_buffers[current_frame_index].beginRenderPass(render_pass_info,
-                                                       vk::SubpassContents::eInline);
-  command_buffers[current_frame_index].bindPipeline(vk::PipelineBindPoint::eGraphics,
-                                                    render_pass->GetPipeline()->GetHandle());
-
-  command_buffers[current_frame_index].setViewport(
-      0, vk::Viewport(0, 0, surface_extent.width, surface_extent.height));
-  command_buffers[current_frame_index].setScissor(0, vk::Rect2D({0, 0}, surface_extent));
+    command_buffers[current_frame_index].setViewport(
+        0, vk::Viewport(0, 0, surface_extent.width, surface_extent.height));
+    command_buffers[current_frame_index].setScissor(0, vk::Rect2D({0, 0}, surface_extent));
+  }
 }
 
 void RenderContext::EndFrame() {
+  ZoneScoped;  // NOLINT
+
   const auto device = vulkan_context->GetLogicalDevice();
 
   command_buffers[current_frame_index].endRenderPass();
