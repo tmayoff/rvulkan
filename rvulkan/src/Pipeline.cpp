@@ -24,16 +24,14 @@ static vk::Format ShaderDataTypeToVkFormat(ShaderDataType type) {
   }
 }
 
-Pipeline::Pipeline(const std::shared_ptr<VulkanContext>& context, const PipelineOptions& options,
-                   const vk::RenderPass& renderPass)
-    : context(context) {
-  // CreateDescriptorSets(context, options);
-
+Pipeline::Pipeline(const std::shared_ptr<VulkanContext>& context, std::unique_ptr<Shader>&& shader,
+                   const PipelineOptions& options, const vk::RenderPass& renderPass)
+    : context(context), shader(std::move(shader)) {
   const std::array shader_stage_info = {
       vk::PipelineShaderStageCreateInfo({}, vk::ShaderStageFlagBits::eVertex,
-                                        options.shader.GetVertexModule(), "main"),
+                                        this->shader->GetVertexModule(), "main"),
       vk::PipelineShaderStageCreateInfo({}, vk::ShaderStageFlagBits::eFragment,
-                                        options.shader.GetFragmentModule(), "main")};
+                                        this->shader->GetFragmentModule(), "main")};
 
   std::vector<vk::VertexInputAttributeDescription> vertex_attribute_descriptions;
   const std::vector<vk::VertexInputBindingDescription> vertex_binding_descriptions = {
@@ -104,30 +102,4 @@ Pipeline::Pipeline(const std::shared_ptr<VulkanContext>& context, const Pipeline
 Pipeline::~Pipeline() {
   context->GetLogicalDevice()->GetHandle().destroyPipelineLayout(layout);
   context->GetLogicalDevice()->GetHandle().destroyPipeline(pipeline);
-}
-
-void Pipeline::CreateDescriptorSets(const std::shared_ptr<VulkanContext>& context,
-                                    const PipelineOptions& options) {
-  // std::vector<vk::DescriptorSetLayoutBinding> descriptor_bindings;
-  // for (size_t i = 0; i < options.uniform_buffer_layouts.size(); i++) {
-  //   const BufferLayout b = options.uniform_buffer_layouts[i];
-
-  //   vk::DescriptorSetLayoutBinding binding(i, vk::DescriptorType::eUniformBuffer,
-  //                                          b.GetElements().size(),
-  //                                          vk::ShaderStageFlagBits::eVertex);
-  //   descriptor_bindings.push_back(binding);
-  // }
-
-  // vk::DescriptorSetLayoutCreateInfo layout_create_info(vk::DescriptorSetLayoutCreateFlags(),
-  //                                                      descriptor_bindings);
-
-  // descriptorset_layout =
-  //     context->GetLogicalDevice()->GetHandle().createDescriptorSetLayout(layout_create_info);
-
-  // vk::DescriptorPoolSize pool_size(vk::DescriptorType::eUniformBuffer, 1);
-  // vk::DescriptorPoolCreateInfo pool_create(vk::DescriptorPoolCreateFlags(), 1, 1, &pool_size);
-  // descriptor_pool = context->GetLogicalDevice()->GetHandle().createDescriptorPool(pool_create);
-
-  // vk::DescriptorSetAllocateInfo alloc_info(descriptor_pool, descriptorset_layout);
-  // descriptor_sets = context->GetLogicalDevice()->GetHandle().allocateDescriptorSets(alloc_info);
 }

@@ -1,1 +1,1 @@
-sources += files('application.cpp', 'log.cpp', 'memory.cpp')
+sources += files('application.cpp', 'imgui_layer.cpp', 'log.cpp', 'memory.cpp')

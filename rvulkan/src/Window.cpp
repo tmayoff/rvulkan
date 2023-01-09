@@ -4,9 +4,15 @@
 #include <SDL2/SDL_vulkan.h>
 
 #include <debug/profiler.hpp>
+#include <rvulkan/core/log.hpp>
+#include <rvulkan/events/key_events.hpp>
+#include <rvulkan/events/mouse_codes.hpp>
+#include <rvulkan/events/mouse_events.hpp>
 #include <rvulkan/events/window_events.hpp>
 #include <set>
 
+#include "SDL_events.h"
+#include "SDL_mouse.h"
 #include "SDL_video.h"
 
 Window::Window()
@@ -38,6 +44,53 @@ void Window::Update() {
             break;
           }
         }
+        break;
+      }
+      case SDL_MOUSEMOTION: {
+        // auto deltaX = 0;
+        // auto deltaY = 0;
+
+        // SDL_GetRelativeMouseState(&deltaX, &deltaY);
+        MouseMoveEvent e({event.motion.x, event.motion.y});
+
+        break;
+      }
+
+      case SDL_TEXTINPUT: {
+        KeyTypedEvent e(event.text.text);
+        event_callback(e);
+        break;
+      }
+
+      case SDL_KEYDOWN: {
+        KeyPressedEvent e(static_cast<Key>(event.key.keysym.scancode));
+        event_callback(e);
+        break;
+      }
+      case SDL_KEYUP: {
+        KeyReleasedEvent e(static_cast<Key>(event.key.keysym.scancode));
+        event_callback(e);
+        break;
+      }
+
+      case SDL_MOUSEBUTTONUP: {
+        MouseButton button = MouseButton::Button0;
+        if (event.button.button == SDL_BUTTON_LEFT) button = MouseButton::ButtonLeft;
+        if (event.button.button == SDL_BUTTON_MIDDLE) button = MouseButton::ButtonMiddle;
+        if (event.button.button == SDL_BUTTON_RIGHT) button = MouseButton::ButtonRight;
+
+        MouseButtonReleasedEvent e(static_cast<MouseButton>(button));
+        event_callback(e);
+        break;
+      }
+      case SDL_MOUSEBUTTONDOWN: {
+        MouseButton button = MouseButton::Button0;
+        if (event.button.button == SDL_BUTTON_LEFT) button = MouseButton::ButtonLeft;
+        if (event.button.button == SDL_BUTTON_MIDDLE) button = MouseButton::ButtonMiddle;
+        if (event.button.button == SDL_BUTTON_RIGHT) button = MouseButton::ButtonRight;
+
+        MouseButtonPressedEvent e(static_cast<MouseButton>(button));
+        event_callback(e);
         break;
       }
     }

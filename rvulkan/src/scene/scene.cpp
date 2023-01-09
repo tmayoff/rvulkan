@@ -41,8 +41,8 @@ void Scene::OnUpdate(const RenderContext& render_context) {
   render_context.PushConstants(&push_constant, sizeof(PushConstants));
 
   registry.view<Component::MeshRenderer, Component::Transform>().each(
-      [render_context](const Component::MeshRenderer& mesh_renderer,
-                       const Component::Transform& transform) {
+      [&render_context](const Component::MeshRenderer& mesh_renderer,
+                        const Component::Transform& transform) {
         Renderer::DrawMesh(render_context, mesh_renderer, transform.GetObjectToWorld());
       });
 }

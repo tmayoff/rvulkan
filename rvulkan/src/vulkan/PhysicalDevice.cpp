@@ -13,6 +13,8 @@ PhysicalDevice::PhysicalDevice(const vk::Instance& instance,
 
   for (const auto& device : devices) {
     if (IsDeviceSuitable(device, surface)) {
+      auto props = device.getProperties();
+      logger::debug("Physical Device choosen: {}", props.deviceName);
       physical_device = device;
       break;
     }

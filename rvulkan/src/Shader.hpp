@@ -1,24 +1,31 @@
-#ifndef SHADER_HPP_
-#define SHADER_HPP_
+#ifndef SHADER_HPP
+#define SHADER_HPP
 
+#include <rvulkan/core/types.hpp>
 #include <vulkan/vulkan.hpp>
 
 class VulkanContext;
 
-class Shader {
+struct ShaderCode {
+  std::vector<uint32_t> vertex_code;
+  std::vector<uint32_t> fragment_code;
+};
+
+class Shader : public non_copyable, public non_movable {
  public:
   static std::vector<uint32_t> ReadFile(const std::string& filepath);
 
   Shader() = default;
-  Shader(const std::shared_ptr<VulkanContext>& context, const std::vector<uint32_t>& vertCode,
-         const std::vector<uint32_t>& fragCode);
+  Shader(const vk::Device& device, const ShaderCode& code);
+  ~Shader();
 
-  const vk::ShaderModule& GetVertexModule() const { return vertexShader; }
-  const vk::ShaderModule& GetFragmentModule() const { return fragmentShader; }
+  [[nodiscard]] const vk::ShaderModule& GetVertexModule() const { return vertex_module; }
+  [[nodiscard]] const vk::ShaderModule& GetFragmentModule() const { return fragment_module; }
 
  private:
-  vk::ShaderModule vertexShader;
-  vk::ShaderModule fragmentShader;
+  vk::Device device_context;
+  vk::ShaderModule vertex_module;
+  vk::ShaderModule fragment_module;
 };
 
-#endif  // SHADER_HPP_
+#endif  // SHADER_HPP

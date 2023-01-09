@@ -17,13 +17,17 @@ std::vector<uint32_t> Shader::ReadFile(const std::string& filepath) {
   return byte_code;
 }
 
-Shader::Shader(const std::shared_ptr<VulkanContext>& context, const std::vector<uint32_t>& vertCode,
-               const std::vector<uint32_t>& fragCode) {
-  vk::ShaderModuleCreateInfo vertShaderInfo;
-  vertShaderInfo.setCode(vertCode);
-  vertexShader = context->GetLogicalDevice()->GetHandle().createShaderModule(vertShaderInfo);
+Shader::Shader(const vk::Device& device, const ShaderCode& code) : device_context(device) {
+  vk::ShaderModuleCreateInfo vert_shader_info;
+  vert_shader_info.setCode(code.vertex_code);
+  vertex_module = device.createShaderModule(vert_shader_info);
 
-  vk::ShaderModuleCreateInfo fragShaderInfo;
-  fragShaderInfo.setCode(fragCode);
-  fragmentShader = context->GetLogicalDevice()->GetHandle().createShaderModule(fragShaderInfo);
+  vk::ShaderModuleCreateInfo frag_shader_info;
+  frag_shader_info.setCode(code.fragment_code);
+  fragment_module = device.createShaderModule(frag_shader_info);
+}
+
+Shader::~Shader() {
+  device_context.destroyShaderModule(vertex_module);
+  device_context.destroyShaderModule(fragment_module);
 }

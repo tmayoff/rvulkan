@@ -3,15 +3,11 @@
 #include <vulkan/vulkan_core.h>
 
 #include <debug/profiler.hpp>
-#include <exception>
 #include <rvulkan/core/log.hpp>
 #include <rvulkan/core/types.hpp>
 #include <rvulkan/renderer/mesh.hpp>
 #include <rvulkan/scene/components/mesh_renderer.hpp>
 #include <vulkan/vulkan.hpp>
-#include <vulkan/vulkan_enums.hpp>
-#include <vulkan/vulkan_handles.hpp>
-#include <vulkan/vulkan_structs.hpp>
 
 #include "Buffer.hpp"
 #include "Pipeline.hpp"
@@ -19,32 +15,13 @@
 #include "renderer/swapchain.hpp"
 
 Renderer::Renderer(const std::shared_ptr<VulkanContext>& context)
-    : vulkan_context(context), render_context(context) {
-  // Uniform buffer
-  // uniform_buffer = std::make_shared<Buffer>(context, sizeof(uniform_buffer_data),
-  //                                           VmaMemoryUsage::VMA_MEMORY_USAGE_AUTO,
-  //                                           vk::BufferUsageFlagBits::eUniformBuffer);
-
-  // Update Descriptor Sets
-  // vk::DescriptorBufferInfo buffer_info(uniform_buffer->GetHandle(), 0,
-  // sizeof(uniform_buffer_data)); vk::WriteDescriptorSet write_descriptor_set(
-  //     render_context.GetRenderPass()->GetPipeline()->GetDescriptorSets()[0], 0, 0, 1,
-  //     vk::DescriptorType::eUniformBuffer, nullptr, &buffer_info);
-  // context->GetLogicalDevice()->GetHandle().updateDescriptorSets(write_descriptor_set, nullptr);
-}
+    : vulkan_context(context), render_context(context) {}
 
 void Renderer::BeginFrame() {
   ZoneScoped;  // NOLINT
 
   render_context.BeginFrame();
 }
-
-void Renderer::BeginScene(const glm::mat4& view_projection) {
-  // uniform_buffer_data.view_projection = view_projection;
-  // uniform_buffer->SetData((void*)&uniform_buffer_data, sizeof(uniform_buffer_data));
-}
-
-void Renderer::EndScene() {}
 
 void Renderer::EndFrame() {
   ZoneScoped;  // NOLINT

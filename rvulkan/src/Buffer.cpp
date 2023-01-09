@@ -1,5 +1,8 @@
 #include "Buffer.hpp"
 
+#include <vulkan/vulkan_core.h>
+
+#include <debug/profiler.hpp>
 #include <rvulkan/core/memory.hpp>
 #include <rvulkan/vulkan_context.hpp>
 #include <vulkan/LogicalDevice.hpp>
@@ -8,6 +11,10 @@
 Buffer::Buffer(const std::shared_ptr<VulkanContext>& context, size_t byte_size,
                VmaMemoryUsage memory_usage, vk::BufferUsageFlags buffer_usage)
     : allocator(context->GetAllocator()) {
+  static int buffer_count = 0;
+  buffer_object = buffer_count;
+  buffer_count++;
+
   vk::BufferCreateInfo buffer_info{};
   buffer_info.setSize(static_cast<vk::DeviceSize>(byte_size))
       .setUsage(buffer_usage)
@@ -26,9 +33,12 @@ Buffer::Buffer(const std::shared_ptr<VulkanContext>& context, size_t byte_size,
 Buffer::~Buffer() { vmaDestroyBuffer(allocator, buffer, allocation); }
 
 void Buffer::SetData(void* data, uint32_t size) {
+  ZoneScoped;  // NOLINT
+
   void* mem = nullptr;
   vmaMapMemory(allocator, allocation, &mem);
   std::memcpy(mem, data, size);
   vmaUnmapMemory(allocator, allocation);
+  vmaFlushAllocation(allocator, allocation, 0, VK_WHOLE_SIZE);
   memory = static_cast<uint8_t*>(mem);
 }

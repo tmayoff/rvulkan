@@ -4,15 +4,21 @@
 #include <RenderPass.hpp>
 #include <rvulkan/core/types.hpp>
 #include <rvulkan/vulkan_context.hpp>
+#include <vulkan/vulkan_handles.hpp>
 #include <vulkan/vulkan_structs.hpp>
 
 #include "swapchain.hpp"
 
-const int MAX_FRAMES_IN_FLIGHT = 6;
+const int MAX_FRAMES_IN_FLIGHT = 2;
 
-class RenderContext {
+class RenderContext : public non_copyable {
  public:
+  RenderContext(const RenderContext&) = delete;
+  RenderContext(RenderContext&&) = delete;
+  RenderContext& operator=(const RenderContext&) = delete;
+  RenderContext& operator=(RenderContext&&) = delete;
   explicit RenderContext(const std::shared_ptr<VulkanContext>& vulkan_context_);
+  ~RenderContext();
 
   void BeginFrame();
   void EndFrame();
@@ -28,7 +34,12 @@ class RenderContext {
     view_resized = true;
   }
 
+  [[nodiscard]] const std::unique_ptr<Swapchain>& GetSwapchain() const { return swapchain; }
   [[nodiscard]] const std::shared_ptr<RenderPass>& GetRenderPass() const { return render_pass; }
+
+  [[nodiscard]] const vk::CommandBuffer& GetCurrentCommandBuffer() const {
+    return command_buffers[current_frame_index];
+  }
 
  private:
   void CreateRenderPass();
@@ -43,7 +54,7 @@ class RenderContext {
   bool view_resized = false;
   vk::Extent2D surface_extent;
 
-  Swapchain swapchain;
+  std::unique_ptr<Swapchain> swapchain;
   std::shared_ptr<RenderPass> render_pass;
 
   std::vector<vk::CommandBuffer> command_buffers;

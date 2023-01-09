@@ -11,11 +11,13 @@
 #include <vulkan/vulkan_handles.hpp>
 #include <vulkan/vulkan_structs.hpp>
 
-class Swapchain {
+class Swapchain : public non_copyable {
  public:
   Swapchain() = default;
   explicit Swapchain(std::shared_ptr<VulkanContext> vulkan_context_,
                      std::shared_ptr<RenderPass> render_pass_);
+
+  ~Swapchain();
 
   void RecreateSwapchain(const vk::Extent2D& surface_extent_);
 

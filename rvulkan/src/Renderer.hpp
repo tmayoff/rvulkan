@@ -29,8 +29,6 @@ class Renderer {
   [[nodiscard]] const RenderContext& GetRenderContext() const { return render_context; }
 
   void BeginFrame();
-  void BeginScene(const glm::mat4& view_projection);
-  void EndScene();
   void EndFrame();
 
   void ResizeViewport(resolution_t size);

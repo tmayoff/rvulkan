@@ -14,7 +14,7 @@
 class SandboxLayer : public Layer {
  public:
   explicit SandboxLayer(std::shared_ptr<VulkanContext> vulkan_context)
-      : vulkan_context(std::move(vulkan_context)) {}
+      : Layer("SandboxLayer"), vulkan_context(std::move(vulkan_context)) {}
 
   void OnAttach() override;
   void OnUpdate(const RenderContext& render_context) override;
@@ -28,11 +28,8 @@ class SandboxLayer : public Layer {
 };
 
 int main() {
-  auto app = std::make_shared<Application>();
-  auto layer = std::make_shared<SandboxLayer>(app->GetVulkanContext());
-
-  app->PushLayer(layer);
-
+  auto app = std::make_shared<Application>(AppSettings{false});
+  app->PushLayer(std::make_unique<SandboxLayer>(app->GetVulkanContext()));
   app->Run();
 }
 
