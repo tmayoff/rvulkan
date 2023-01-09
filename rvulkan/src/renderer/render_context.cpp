@@ -8,11 +8,10 @@
 #include <vulkan/vulkan_enums.hpp>
 #include <vulkan/vulkan_structs.hpp>
 
-RenderContext::RenderContext(const std::shared_ptr<VulkanContext>& vulkan_context_)
-    : vulkan_context(vulkan_context_) {
-  CreateRenderPass();
-
-  swapchain = std::make_unique<Swapchain>(vulkan_context_, render_pass);
+RenderContext::RenderContext(const std::shared_ptr<VulkanContext>& vulkan_context_,
+                             std::shared_ptr<RenderPass> present_render_pass_)
+    : vulkan_context(vulkan_context_), present_render_pass(std::move(present_render_pass_)) {
+  swapchain = std::make_unique<Swapchain>(vulkan_context_, present_render_pass);
 
   CreateCommandBuffers();
   CreateSyncObjects();
@@ -28,10 +27,10 @@ RenderContext::~RenderContext() {
   for (const auto& semaphore : render_finished_semaphores) device.destroySemaphore(semaphore);
   for (const auto& fence : in_flight_fences) device.destroyFence(fence);
 
-  render_pass.reset();
+  present_render_pass.reset();
 }
 
-void RenderContext::BeginFrame() {
+void RenderContext::PrepareFrame() {
   ZoneScoped;  // NOLINT
 
   const auto device = vulkan_context->GetLogicalDevice()->GetHandle();
@@ -56,36 +55,12 @@ void RenderContext::BeginFrame() {
   }
 
   device.resetFences(in_flight_fences[current_frame_index]);
-  {
-    // Record Command Buffers
-    ZoneScopedN("Record Command Buffers");  // NOLINT
-    command_buffers[current_frame_index].reset();
-    command_buffers[current_frame_index].begin(vk::CommandBufferBeginInfo());
-
-    auto clear_colours =
-        vk::ClearValue(vk::ClearColorValue(std::array<float, 4>{0.1F, 0.1F, 0.1F}));
-    vk::RenderPassBeginInfo render_pass_info(render_pass->GetHandle(),
-                                             swapchain->GetFramebuffers().at(swapchain_image_index),
-                                             vk::Rect2D({0, 0}, surface_extent), clear_colours);
-
-    command_buffers[current_frame_index].beginRenderPass(render_pass_info,
-                                                         vk::SubpassContents::eInline);
-    command_buffers[current_frame_index].bindPipeline(vk::PipelineBindPoint::eGraphics,
-                                                      render_pass->GetPipeline()->GetHandle());
-
-    command_buffers[current_frame_index].setViewport(
-        0, vk::Viewport(0, 0, surface_extent.width, surface_extent.height));
-    command_buffers[current_frame_index].setScissor(0, vk::Rect2D({0, 0}, surface_extent));
-  }
 }
 
-void RenderContext::EndFrame() {
+void RenderContext::PresentFrame() {
   ZoneScoped;  // NOLINT
 
   const auto device = vulkan_context->GetLogicalDevice();
-
-  command_buffers[current_frame_index].endRenderPass();
-  command_buffers[current_frame_index].end();
 
   std::array wait_stages = {
       vk::PipelineStageFlags(vk::PipelineStageFlagBits::eColorAttachmentOutput)};
@@ -120,14 +95,9 @@ void RenderContext::EndFrame() {
 
 void RenderContext::PushConstants(void* data, size_t size) const {
   command_buffers[current_frame_index].pushConstants(
-      render_pass->GetPipeline()->GetLayout(), vk::ShaderStageFlagBits::eVertex, 0, size, data);
+      present_render_pass->GetPipeline()->GetLayout(), vk::ShaderStageFlagBits::eVertex, 0, size,
+      data);
 }
-
-// void RenderContext::BindDescriptorSet() {
-//   command_buffers[current_frame_index].bindDescriptorSets(
-//       vk::PipelineBindPoint::eGraphics, render_pass->GetPipeline()->GetLayout(), 0,
-//       render_pass->GetPipeline()->GetDescriptorSets(), nullptr);
-// }
 
 void RenderContext::BindVertexBuffer(uint32_t first_binding, const vk::Buffer& buffer,
                                      const std::vector<uint64_t>& offsets) const {
@@ -142,18 +112,19 @@ void RenderContext::DrawIndexed(uint32_t index_count) const {
   command_buffers[current_frame_index].drawIndexed(index_count, 1, 0, 0, 0);
 }
 
-void RenderContext::CreateRenderPass() {
-  PipelineOptions pipeline_options{};
+void RenderContext::RunOneTimeCommand(
+    const std::function<void(vk::CommandBuffer&)>& command_sequence) {
+  vk::CommandBufferBeginInfo begin_info(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
+  one_time_cmd_buffer.begin(begin_info);
 
-  auto shader =
-      std::make_unique<Shader>(vulkan_context->GetLogicalDevice()->GetHandle(),
-                               ShaderCode{Shader::ReadFile("rvulkan/assets/shaders/vert.spv"),
-                                          Shader::ReadFile("rvulkan/assets/shaders/frag.spv")});
-  pipeline_options.surface_extent = surface_extent;
-  pipeline_options.bufferLayout = Vertex::GetLayout();
-  pipeline_options.uniform_buffer_layouts = {Vertex::GetUniformLayout()};
+  command_sequence(one_time_cmd_buffer);
 
-  render_pass = std::make_shared<RenderPass>(vulkan_context, std::move(shader), pipeline_options);
+  one_time_cmd_buffer.end();
+
+  vk::SubmitInfo submit_info({}, {}, one_time_cmd_buffer);
+
+  vulkan_context->GetLogicalDevice()->GetGraphicsQueue().submit(submit_info);
+  vulkan_context->GetLogicalDevice()->GetHandle().waitIdle();
 }
 
 void RenderContext::CreateCommandBuffers() {
@@ -163,6 +134,10 @@ void RenderContext::CreateCommandBuffers() {
                                            vk::CommandBufferLevel::ePrimary, MAX_FRAMES_IN_FLIGHT);
   command_buffers =
       vulkan_context->GetLogicalDevice()->GetHandle().allocateCommandBuffers(alloc_info);
+
+  alloc_info.setCommandBufferCount(1);
+  one_time_cmd_buffer =
+      vulkan_context->GetLogicalDevice()->GetHandle().allocateCommandBuffers(alloc_info).front();
 }
 
 void RenderContext::CreateSyncObjects() {

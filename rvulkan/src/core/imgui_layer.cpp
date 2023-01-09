@@ -37,15 +37,14 @@ ImGuiLayer::ImGuiLayer(const std::shared_ptr<Window>& window,
   init_info.Queue = vulkan_context->GetLogicalDevice()->GetGraphicsQueue();
   init_info.DescriptorPool = vulkan_context->GetDescriptorPool();
   init_info.MinImageCount = 2;
-  init_info.ImageCount = renderer->GetRenderContext().GetSwapchain()->GetImageViews().size();
+  init_info.ImageCount = renderer->GetRenderContext()->GetSwapchain()->GetImageViews().size();
   init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
 
-  bool inited =
-      ImGui_ImplVulkan_Init(&init_info, renderer->GetRenderContext().GetRenderPass()->GetHandle());
+  // bool inited = ImGui_ImplVulkan_Init(&init_info, renderer->GetRenderContext()->GetHandle());
 
-  if (!inited) logger::fatal("Failed to init imgui vulkan");
+  // if (!inited) logger::fatal("Failed to init imgui vulkan");
 
-  CreateFontAtlas(vulkan_context, renderer);
+  CreateFontAtlas(renderer);
 }
 
 void ImGuiLayer::Begin() {
@@ -65,8 +64,8 @@ void ImGuiLayer::OnDetach() {
   ImGui::DestroyContext();
 }
 
-void ImGuiLayer::OnUpdate(const RenderContext& render_context) {
-  ImGui_ImplVulkan_RenderDrawData(draw_data, render_context.GetCurrentCommandBuffer());
+void ImGuiLayer::OnUpdate(const std::shared_ptr<RenderContext>& render_context) {
+  ImGui_ImplVulkan_RenderDrawData(draw_data, render_context->GetCurrentCommandBuffer());
 }
 
 void ImGuiLayer::OnEvent(Event& event) {
@@ -117,22 +116,9 @@ void ImGuiLayer::OnEvent(Event& event) {
   });
 }
 
-void ImGuiLayer::CreateFontAtlas(std::shared_ptr<VulkanContext>& vulkan_context,
-                                 const std::shared_ptr<Renderer>& renderer) {
-  // TODO Clean this up, manually setting this all is a bit weird
-
-  auto cmd_buffer = renderer->GetRenderContext().GetCurrentCommandBuffer();
-
-  vk::CommandBufferBeginInfo begin_info(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
-  cmd_buffer.begin(begin_info);
-
-  ImGui_ImplVulkan_CreateFontsTexture(cmd_buffer);
-  cmd_buffer.end();
-
-  vk::SubmitInfo submit_info({}, {}, cmd_buffer);
-
-  vulkan_context->GetLogicalDevice()->GetGraphicsQueue().submit(submit_info);
-  vulkan_context->GetLogicalDevice()->GetHandle().waitIdle();
+void ImGuiLayer::CreateFontAtlas(const std::shared_ptr<Renderer>& renderer) {
+  renderer->GetRenderContext()->RunOneTimeCommand(
+      [](const vk::CommandBuffer& cmd_buffer) { ImGui_ImplVulkan_CreateFontsTexture(cmd_buffer); });
 
   ImGui_ImplVulkan_DestroyFontUploadObjects();
 }

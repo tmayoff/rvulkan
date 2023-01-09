@@ -21,7 +21,7 @@ Entity Scene::CreateEntity(const std::string& tag) {
   return entity;
 }
 
-void Scene::OnUpdate(const RenderContext& render_context) {
+void Scene::OnUpdate(const std::shared_ptr<RenderContext>& render_context) {
   std::optional<Entity> main_camera = std::nullopt;
   auto cameras = registry.view<Component::Camera>();
   for (const auto& cam_entity : cameras) {
@@ -38,7 +38,7 @@ void Scene::OnUpdate(const RenderContext& render_context) {
   auto camera_matrix = glm::inverse(main_camera->GetTransform().GetObjectToWorld()) *
                        main_camera->GetComponent<Component::Camera>().GetViewMatrix();
   PushConstants push_constant{camera_matrix};
-  render_context.PushConstants(&push_constant, sizeof(PushConstants));
+  render_context->PushConstants(&push_constant, sizeof(PushConstants));
 
   registry.view<Component::MeshRenderer, Component::Transform>().each(
       [&render_context](const Component::MeshRenderer& mesh_renderer,

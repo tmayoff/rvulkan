@@ -1,5 +1,5 @@
-#ifndef RENDERER_HPP_
-#define RENDERER_HPP_
+#ifndef RENDERER_HPP
+#define RENDERER_HPP
 
 #include <vulkan/vulkan_core.h>
 
@@ -15,8 +15,8 @@
 #include <vulkan/vulkan_structs.hpp>
 
 #include "Buffer.hpp"
-#include "RenderPass.hpp"
 #include "renderer/render_context.hpp"
+#include "renderer/render_pass.hpp"
 
 namespace Component {
 class MeshRenderer;
@@ -24,23 +24,32 @@ class MeshRenderer;
 
 class Renderer {
  public:
-  explicit Renderer(const std::shared_ptr<VulkanContext>& context);
+  explicit Renderer(std::shared_ptr<VulkanContext> vulkan_context_);
 
-  [[nodiscard]] const RenderContext& GetRenderContext() const { return render_context; }
+  [[nodiscard]] const std::shared_ptr<RenderContext>& GetRenderContext() const {
+    return render_context;
+  }
 
   void BeginFrame();
   void EndFrame();
 
   void ResizeViewport(resolution_t size);
 
-  static void DrawMesh(const RenderContext& render_context,
+  static void DrawMesh(const std::shared_ptr<RenderContext>& render_context,
                        const Component::MeshRenderer& mesh_renderer, const glm::mat4& transform);
 
  private:
   std::shared_ptr<VulkanContext> vulkan_context;
-  RenderContext render_context;
+  std::shared_ptr<RenderContext> render_context;
+
+  std::shared_ptr<RenderPass> present_render_pass;
+
+  vk::Extent2D surface_extent;
 };
 
-inline void Renderer::ResizeViewport(resolution_t size) { render_context.Resize(size); }
+inline void Renderer::ResizeViewport(resolution_t size) {
+  surface_extent = vk::Extent2D(size.first, size.second);
+  render_context->Resize(surface_extent);
+}
 
-#endif  // RENDERER_HPP_
+#endif  // RENDERER_HPP

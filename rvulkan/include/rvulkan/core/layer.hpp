@@ -3,6 +3,7 @@
 
 class RenderContext;
 
+#include <memory>
 #include <rvulkan/events/event.hpp>
 #include <utility>
 
@@ -14,7 +15,7 @@ class Layer {
 
   virtual void OnAttach() {}
   virtual void OnDetach() {}
-  virtual void OnUpdate(const RenderContext& /*unused*/) {}
+  virtual void OnUpdate(const std::shared_ptr<RenderContext>& /*unused*/) {}
   virtual void OnImGuiUpdate() {}
   virtual void OnEvent(Event& /*unused*/) {}
 

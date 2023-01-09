@@ -17,7 +17,7 @@ class SandboxLayer : public Layer {
       : Layer("SandboxLayer"), vulkan_context(std::move(vulkan_context)) {}
 
   void OnAttach() override;
-  void OnUpdate(const RenderContext& render_context) override;
+  void OnUpdate(const std::shared_ptr<RenderContext>& render_context) override;
   void OnEvent(Event& e) override;
 
  private:
@@ -46,7 +46,7 @@ inline void SandboxLayer::OnAttach() {
   quad.AddComponent<Component::MeshRenderer>(Mesh::CreateQuadMesh(vulkan_context));
 }
 
-inline void SandboxLayer::OnUpdate(const RenderContext& render_context) {
+inline void SandboxLayer::OnUpdate(const std::shared_ptr<RenderContext>& render_context) {
   scene->OnUpdate(render_context);
 }
 
