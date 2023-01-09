@@ -99,12 +99,6 @@ void RenderContext::PushConstants(void* data, size_t size) const {
       data);
 }
 
-// void RenderContext::BindDescriptorSet() {
-//   command_buffers[current_frame_index].bindDescriptorSets(
-//       vk::PipelineBindPoint::eGraphics, render_pass->GetPipeline()->GetLayout(), 0,
-//       render_pass->GetPipeline()->GetDescriptorSets(), nullptr);
-// }
-
 void RenderContext::BindVertexBuffer(uint32_t first_binding, const vk::Buffer& buffer,
                                      const std::vector<uint64_t>& offsets) const {
   command_buffers[current_frame_index].bindVertexBuffers(first_binding, buffer, offsets);
@@ -118,6 +112,21 @@ void RenderContext::DrawIndexed(uint32_t index_count) const {
   command_buffers[current_frame_index].drawIndexed(index_count, 1, 0, 0, 0);
 }
 
+void RenderContext::RunOneTimeCommand(
+    const std::function<void(vk::CommandBuffer&)>& command_sequence) {
+  vk::CommandBufferBeginInfo begin_info(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
+  one_time_cmd_buffer.begin(begin_info);
+
+  command_sequence(one_time_cmd_buffer);
+
+  one_time_cmd_buffer.end();
+
+  vk::SubmitInfo submit_info({}, {}, one_time_cmd_buffer);
+
+  vulkan_context->GetLogicalDevice()->GetGraphicsQueue().submit(submit_info);
+  vulkan_context->GetLogicalDevice()->GetHandle().waitIdle();
+}
+
 void RenderContext::CreateCommandBuffers() {
   command_buffers.reserve(MAX_FRAMES_IN_FLIGHT);
 
@@ -125,6 +134,10 @@ void RenderContext::CreateCommandBuffers() {
                                            vk::CommandBufferLevel::ePrimary, MAX_FRAMES_IN_FLIGHT);
   command_buffers =
       vulkan_context->GetLogicalDevice()->GetHandle().allocateCommandBuffers(alloc_info);
+
+  alloc_info.setCommandBufferCount(1);
+  one_time_cmd_buffer =
+      vulkan_context->GetLogicalDevice()->GetHandle().allocateCommandBuffers(alloc_info).front();
 }
 
 void RenderContext::CreateSyncObjects() {

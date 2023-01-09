@@ -32,6 +32,8 @@ class RenderContext : public non_copyable, public non_movable {
     view_resized = true;
   }
 
+  void RunOneTimeCommand(const std::function<void(vk::CommandBuffer&)>& command_sequence);
+
   [[nodiscard]] const std::unique_ptr<Swapchain>& GetSwapchain() const { return swapchain; }
 
   [[nodiscard]] const vk::Framebuffer& GetCurrentFrameBuffer() const {
@@ -57,6 +59,7 @@ class RenderContext : public non_copyable, public non_movable {
   std::unique_ptr<Swapchain> swapchain;
   std::shared_ptr<RenderPass> present_render_pass;
 
+  vk::CommandBuffer one_time_cmd_buffer;
   std::vector<vk::CommandBuffer> command_buffers;
   std::vector<vk::Semaphore> image_available_semaphores;
   std::vector<vk::Semaphore> render_finished_semaphores;

@@ -24,8 +24,7 @@ class ImGuiLayer : public Layer {
   void OnEvent(Event& event) override;
 
  private:
-  static void CreateFontAtlas(std::shared_ptr<VulkanContext>& vulkan_context,
-                              const std::shared_ptr<Renderer>& renderer);
+  static void CreateFontAtlas(const std::shared_ptr<Renderer>& renderer);
 
   ImDrawData* draw_data = nullptr;
 };
