@@ -11,17 +11,15 @@
 
 const int MAX_FRAMES_IN_FLIGHT = 2;
 
-class RenderContext : public non_copyable {
+class RenderContext : public non_copyable, public non_movable {
  public:
-  RenderContext(const RenderContext&) = delete;
-  RenderContext(RenderContext&&) = delete;
-  RenderContext& operator=(const RenderContext&) = delete;
-  RenderContext& operator=(RenderContext&&) = delete;
-  explicit RenderContext(const std::shared_ptr<VulkanContext>& vulkan_context_);
+  RenderContext() = default;
+  RenderContext(const std::shared_ptr<VulkanContext>& vulkan_context_,
+                std::shared_ptr<RenderPass> present_render_pass_);
   ~RenderContext();
 
-  void BeginFrame();
-  void EndFrame();
+  void PrepareFrame();
+  void PresentFrame();
 
   void PushConstants(void* data, size_t size) const;
   void BindVertexBuffer(uint32_t first_binding, const vk::Buffer& buffer,
@@ -29,20 +27,22 @@ class RenderContext : public non_copyable {
   void BindIndexBuffer(const vk::Buffer& buffer) const;
   void DrawIndexed(uint32_t index_count) const;
 
-  void Resize(const resolution_t& size) {
-    surface_extent = vk::Extent2D(size.first, size.second);
+  void Resize(const vk::Extent2D& extent) {
+    surface_extent = extent;
     view_resized = true;
   }
 
   [[nodiscard]] const std::unique_ptr<Swapchain>& GetSwapchain() const { return swapchain; }
-  [[nodiscard]] const std::shared_ptr<RenderPass>& GetRenderPass() const { return render_pass; }
+
+  [[nodiscard]] const vk::Framebuffer& GetCurrentFrameBuffer() const {
+    return swapchain->GetFramebuffers()[current_frame_index];
+  }
 
   [[nodiscard]] const vk::CommandBuffer& GetCurrentCommandBuffer() const {
     return command_buffers[current_frame_index];
   }
 
  private:
-  void CreateRenderPass();
   void CreateCommandBuffers();
   void CreateSyncObjects();
 
@@ -55,7 +55,7 @@ class RenderContext : public non_copyable {
   vk::Extent2D surface_extent;
 
   std::unique_ptr<Swapchain> swapchain;
-  std::shared_ptr<RenderPass> render_pass;
+  std::shared_ptr<RenderPass> present_render_pass;
 
   std::vector<vk::CommandBuffer> command_buffers;
   std::vector<vk::Semaphore> image_available_semaphores;

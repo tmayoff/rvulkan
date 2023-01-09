@@ -20,7 +20,7 @@ class ImGuiLayer : public Layer {
   void End();
 
   void OnDetach() override;
-  void OnUpdate(const RenderContext& render_context) override;
+  void OnUpdate(const std::shared_ptr<RenderContext>& render_context) override;
   void OnEvent(Event& event) override;
 
  private:

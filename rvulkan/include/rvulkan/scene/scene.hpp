@@ -14,7 +14,7 @@ class Scene {
  public:
   Entity CreateEntity(const std::string& tag);
 
-  void OnUpdate(const RenderContext& render_context);
+  void OnUpdate(const std::shared_ptr<RenderContext>& render_context);
 
   void OnWindowResize(std::pair<float, float> size);
 
