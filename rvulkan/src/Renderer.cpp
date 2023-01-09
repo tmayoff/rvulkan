@@ -64,6 +64,9 @@ void Renderer::BeginFrame() {
 void Renderer::EndFrame() {
   ZoneScopedN(__PRETTY_FUNCTION__);  // NOLINT
 
+  render_context->GetCurrentCommandBuffer().endRenderPass();
+  render_context->GetCurrentCommandBuffer().end();
+
   render_context->PresentFrame();
 }
 

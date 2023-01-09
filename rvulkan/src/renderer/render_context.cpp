@@ -62,9 +62,6 @@ void RenderContext::PresentFrame() {
 
   const auto device = vulkan_context->GetLogicalDevice();
 
-  command_buffers[current_frame_index].endRenderPass();
-  command_buffers[current_frame_index].end();
-
   std::array wait_stages = {
       vk::PipelineStageFlags(vk::PipelineStageFlagBits::eColorAttachmentOutput)};
 

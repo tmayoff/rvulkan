@@ -35,7 +35,7 @@ class RenderContext : public non_copyable, public non_movable {
   [[nodiscard]] const std::unique_ptr<Swapchain>& GetSwapchain() const { return swapchain; }
 
   [[nodiscard]] const vk::Framebuffer& GetCurrentFrameBuffer() const {
-    return swapchain->GetFramebuffers()[current_frame_index];
+    return swapchain->GetFramebuffers()[swapchain_image_index];
   }
 
   [[nodiscard]] const vk::CommandBuffer& GetCurrentCommandBuffer() const {
