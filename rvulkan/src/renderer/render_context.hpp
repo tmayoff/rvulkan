@@ -1,12 +1,12 @@
 #ifndef RENDER_CONTEXT_HPP
 #define RENDER_CONTEXT_HPP
 
-#include <RenderPass.hpp>
 #include <rvulkan/core/types.hpp>
 #include <rvulkan/vulkan_context.hpp>
 #include <vulkan/vulkan_handles.hpp>
 #include <vulkan/vulkan_structs.hpp>
 
+#include "render_pass.hpp"
 #include "swapchain.hpp"
 
 const int MAX_FRAMES_IN_FLIGHT = 2;

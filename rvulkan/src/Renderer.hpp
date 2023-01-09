@@ -15,8 +15,8 @@
 #include <vulkan/vulkan_structs.hpp>
 
 #include "Buffer.hpp"
-#include "RenderPass.hpp"
 #include "renderer/render_context.hpp"
+#include "renderer/render_pass.hpp"
 
 namespace Component {
 class MeshRenderer;

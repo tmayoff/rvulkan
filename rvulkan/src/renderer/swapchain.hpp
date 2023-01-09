@@ -1,7 +1,6 @@
 #ifndef SWAPCHAIN_HPP
 #define SWAPCHAIN_HPP
 
-#include <RenderPass.hpp>
 #include <memory>
 #include <mutex>
 #include <rvulkan/core/types.hpp>
@@ -10,6 +9,8 @@
 #include <vulkan/vulkan.hpp>
 #include <vulkan/vulkan_handles.hpp>
 #include <vulkan/vulkan_structs.hpp>
+
+#include "render_pass.hpp"
 
 class Swapchain : public non_copyable {
  public:

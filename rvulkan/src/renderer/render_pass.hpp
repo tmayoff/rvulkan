@@ -1,5 +1,5 @@
-#ifndef RENDERPASS_HPP_
-#define RENDERPASS_HPP_
+#ifndef RENDER_PASS_HPP
+#define RENDER_PASS_HPP
 
 #include <rvulkan/core/types.hpp>
 #include <rvulkan/vulkan_context.hpp>
@@ -28,4 +28,4 @@ class RenderPass : public non_copyable, public non_movable {
   std::unique_ptr<Shader> shader;
 };
 
-#endif  // RENDERPASS_HPP_
+#endif  // RENDER_PASS_HPP

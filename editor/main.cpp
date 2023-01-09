@@ -4,6 +4,7 @@
 #include <memory>
 #include <rvulkan/core/application.hpp>
 #include <rvulkan/core/layer.hpp>
+#include <rvulkan/scene/components/camera.hpp>
 #include <rvulkan/scene/components/mesh_renderer.hpp>
 #include <rvulkan/scene/entity.hpp>
 #include <rvulkan/scene/scene.hpp>
@@ -21,6 +22,11 @@ class EditorLayer : public Layer {
         inspector(scene) {}
 
   void OnAttach() override {
+    camera = scene->CreateEntity("Main Camera");
+
+    camera.AddComponent<Component::Camera>(Component::ProjectionType::Orthographic, 16.0F / 9.0F,
+                                           Component::OrthographicData{});
+
     auto quad = scene->CreateEntity("Quad");
     quad.AddComponent<Component::MeshRenderer>(Mesh::CreateQuadMesh(vulkan_context));
   }
@@ -44,6 +50,9 @@ class EditorLayer : public Layer {
   std::shared_ptr<VulkanContext> vulkan_context;
 
   std::shared_ptr<Scene> scene;
+
+  Entity camera;
+
   SceneHierarchy scene_hierarchy;
   Inspector inspector;
 };
